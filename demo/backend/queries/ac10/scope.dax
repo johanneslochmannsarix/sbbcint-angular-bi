@@ -1,0 +1,48 @@
+-- Filter bar + breadcrumbs: every selectable value with its ORDINAL, the handle the browser filters by
+-- (README "Filters and params"). Ordinal = 1 + number of distinct non-blank values sorting before it in the
+-- column - the same expression every filtered query uses to resolve the int back to the value.
+--   mandant   dim_scope[tenant_name]                       (all 7, incl. the error rows)
+--   depot     dim_scope Mandant x Depot pairs, ordinal of the depot name (a depot sits under one Mandant;
+--             the error label "(unbekannt)" sits under both error Mandanten and shares its ordinal)
+--   haupttyp  dim_scope Mandant x Haupttyp pairs, ordinal of the Haupttyp, mandanten = how many Mandanten
+--             carry that Haupttyp in dim_scope (R6: it may span Mandanten)
+--   kategorie fact fahren_kategorie (tier 2 only; under "(kein Mandant)")
+-- n_gesamt / n_offen over the whole Gold window: [Anzahl Schichten] / [Anzahl ungeplante Schichten], for
+-- categories [Anzahl offene Schichtelemente] (always all open).
+EVALUATE
+VAR _mand =
+    ADDCOLUMNS (
+        FILTER ( ALL ( 'dim_scope'[tenant_name] ), NOT ISBLANK ( 'dim_scope'[tenant_name] ) ),
+        "@ix", 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[tenant_name] ), NOT ISBLANK ( 'dim_scope'[tenant_name] ) && 'dim_scope'[tenant_name] < EARLIER ( 'dim_scope'[tenant_name] ) ) ),
+        "@g", CALCULATE ( [Anzahl Schichten] ),
+        "@o", CALCULATE ( [Anzahl ungeplante Schichten] )
+    )
+VAR _dep =
+    ADDCOLUMNS (
+        FILTER ( SUMMARIZE ( ALL ( 'dim_scope' ), 'dim_scope'[tenant_name], 'dim_scope'[depot_name] ), NOT ISBLANK ( 'dim_scope'[depot_name] ) ),
+        "@ix", 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[depot_name] ), NOT ISBLANK ( 'dim_scope'[depot_name] ) && 'dim_scope'[depot_name] < EARLIER ( 'dim_scope'[depot_name] ) ) ),
+        "@g", CALCULATE ( [Anzahl Schichten] ),
+        "@o", CALCULATE ( [Anzahl ungeplante Schichten] )
+    )
+VAR _ht =
+    ADDCOLUMNS (
+        FILTER ( SUMMARIZE ( ALL ( 'dim_scope' ), 'dim_scope'[tenant_name], 'dim_scope'[haupttyp_name] ), NOT ISBLANK ( 'dim_scope'[haupttyp_name] ) ),
+        "@ix", 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[haupttyp_name] ), NOT ISBLANK ( 'dim_scope'[haupttyp_name] ) && 'dim_scope'[haupttyp_name] < EARLIER ( 'dim_scope'[haupttyp_name] ) ) ),
+        "@g", CALCULATE ( [Anzahl Schichten] ),
+        "@o", CALCULATE ( [Anzahl ungeplante Schichten] ),
+        "@m", CALCULATE ( DISTINCTCOUNT ( 'dim_scope'[tenant_name] ), REMOVEFILTERS ( 'dim_scope'[tenant_name] ) )
+    )
+VAR _kat =
+    ADDCOLUMNS (
+        FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ), NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] ) ),
+        "@ix", 1 + COUNTROWS ( FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ), NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] ) && 'fact_shift_besetzung'[fahren_kategorie] < EARLIER ( 'fact_shift_besetzung'[fahren_kategorie] ) ) ),
+        "@g", CALCULATE ( [Anzahl offene Schichtelemente] )
+    )
+RETURN
+    UNION (
+        SELECTCOLUMNS ( _mand, "art", "mandant", "ix", [@ix], "label", 'dim_scope'[tenant_name], "mandant", 'dim_scope'[tenant_name], "n_gesamt", [@g], "n_offen", [@o], "mandanten", 1 ),
+        SELECTCOLUMNS ( _dep, "art", "depot", "ix", [@ix], "label", 'dim_scope'[depot_name], "mandant", 'dim_scope'[tenant_name], "n_gesamt", [@g], "n_offen", [@o], "mandanten", 1 ),
+        SELECTCOLUMNS ( _ht, "art", "haupttyp", "ix", [@ix], "label", 'dim_scope'[haupttyp_name], "mandant", 'dim_scope'[tenant_name], "n_gesamt", [@g], "n_offen", [@o], "mandanten", [@m] ),
+        SELECTCOLUMNS ( _kat, "art", "kategorie", "ix", [@ix], "label", 'fact_shift_besetzung'[fahren_kategorie], "mandant", "(kein Mandant)", "n_gesamt", [@g], "n_offen", [@g], "mandanten", 1 )
+    )
+ORDER BY [art], [mandant], [label]

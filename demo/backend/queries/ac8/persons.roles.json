@@ -1,0 +1,14 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "6 row labels of the duty-plan diff, 7 person chips",
+  "grain": "one row per person in dim_person_leitstelle_olten",
+  "columns": {
+    "person_sk": "label_person",
+    "person_name": "label_person",
+    "worker_type_name": "label_org",
+    "is_active": "code"
+  },
+  "person_key": "person_sk"
+}

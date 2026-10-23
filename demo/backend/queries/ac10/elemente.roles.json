@@ -1,0 +1,25 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page 2 matrix Kategorie rows x Datum columns ([Anzahl offene Schichtelemente])",
+  "view": "5 Schichtelemente ohne Schicht",
+  "grain": "fahren_kategorie x day of the window (zeros included)",
+  "params": {
+    "dates": {
+      "type": "date_window",
+      "default_days": 10,
+      "anchor": "from_today",
+      "max_days": 400
+    },
+    "kategorie": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    }
+  },
+  "columns": {
+    "fahren_kategorie": "label_technical",
+    "datum": "date",
+    "offen": "measure"
+  }
+}

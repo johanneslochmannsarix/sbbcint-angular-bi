@@ -1,0 +1,21 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: (new) per-chain Gantt; PBIR has no Gantt without a custom visual
+-- grain: one activity run of the chain (retries are separate rows)
+-- act_runs (= 1 per existing row) keeps activities whose other measures are BLANK (no Livy reading):
+-- SUMMARIZECOLUMNS drops a row only when every expression is BLANK.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_stage_run'[activity_name],
+    'fact_stage_run'[activity_type],
+    'fact_stage_run'[stage],
+    'fact_stage_run'[status],
+    'fact_stage_run'[activity_start],
+    'fact_stage_run'[activity_end],
+    'fact_stage_run'[retry_attempt],
+    TREATAS ( { {{chain_id}} }, 'fact_stage_run'[run_id] ),
+    "act_runs", [Act runs],
+    "exec_min", [Exec min],
+    "session_queued_min", [Session queued min],
+    "session_running_min", [Session running min]
+)
+ORDER BY 'fact_stage_run'[activity_start]

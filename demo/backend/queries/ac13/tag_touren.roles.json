@@ -1,0 +1,30 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Menge», table «Rohdaten - Touren» (Datum · Standort · Kennung · Tourennummer · offen · verkauft · Schulung) for one day",
+  "view": "4 heatmap day drill (tour list)",
+  "grain": "one row per tour of one day",
+  "params": {
+    "datum": { "type": "date", "required": true },
+    "standort": { "type": "int", "min": 1, "max": 100 },
+    "haupttyp": { "type": "int", "min": 1, "max": 50 }
+  },
+  "columns": {
+    "tour": "id",
+    "person": "label_person",
+    "kennung": { "role": "label_person", "person": "person" },
+    "tourennummer": "label_freetext",
+    "tour_standort": "label_org",
+    "personaltyp": "label_org",
+    "datum": "date",
+    "plan_beginn": "date",
+    "plan_ende": "date",
+    "arbeitszeit_min": "measure",
+    "angerechnet_min": "measure",
+    "offen": "measure",
+    "verkauft": "measure",
+    "schulung": "measure",
+    "rolle": "code"
+  },
+  "person_key": "person"
+}

@@ -1,0 +1,11 @@
+-- The Leitstelle Olten population (dim_person = dim_person_leitstelle_olten): the person handle and the
+-- display name (masked to the pseudonym unless the backend runs with -Real). No first / last name, no
+-- personnel number: the views need one label per person.
+EVALUATE
+SELECTCOLUMNS (
+    'dim_person',
+    "person_sk", 'dim_person'[person_sk],
+    "person_name", 'dim_person'[person_name],
+    "worker_type_name", 'dim_person'[worker_type_name],
+    "is_active", 'dim_person'[is_active]
+)

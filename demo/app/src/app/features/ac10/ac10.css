@@ -1,0 +1,64 @@
+/*
+ * AC-10 Offene Schichten. Global (ViewEncapsulation.None) but every selector is ac10-prefixed or under .ac10, so
+ * the shell and the other showcases are untouched. Tokens from the shell (styles.css :root / dark).
+ * Character: the dispatcher's board. One loud element, the Belegungstafel; the Jetzt band reads like a
+ * departure board (big tabular figures, the zwingend part as a split rule under each); the rest stays quiet.
+ * Blue always means «open»; country hues mean Land = Mandant; red never appears.
+ */
+.ac10-title { font-family: var(--font-display); font-stretch: semi-condensed; font-weight: 600; letter-spacing: 0.01em; }
+.ac10 .card-head h2 { font-family: var(--font-display); font-weight: 600; font-size: 16px; }
+
+/* ---------------------------------------------------------------- selection bar (header sub row) */
+.ac10-bar { gap: 8px 14px; }
+.ac10-back[disabled] { opacity: 0.4; cursor: default; }
+.ac10-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 0 8px 0 0; padding: 0; list-style: none; font-size: 13px; }
+.ac10-crumbs li { display: inline-flex; align-items: center; }
+.ac10-crumbs li + li::before { content: "›"; color: var(--muted); margin: 0 6px; }
+.ac10-crumbs [aria-current] { font-weight: 600; color: var(--ink); }
+.ac10-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.ac10-pick .select { max-width: 220px; font-size: 12.5px; min-height: 27px; padding: 2px 6px; color: var(--ink); }
+.ac10-warn { font-size: 12.5px; color: var(--ink); border-left: 3px solid var(--warning); padding-left: 8px; }
+
+/* ---------------------------------------------------------------- layout */
+.ac10-main { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ac10-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; align-items: start; }
+.ac10-struktur-chart { height: 600px; }
+.ac10-elemente-chart { height: 340px; }
+.ac10 .card-head > .seg, .ac10 .card-head > .ac10-tools, .ac10 .card-head > .ac10-mini { flex-shrink: 0; }
+.ac10-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.ac10-check { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+.ac10-legend { display: flex; gap: 4px 12px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); justify-content: flex-end; max-width: 560px; }
+.ac10-legend-left { justify-content: flex-start; max-width: none; margin: 2px 0 4px; }
+.ac10-key-corner { background: linear-gradient(225deg, var(--accent) 0 50%, var(--surface-2) 50%); outline: 1px solid var(--rule-strong); }
+.ac10-key-empty { background: linear-gradient(135deg, transparent 45%, var(--rule-strong) 45% 55%, transparent 55%); outline: 1px solid var(--rule-strong); }
+.ac10-key-filled { background: var(--rule); outline: 1px solid var(--rule-strong); }
+.ac10-mini { display: flex; gap: 16px; margin: 0; }
+.ac10-mini div { display: flex; flex-direction: column; align-items: flex-end; }
+.ac10-mini dt { font-size: 11.5px; color: var(--muted); }
+.ac10-mini dd { margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------- day drill list + drawer */
+.ac10-list { margin-top: 6px; }
+.ac10-list summary { cursor: pointer; font-size: 13px; color: var(--ink-2); padding: 4px 0; }
+.ac10-table { max-height: 420px; }
+.ac10-id { font-variant-numeric: tabular-nums; color: var(--muted); }
+.ac10-kicker { margin: 0; font-size: 12px; color: var(--muted); }
+.ac10-dl { display: grid; grid-template-columns: 11em minmax(0, 1fr); gap: 6px 12px; margin: 0 0 12px; font-size: 13px; }
+.ac10-dl dt { color: var(--muted); }
+.ac10-dl dd { margin: 0; overflow-wrap: anywhere; }
+
+/* ---------------------------------------------------------------- footer */
+.ac10-foot { padding: 12px 16px; gap: 8px; }
+.ac10-stamps { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0; }
+.ac10-stamps div { display: flex; flex-direction: column; }
+.ac10-stamps dt { font-size: 11.5px; color: var(--muted); }
+.ac10-stamps dd { margin: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+.ac10-rule { margin: 0; font-size: 12.5px; color: var(--ink-2); max-width: 110ch; }
+.ac10-hinweise summary { cursor: pointer; font-size: 12.5px; color: var(--ink-2); }
+.ac10-hinweise dl { display: grid; grid-template-columns: 13em minmax(0, 1fr); gap: 4px 12px; margin: 8px 0 0; font-size: 12.5px; }
+.ac10-hinweise dt { color: var(--muted); }
+.ac10-hinweise dd { margin: 0; max-width: 100ch; }
+
+@media (max-width: 1280px) {
+  .ac10-main, .ac10-pair { grid-template-columns: minmax(0, 1fr); }
+}

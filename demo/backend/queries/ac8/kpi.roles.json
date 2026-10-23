@@ -1,0 +1,36 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "1 KPI tiles + sparklines, 9 absence-window calendar, 10 story mode",
+  "grain": "one row per day / Monday-started week / whole window (param grain)",
+  "params": {
+    "dates": { "type": "date_window", "default_days": 56, "anchor": "from_today", "max_days": 400 },
+    "grain": { "type": "enum", "values": ["tag", "woche", "fenster"], "required": true },
+    "worker": { "type": "enum", "values": ["alle", "disponent", "andere"] }
+  },
+  "columns": {
+    "von": "date",
+    "bis": "date",
+    "schichten": "measure",
+    "kommuniziert": "measure",
+    "nicht_kommuniziert": "measure",
+    "geaendert_nicht_kommuniziert": "measure",
+    "nie_kommuniziert": "measure",
+    "unbesetzt": "measure",
+    "besetzt": "measure",
+    "schichtstunden": "measure",
+    "personen_mit_schicht": "measure",
+    "dienstplan": "measure",
+    "dp_kommuniziert": "measure",
+    "dp_vorheriger_stand": "measure",
+    "dp_geloescht": "measure",
+    "dp_person_entfernt": "measure",
+    "abgelehnt": "measure",
+    "veraltet": "measure",
+    "personen_abwesend": "measure",
+    "abwesenheiten": "measure"
+  },
+  "person_aggregate": true,
+  "note": "absences are windows only: no type, no reason (PLAN §13.3)"
+}

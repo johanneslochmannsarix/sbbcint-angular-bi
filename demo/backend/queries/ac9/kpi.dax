@@ -1,0 +1,114 @@
+-- KPI band (view 0), billing waterfall (view 1), Schwellwerte totals (view 6), order KPIs (view 7a): the selected
+-- Abrechnungsmonate von..bis (absent = all) as one total row (ga_total = TRUE) plus one row per Geschäftsart.
+-- Every figure is a _Kennzahlen measure, except (*):
+--   (*) rest_h = [IST-Stunden ohne Pause] - [IST-Stunden AZU] - [IST-Stunden Fahrten]: the billed time that is
+--       neither AZU nor Fahrt («Einsatz und übrige Zeit»), the waterfall's last step; billed like the others (R-NET)
+--   (*) anteil_int = SBB-CD tours of the order category «Internationale Leistungen» / all SBB-CD tours (the
+--       order decides, R-KAT; SBB CD bills per tour)
+--   quote_* = the Rückmeldequote measures for the same months taken as PLANNED months (plan_monat, R-RQ): the
+--       IST-month filter is removed for them, per IST month the quote would be 100 % by definition.
+--   (*) auftraege = distinct orders with a reported tour in the selection (a count of order names, never a name)
+DEFINE
+    VAR _von = {{von}}
+    VAR _bis = {{bis}}
+    VAR _ga = {{ga}}
+    VAR _kat = {{kat}}
+    VAR _nr = {{auftrag}}
+    VAR _vonM = IF ( ISBLANK ( _von ), BLANK (), FORMAT ( _von, "yyyy-MM" ) )
+    VAR _bisM = IF ( ISBLANK ( _bis ), BLANK (), FORMAT ( _bis, "yyyy-MM" ) )
+    VAR _gaName = SWITCH ( _ga, "AUE", "AÜ", "DL", "DL" )
+    VAR _katName = SWITCH ( _kat, "int", "Internationale Leistungen", "nat", "Nationale Leistungen", "res", "Reserven", "ll", "Langläufer Köln-Basel" )
+    VAR _auftrag =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_tour_abrechnung[dor_name] ),
+                    "@nr",
+                        VAR v = fact_tour_abrechnung[dor_name]
+                        RETURN 1 + COUNTROWS ( FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), fact_tour_abrechnung[dor_name] < v ) )
+                ),
+                [@nr] = _nr
+            ),
+            fact_tour_abrechnung[dor_name]
+        )
+    VAR _fMonat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[year_month_ist] ),
+            NOT ISBLANK ( fact_tour_abrechnung[year_month_ist] )
+                && ( ISBLANK ( _vonM ) || fact_tour_abrechnung[year_month_ist] >= _vonM )
+                && ( ISBLANK ( _bisM ) || fact_tour_abrechnung[year_month_ist] <= _bisM )
+        )
+    VAR _fPlanMonat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[plan_monat] ),
+            ( ISBLANK ( _vonM ) || fact_tour_abrechnung[plan_monat] >= _vonM )
+                && ( ISBLANK ( _bisM ) || fact_tour_abrechnung[plan_monat] <= _bisM )
+        )
+    VAR _fGa = FILTER ( ALL ( fact_tour_abrechnung[geschaeftsart] ), ISBLANK ( _ga ) || fact_tour_abrechnung[geschaeftsart] = _gaName )
+    VAR _fKat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[kategorie_auftrag] ),
+            ISBLANK ( _kat )
+                || ( _kat = "ohne" && ISBLANK ( fact_tour_abrechnung[kategorie_auftrag] ) )
+                || ( _kat <> "ohne" && fact_tour_abrechnung[kategorie_auftrag] = _katName )
+        )
+    VAR _fAuftrag = FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), ISBLANK ( _nr ) || fact_tour_abrechnung[dor_name] = _auftrag )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        ROLLUPADDISSUBTOTAL ( fact_tour_abrechnung[geschaeftsart], "ga_total" ),
+        _fMonat, _fGa, _fKat, _fAuftrag,
+        "touren", [Anzahl Touren mit IST],
+        "brutto_h", [IST-Stunden brutto],
+        "netto_h", [IST-Stunden ohne Pause],
+        "pause_h", [IST-Stunden Pause],
+        "azu_h", [IST-Stunden AZU],
+        "fahrt_h", [IST-Stunden Fahrten],
+        "rest_h", [IST-Stunden ohne Pause] - [IST-Stunden AZU] - [IST-Stunden Fahrten],
+        "anteil_pause", [Anteil Pause %],
+        "anteil_azu", [Anteil AZU %],
+        "anteil_fahrt", [Anteil Fahrten %],
+        "avg_h", [Ø IST-Dauer je Tour],
+        "ue10", [Anzahl Touren über 10 h],
+        "ue12", [Anzahl Touren über 12 h],
+        "ue14", [Anzahl Touren über 14 h],
+        "abweichungen", [Anzahl Preiskategorie-Abweichungen],
+        "touren_int", CALCULATE ( [Anzahl Touren mit IST], KEEPFILTERS ( fact_tour_abrechnung[kategorie_auftrag] = "Internationale Leistungen" ) ),
+        "touren_sbbcd", CALCULATE ( [Anzahl Touren mit IST], KEEPFILTERS ( NOT ISBLANK ( fact_tour_abrechnung[kategorie_auftrag] ) ) ),
+        "anteil_int",
+            DIVIDE (
+                CALCULATE ( [Anzahl Touren mit IST], KEEPFILTERS ( fact_tour_abrechnung[kategorie_auftrag] = "Internationale Leistungen" ) ),
+                CALCULATE ( [Anzahl Touren mit IST], KEEPFILTERS ( NOT ISBLANK ( fact_tour_abrechnung[kategorie_auftrag] ) ) )
+            ),
+        "quote", CALCULATE ( [IST-Quote %], REMOVEFILTERS ( fact_tour_abrechnung[year_month_ist] ), _fPlanMonat ),
+        "quote_abgeschlossen", CALCULATE ( [Anzahl Touren abgeschlossen], REMOVEFILTERS ( fact_tour_abrechnung[year_month_ist] ), _fPlanMonat ),
+        "quote_fehlt", CALCULATE ( [Anzahl Touren Rückmeldung fehlt], REMOVEFILTERS ( fact_tour_abrechnung[year_month_ist] ), _fPlanMonat ),
+        "n_auftraege", CALCULATE ( DISTINCTCOUNT ( fact_tour_abrechnung[dor_name] ) )
+    ),
+    "geschaeftsart", fact_tour_abrechnung[geschaeftsart],
+    "ga_total", [ga_total],
+    "touren", [touren],
+    "brutto_h", [brutto_h],
+    "netto_h", [netto_h],
+    "pause_h", [pause_h],
+    "azu_h", [azu_h],
+    "fahrt_h", [fahrt_h],
+    "rest_h", [rest_h],
+    "anteil_pause", [anteil_pause],
+    "anteil_azu", [anteil_azu],
+    "anteil_fahrt", [anteil_fahrt],
+    "avg_h", [avg_h],
+    "ue10", [ue10],
+    "ue12", [ue12],
+    "ue14", [ue14],
+    "abweichungen", [abweichungen],
+    "touren_int", [touren_int],
+    "touren_sbbcd", [touren_sbbcd],
+    "anteil_int", [anteil_int],
+    "quote", [quote],
+    "quote_abgeschlossen", [quote_abgeschlossen],
+    "quote_fehlt", [quote_fehlt],
+    "auftraege", [n_auftraege],
+    "auftrag_echo", _auftrag
+)
+ORDER BY [ga_total], [geschaeftsart]

@@ -1,0 +1,22 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Planung (JUP)»: table «Tourstandorte und Personaltypen» and column chart «Dauer je Musterwochentag», crossed",
+  "view": "1 Tourstandort x Musterwochentag heatmap",
+  "grain": "one row per Firma x Tourstandort x Musterwochentag of one version",
+  "params": {
+    "version": { "type": "int", "min": 1, "max": 60, "required": true },
+    "firma": { "type": "int", "min": 1, "max": 20 },
+    "ptyp": { "type": "int", "min": 1, "max": 300 },
+    "taet": { "type": "int", "min": 1, "max": 400 }
+  },
+  "columns": {
+    "firma": "label_org",
+    "tourstandort": "label_org",
+    "tag": "measure",
+    "dauer_h": "measure",
+    "touren": "measure",
+    "tourelemente": "measure",
+    "fahren_h": "measure"
+  }
+}

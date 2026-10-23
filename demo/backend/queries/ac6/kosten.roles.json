@@ -1,0 +1,20 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "the Bericht-1 column «Tourelement Abrechnungseinstellung» (fico_planung[Kostenallokation]) as a mix per version",
+  "view": "7 cost-allocation mix per version",
+  "grain": "one row per JUP Version x Kostenallokation code",
+  "params": {
+    "firma": { "type": "int", "min": 1, "max": 20 },
+    "standort": { "type": "int", "min": 1, "max": 200 },
+    "tag": { "type": "int", "min": 0, "max": 7 }
+  },
+  "columns": {
+    "version": "label_org",
+    "code": "code",
+    "kostenallokation": "label_org",
+    "elemente": "measure",
+    "dauer_h": "measure",
+    "ohne_kostenstelle": "measure"
+  }
+}

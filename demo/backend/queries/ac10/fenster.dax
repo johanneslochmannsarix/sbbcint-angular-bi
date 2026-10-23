@@ -1,0 +1,50 @@
+-- One row for the chosen window: page 1's KPI cards ([Anzahl ungeplante Schichten], [Anzahl Schichten],
+-- [Besetzungsquote]) plus the zwingend part, and page 2's three cards ([Anzahl offene Schichtelemente] and its
+-- vergangen / zukünftig split; these two use the model's frozen dim_date[ist_vergangenheit]). The *_gewaehlt
+-- columns return the labels the ordinals resolved to: the app compares them with what it asked for, so a
+-- model refresh between scope and this query shows as a mismatch instead of a silently wrong filter.
+-- Element counts ignore Mandant / Depot / Haupttyp / zwingend (R2).
+-- Filters (README "Filters and params"): mandant / depot / haupttyp / kategorie are ORDINALS into the
+-- model's sorted value lists (same rule as scope.dax), zwingend = alle | zwingend | nicht. Absent = no filter.
+EVALUATE
+VAR _fD = FILTER ( ALL ( 'dim_date'[datum] ), 'dim_date'[datum] >= {{date_from}} && 'dim_date'[datum] <= {{date_to}} )
+VAR _mix = {{mandant}}
+VAR _fM =
+    FILTER ( ALL ( 'dim_scope'[tenant_name] ),
+        ISBLANK ( _mix ) || ( NOT ISBLANK ( 'dim_scope'[tenant_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[tenant_name] ), NOT ISBLANK ( 'dim_scope'[tenant_name] ) && 'dim_scope'[tenant_name] < EARLIER ( 'dim_scope'[tenant_name] ) ) ) = _mix ) )
+VAR _dix = {{depot}}
+VAR _fDep =
+    FILTER ( ALL ( 'dim_scope'[depot_name] ),
+        ISBLANK ( _dix ) || ( NOT ISBLANK ( 'dim_scope'[depot_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[depot_name] ), NOT ISBLANK ( 'dim_scope'[depot_name] ) && 'dim_scope'[depot_name] < EARLIER ( 'dim_scope'[depot_name] ) ) ) = _dix ) )
+VAR _hix = {{haupttyp}}
+VAR _fH =
+    FILTER ( ALL ( 'dim_scope'[haupttyp_name] ),
+        ISBLANK ( _hix ) || ( NOT ISBLANK ( 'dim_scope'[haupttyp_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[haupttyp_name] ), NOT ISBLANK ( 'dim_scope'[haupttyp_name] ) && 'dim_scope'[haupttyp_name] < EARLIER ( 'dim_scope'[haupttyp_name] ) ) ) = _hix ) )
+VAR _z = {{zwingend}}
+VAR _fZ =
+    FILTER ( ALL ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] ),
+        ISBLANK ( _z ) || _z = "alle"
+            || ( _z = "zwingend" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () )
+            || ( _z = "nicht" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = FALSE () ) )
+VAR _kix = {{kategorie}}
+VAR _fK =
+    FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ),
+        ISBLANK ( _kix ) || ( NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ), NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] ) && 'fact_shift_besetzung'[fahren_kategorie] < EARLIER ( 'fact_shift_besetzung'[fahren_kategorie] ) ) ) = _kix ) )
+RETURN
+    ROW (
+        "ungeplant", CALCULATE ( [Anzahl ungeplante Schichten], _fD, _fM, _fDep, _fH, _fZ ),
+        "ungeplant_zwingend", CALCULATE ( CALCULATE ( [Anzahl ungeplante Schichten], KEEPFILTERS ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () ) ), _fD, _fM, _fDep, _fH, _fZ ),
+        "schichten", CALCULATE ( [Anzahl Schichten], _fD, _fM, _fDep, _fH, _fZ ),
+        "besetzungsquote", CALCULATE ( [Besetzungsquote], _fD, _fM, _fDep, _fH, _fZ ),
+        "elemente_offen", CALCULATE ( [Anzahl offene Schichtelemente], _fD, _fK ),
+        "elemente_vergangen", CALCULATE ( [Anzahl offene Schichtelemente (vergangen)], _fD, _fK ),
+        "elemente_zukuenftig", CALCULATE ( [Anzahl offene Schichtelemente (zukünftig)], _fD, _fK ),
+        "mandant_gewaehlt", IF ( ISBLANK ( _mix ), BLANK (), CONCATENATEX ( _fM, 'dim_scope'[tenant_name], " | " ) ),
+        "depot_gewaehlt", IF ( ISBLANK ( _dix ), BLANK (), CONCATENATEX ( _fDep, 'dim_scope'[depot_name], " | " ) ),
+        "haupttyp_gewaehlt", IF ( ISBLANK ( _hix ), BLANK (), CONCATENATEX ( _fH, 'dim_scope'[haupttyp_name], " | " ) ),
+        "kategorie_gewaehlt", IF ( ISBLANK ( _kix ), BLANK (), CONCATENATEX ( _fK, 'fact_shift_besetzung'[fahren_kategorie], " | " ) )
+    )

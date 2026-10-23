@@ -1,0 +1,30 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (the PDF duty plan is presumably the Leitstelle's own build, CCL-2)",
+  "view": "6 duty-plan diff per person x day; 3 list behind the deleted flow",
+  "grain": "one row per shift on the roster (fact_dienstplan) in the window",
+  "params": {
+    "dates": { "type": "date_window", "default_days": 56, "anchor": "from_today", "max_days": 400 },
+    "worker": { "type": "enum", "values": ["alle", "disponent", "andere"] },
+    "person": { "type": "pseudonym", "filter_column": "'fact_dienstplan'[person_sk]" }
+  },
+  "columns": {
+    "shift_sk": "id",
+    "shift_snapshot_sk": "id",
+    "person_sk": "label_person",
+    "plan_person_sk": "label_person",
+    "shift_name": "label_freetext",
+    "shift_worker_type_name": "label_org",
+    "dienstplan_datum": "date",
+    "dienstplan_start": "date",
+    "dienstplan_ende": "date",
+    "plan_start": "date",
+    "plan_ende": "date",
+    "dienstplan_quelle": "code",
+    "rueckmeldung_status_label": "code",
+    "schicht_im_plan": "code",
+    "weicht_vom_plan_ab": "code"
+  },
+  "person_key": ["person_sk", "plan_person_sk"]
+}

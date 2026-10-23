@@ -1,0 +1,23 @@
+{
+  "model": "au_verleihliste",
+  "tenant": "RTS",
+  "replaces": "AUE-Verleihliste: parameters Tätigkeit / Geschäftsart / Status (the report has no chart)",
+  "view": "3 Population flow (sankey)",
+  "grain": "Haupt-Personaltyp × Geschäftsart × Status",
+  "params": {
+    "status": { "type": "enum", "values": ["AKTIV", "INAKTIV"], "filter_column": "fact_au_verleihliste[Status Code]" },
+    "ga": { "type": "enum", "values": ["AU", "DL", "AU_DL"] },
+    "taet": { "type": "int", "min": 1, "max": 50 },
+    "ort": { "type": "int", "min": 1, "max": 500 },
+    "auftrag_nr": { "type": "int", "min": 1, "max": 999 },
+    "jahr": { "type": "int", "min": 2000, "max": 2100 },
+    "person": { "type": "pseudonym", "filter_column": "fact_au_verleihliste[person_sk]" }
+  },
+  "columns": {
+    "taetigkeit": "label_org",
+    "geschaeftsart": "code",
+    "status_code": "code",
+    "personen": "measure"
+  },
+  "note": "The view ignores its own dimensions (status, ga, taet are accepted but unused); the app does not send them."
+}

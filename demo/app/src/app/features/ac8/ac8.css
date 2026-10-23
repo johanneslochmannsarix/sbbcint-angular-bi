@@ -1,0 +1,73 @@
+/*
+ * AC-8 Leitstand. Global (ViewEncapsulation.None) but every selector is ac8-prefixed or under .ac8, so the
+ * shell and the other showcases are untouched. Tokens come from the shell (styles.css :root / dark).
+ * Character: a control-room wall. Bahnschrift (DIN, the signage face of the railway) carries every figure
+ * and heading; the Stellwerk strip is the only loud element, the cards stay quiet.
+ */
+.ac8-title { font-family: Bahnschrift, "DIN Alternate", var(--font-display); font-stretch: semi-condensed; font-weight: 600; letter-spacing: 0.01em; }
+
+.ac8 .card-head h2 { font-family: Bahnschrift, "DIN Alternate", var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: 0.005em; }
+
+/* ---------------------------------------------------------------- Stellwerk strip (view 1) */
+.ac8-strip {
+  display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-card); overflow: hidden;
+}
+.ac8-tile {
+  all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; min-width: 0; cursor: pointer;
+  padding: 12px 14px 0; border-right: 1px solid var(--rule); position: relative; background: var(--surface);
+  transition: background-color 0.15s;
+}
+.ac8-tile:last-child { border-right: 0; }
+.ac8-tile.is-static { cursor: default; }
+.ac8-tile:not(.is-static):hover { background: var(--surface-2); }
+.ac8-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ac8-tile.is-focus { background: var(--accent-wash); }
+.ac8-tile.is-focus::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--ink); }
+.ac8-tile-label { font-size: 12.5px; color: var(--ink-2); line-height: 1.25; min-height: 2.5em; }
+.ac8-tile-label .key { margin-right: 5px; }
+.ac8-tile-value {
+  font-family: Bahnschrift, "DIN Alternate", var(--font-display); font-stretch: semi-condensed; font-weight: 600;
+  font-size: 34px; line-height: 1.05; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.ac8-tile-note { font-size: 11.5px; color: var(--muted); min-height: 2.6em; line-height: 1.3; }
+.ac8-spark { height: 34px; margin: 2px -14px 0; }
+
+/* ---------------------------------------------------------------- story bar (view 10) */
+.ac8-story {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px;
+  padding: 6px 12px; border: 1px solid var(--rule); border-radius: var(--r-card); background: var(--surface);
+}
+.ac8-story.is-on { border-color: var(--ink-2); }
+.ac8-story-head { display: flex; align-items: center; gap: 10px; white-space: nowrap; font-size: 13px; }
+.ac8-story-week { font-family: Bahnschrift, var(--font-display); font-weight: 600; font-size: 18px; color: var(--ink); min-width: 4.5em; }
+.ac8-story-axis { height: 40px; min-width: 0; }
+
+/* ---------------------------------------------------------------- layout */
+.ac8-pair { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ac8-pair-wide { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.ac8-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.ac8-tools .select { max-width: 280px; }
+.ac8-legend { justify-content: flex-start; margin-top: 4px; }
+.ac8-glyphs { font-family: Bahnschrift, var(--font-display); color: var(--ink-2); }
+.ac8-key-outline { background: transparent; border: 1.5px solid var(--ink); width: 12px; height: 8px; box-sizing: border-box; }
+.ac8-key-hatch { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.55) 0 1.5px, transparent 1.5px 4px); }
+.ac8-key-ring { background: transparent; border: 2px solid; border-radius: 50%; width: 10px; height: 10px; box-sizing: border-box; }
+
+@media (max-width: 1280px) {
+  .ac8-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ac8-tile:nth-child(4n) { border-right: 0; }
+  .ac8-tile:nth-child(-n + 4) { border-bottom: 1px solid var(--rule); }
+}
+@media (max-width: 1000px) {
+  .ac8-pair, .ac8-pair-wide { grid-template-columns: minmax(0, 1fr); }
+  .ac8-story { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .ac8-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ac8-tile:nth-child(2n) { border-right: 0; }
+  .ac8-tile-value { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac8-tile { transition: none; }
+}

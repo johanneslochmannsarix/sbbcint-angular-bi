@@ -1,0 +1,37 @@
+-- Input of the server-side ALP:/TN:/Pruefer: parser (showcases/ac1/tags.py), never returned as is:
+-- kind "tag" = rows of that day whose kommentar carries a tag; kind "person" = the name candidates of both
+-- audiences. The transform returns one row per tagged name (masked) and drops every name column.
+-- Typed blanks in the UNION: an untyped BLANK () for start_time made the query run > 45 s (2026-10-21).
+EVALUATE
+VAR _people =
+    -- the blank member of VALUES would match fact rows without a person (shift not in dim_person): excluded
+    FILTER ( DISTINCT ( UNION ( VALUES ( 'dim_person_ausbilder'[person_sk] ), VALUES ( 'dim_person_auszubildende'[person_sk] ) ) ), NOT ISBLANK ( [person_sk] ) )
+VAR _tagged =
+    FILTER (
+        SUMMARIZECOLUMNS (
+            'fact_person_tour_day'[person_sk],
+            'fact_person_tour_day'[tourbezeichnung],
+            'fact_person_tour_day'[start_time],
+            'fact_person_tour_day'[kommentar],
+            TREATAS ( { {{day}} }, 'dim_date'[date] ),
+            TREATAS ( _people, 'fact_person_tour_day'[person_sk] ),
+            "n", [Tour-Tage]
+        ),
+        CONTAINSSTRING ( [kommentar], "TN:" ) || CONTAINSSTRING ( [kommentar], "ALP:" ) || CONTAINSSTRING ( [kommentar], "Prüfer:" )
+    )
+VAR _tags =
+    SELECTCOLUMNS ( _tagged,
+        "kind", "tag", "person_sk", [person_sk], "tourbezeichnung", [tourbezeichnung], "start_time", [start_time],
+        "kommentar", [kommentar], "person_name", BLANK (), "firstname", BLANK (), "lastname", BLANK (), "audience", BLANK () )
+VAR _a =
+    SELECTCOLUMNS ( 'dim_person_ausbilder',
+        "kind", "person", "person_sk", 'dim_person_ausbilder'[person_sk], "tourbezeichnung", BLANK (), "start_time", CONVERT ( BLANK (), DATETIME ),
+        "kommentar", BLANK (), "person_name", 'dim_person_ausbilder'[person_name], "firstname", 'dim_person_ausbilder'[firstname],
+        "lastname", 'dim_person_ausbilder'[lastname], "audience", "ausbilder" )
+VAR _t =
+    SELECTCOLUMNS ( 'dim_person_auszubildende',
+        "kind", "person", "person_sk", 'dim_person_auszubildende'[person_sk], "tourbezeichnung", BLANK (), "start_time", CONVERT ( BLANK (), DATETIME ),
+        "kommentar", BLANK (), "person_name", 'dim_person_auszubildende'[person_name], "firstname", 'dim_person_auszubildende'[firstname],
+        "lastname", 'dim_person_auszubildende'[lastname], "audience", "auszubildende" )
+RETURN
+    UNION ( _tags, _a, _t )

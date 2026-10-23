@@ -1,0 +1,51 @@
+-- View 6, tour list: the tours of ONE version at ONE Tourstandort (both required), with their pattern-week
+-- start / end offsets (ms from Monday 00:00), Dauer Touren / Dauer Fahren / Anzahl Tourelemente (Planung).
+-- tour_id is the pseudo-id the drill passes on; the tour NAME is free text and masked (label_freetext -> T-…).
+-- Personaltyp / Tätigkeit / weekday narrow the list. Int params are ranks (README).
+DEFINE
+    VAR _v = {{version}}
+    VAR _vN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) ),
+        "@r", VAR x = fico_planung[JUP Version] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) && fico_planung[JUP Version] <= x ) ) ),
+        [@r] = _v ), fico_planung[JUP Version] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) ),
+        "@r", VAR x = fico_planung[Tourstandort] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) && fico_planung[Tourstandort] <= x ) ) ),
+        [@r] = _s ), fico_planung[Tourstandort] )
+    VAR _p = {{ptyp}}
+    VAR _pN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) ),
+        "@r", VAR x = fico_planung[Personaltyp] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) && fico_planung[Personaltyp] <= x ) ) ),
+        [@r] = _p ), fico_planung[Personaltyp] )
+    VAR _t = {{taet}}
+    VAR _tN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) ),
+        "@r", VAR x = fico_planung[Taetigkeit] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) && fico_planung[Taetigkeit] <= x ) ) ),
+        [@r] = _t ), fico_planung[Taetigkeit] )
+    VAR _d = {{tag}}
+    VAR _fV = FILTER ( ALL ( fico_planung[JUP Version] ), fico_planung[JUP Version] = _vN )
+    VAR _fS = FILTER ( ALL ( fico_planung[Tourstandort] ), fico_planung[Tourstandort] = _sN )
+    VAR _fP = FILTER ( ALL ( fico_planung[Personaltyp] ), ISBLANK ( _p ) || fico_planung[Personaltyp] = _pN )
+    VAR _fT = FILTER ( ALL ( fico_planung[Taetigkeit] ), ISBLANK ( _t ) || fico_planung[Taetigkeit] = _tN )
+    VAR _fD = FILTER ( ALL ( fico_planung[musterwochentag_nr] ), ISBLANK ( _d ) || fico_planung[musterwochentag_nr] == _d )
+EVALUATE
+SELECTCOLUMNS (
+    FILTER (
+        SUMMARIZECOLUMNS (
+            fico_planung[tour_id], fico_planung[Tour], fico_planung[Personaltyp], fico_planung[musterwochentag_nr],
+            fico_planung[tour_start_ms], fico_planung[tour_ende_ms],
+            _fV, _fS, _fP, _fT, _fD,
+            "@elemente", [Anzahl Tourelemente (Planung)],
+            "@dauer", [Dauer Touren (Planung) [h]]],
+            "@fahren", [Dauer Fahren (Planung) [h]]]
+        ),
+        NOT ISBLANK ( fico_planung[tour_id] )
+    ),
+    "tour_id", fico_planung[tour_id],
+    "tour", fico_planung[Tour],
+    "personaltyp", fico_planung[Personaltyp],
+    "tag", fico_planung[musterwochentag_nr],
+    "start_ms", fico_planung[tour_start_ms],
+    "ende_ms", fico_planung[tour_ende_ms],
+    "elemente", [@elemente],
+    "dauer_h", [@dauer],
+    "fahren_h", [@fahren]
+)
+ORDER BY [start_ms]

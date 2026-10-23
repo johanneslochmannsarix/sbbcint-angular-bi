@@ -1,0 +1,56 @@
+-- View 5, the time line underneath: disposition Plandauer Tourelemente / Anzahl Touren per ISO week of the
+-- «Schichtbildung 1» period (07.09.-12.12.2026; KW 50 has six days), next to the plan's pattern-week total
+-- (Dauer Tourelemente / Anzahl Touren (Planung), the same on every row). Two aggregates, no row join. Filters as
+-- in vergleich, here including the Tourstandort (the weekly line follows the drill).
+DEFINE
+    VAR _f = {{firma}}
+    VAR _fN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) ),
+        "@r", VAR x = fico_planung[Firma] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) && fico_planung[Firma] <= x ) ) ),
+        [@r] = _f ), fico_planung[Firma] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) ),
+        "@r", VAR x = fico_planung[Tourstandort] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) && fico_planung[Tourstandort] <= x ) ) ),
+        [@r] = _s ), fico_planung[Tourstandort] )
+    VAR _p = {{ptyp}}
+    VAR _pN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) ),
+        "@r", VAR x = fico_planung[Personaltyp] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) && fico_planung[Personaltyp] <= x ) ) ),
+        [@r] = _p ), fico_planung[Personaltyp] )
+    VAR _t = {{taet}}
+    VAR _tN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) ),
+        "@r", VAR x = fico_planung[Taetigkeit] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) && fico_planung[Taetigkeit] <= x ) ) ),
+        [@r] = _t ), fico_planung[Taetigkeit] )
+    VAR _from = DATE ( 2026, 9, 7 )
+    VAR _to = DATE ( 2026, 12, 12 )
+    VAR _fV = FILTER ( ALL ( fico_planung[JUP Version] ), fico_planung[JUP Version] = "Schichtbildung 1" )
+    VAR _fF = FILTER ( ALL ( fico_planung[Firma] ), ISBLANK ( _f ) || fico_planung[Firma] = _fN )
+    VAR _fS = FILTER ( ALL ( fico_planung[Tourstandort] ), ISBLANK ( _s ) || fico_planung[Tourstandort] = _sN )
+    VAR _fP = FILTER ( ALL ( fico_planung[Personaltyp] ), ISBLANK ( _p ) || fico_planung[Personaltyp] = _pN )
+    VAR _fT = FILTER ( ALL ( fico_planung[Taetigkeit] ), ISBLANK ( _t ) || fico_planung[Taetigkeit] = _tN )
+    VAR _dW = FILTER ( ALL ( fico_disposition[Tour Plandatum] ), fico_disposition[Tour Plandatum] >= _from && fico_disposition[Tour Plandatum] <= _to )
+    VAR _dF = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _f ) || fico_disposition[Firma] = _fN )
+    VAR _dS = FILTER ( ALL ( fico_disposition[Tourstandort] ), ISBLANK ( _s ) || fico_disposition[Tourstandort] = _sN )
+    VAR _dP = FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), ISBLANK ( _p ) || fico_disposition[Personaltyp Tour] = _pN )
+    VAR _dT = FILTER ( ALL ( fico_disposition[Taetigkeit] ), ISBLANK ( _t ) || fico_disposition[Taetigkeit] = _tN )
+EVALUATE
+VAR _planH = CALCULATE ( [Dauer Tourelemente (Planung) [h]]], _fV, _fF, _fS, _fP, _fT )
+VAR _planN = CALCULATE ( [Anzahl Touren (Planung)], _fV, _fF, _fS, _fP, _fT )
+VAR _days =
+    SELECTCOLUMNS (
+        SUMMARIZECOLUMNS ( fico_disposition[Tour Plandatum], _dW, _dF, _dS, _dP, _dT,
+            "@h", [Plandauer Tourelemente (Disposition) [h]]], "@n", [Anzahl Touren (Disposition)] ),
+        "kw", WEEKNUM ( fico_disposition[Tour Plandatum], 21 ), "dh", [@h], "dn", [@n]
+    )
+VAR _weeks =
+    ADDCOLUMNS (
+        GROUPBY ( ADDCOLUMNS ( CALENDAR ( _from, _to ), "kw", WEEKNUM ( [Date], 21 ) ), [kw], "@tage", COUNTX ( CURRENTGROUP (), 1 ),
+            "@montag", MINX ( CURRENTGROUP (), [Date] ) ),
+        "@h", VAR k = [kw] RETURN SUMX ( FILTER ( _days, [kw] = k ), [dh] ),
+        "@n", VAR k = [kw] RETURN SUMX ( FILTER ( _days, [kw] = k ), [dn] )
+    )
+RETURN
+    SELECTCOLUMNS (
+        _weeks,
+        "kw", [kw], "erster_tag", [@montag], "tage", [@tage],
+        "dispo_h", [@h], "dispo_touren", [@n],
+        "plan_h", _planH, "plan_touren", _planN
+    )

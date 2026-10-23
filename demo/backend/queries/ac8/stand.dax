@@ -1,0 +1,8 @@
+-- Data range of the model: newest snapshot creation (the closest thing to a data-as-of the model has) and
+-- the planned-day range of fact_shift. The app takes its default window from here.
+EVALUATE
+ROW (
+    "neuester_stand", MAX ( 'fact_shift_snapshot'[created_ts] ),
+    "erster_plantag", MIN ( 'fact_shift'[planned_date] ),
+    "letzter_plantag", MAX ( 'fact_shift'[planned_date] )
+)

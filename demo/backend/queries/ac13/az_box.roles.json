@@ -1,0 +1,29 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «AZ je Tour»: KPIs Arbeitszeit v1 / ≥ 12 h / ≥ 14 h and the Schwellwert slicers, as a distribution per Tour-Standort",
+  "view": "2 Arbeitszeit je Tour (box per Standort, threshold counts, fill)",
+  "grain": "one row per Tour-Standort of one month + one row «Alle»",
+  "params": {
+    "month": { "type": "month" },
+    "standort": { "type": "int", "min": 1, "max": 100 },
+    "haupttyp": { "type": "int", "min": 1, "max": 50 }
+  },
+  "columns": {
+    "tour_standort": "label_org",
+    "ist_gesamt": "code",
+    "touren": "measure",
+    "min": "measure",
+    "p05": "measure",
+    "p25": "measure",
+    "p50": "measure",
+    "p75": "measure",
+    "p95": "measure",
+    "max": "measure",
+    "ueber_24h": "measure",
+    "negativ": "measure",
+    "angerechnet_touren": "measure",
+    "ge12": "measure",
+    "ge14": "measure"
+  }
+}

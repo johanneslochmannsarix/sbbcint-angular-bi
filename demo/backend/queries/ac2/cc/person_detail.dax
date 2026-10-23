@@ -1,0 +1,12 @@
+EVALUATE
+CALCULATETABLE (
+    SELECTCOLUMNS (
+        'fact_person_qualification_latest',
+        "qualification_sk", 'fact_person_qualification_latest'[qualification_sk],
+        "qualification_name", RELATED ( 'dim_qualification'[qualification_name] ),
+        "status_code", 'fact_person_qualification_latest'[status_code],
+        "valid_from", 'fact_person_qualification_latest'[valid_from],
+        "valid_to", 'fact_person_qualification_latest'[valid_to]
+    ),
+    {{person_filter}}
+)

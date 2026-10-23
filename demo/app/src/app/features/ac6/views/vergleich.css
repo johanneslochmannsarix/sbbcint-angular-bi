@@ -1,0 +1,6 @@
+/* Moved out of ac6.css 2026-10-22 (component style budget 4 kB per stylesheet). ViewEncapsulation.None like the
+   page: these rules stay global, and the component renders on every AC-6 page, so nothing changes visually. */
+/* ---------------------------------------------------------------- plan vs disposition off-state */
+.ac6-off { padding: 14px 18px; }
+.ac6-off p { max-width: 80ch; color: var(--ink-2); }
+

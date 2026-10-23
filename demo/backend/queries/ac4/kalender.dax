@@ -1,0 +1,40 @@
+-- View 3 (Plan vs JUP), disposition side: one row per Tour Plandatum over the whole planned window -
+-- Anzahl Touren, Plandauer Tourelemente, Plandauer Fahren (Disposition). The app buckets the days by weekday
+-- for the profile against the JUP pattern week (jup.dax, a separate query: no relationship, F10).
+DEFINE
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _ta = {{taet}}
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fFirma = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _firma ) || fico_disposition[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_disposition[depot_sk] ), ISBLANK ( _st ) || fico_disposition[depot_sk] = _st )
+    VAR _fPtyp = FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), ISBLANK ( _pt ) || fico_disposition[Personaltyp Tour] = _ptName )
+    VAR _fTaet = FILTER ( ALL ( fico_disposition[worker_activity_sk] ), ISBLANK ( _ta ) || fico_disposition[worker_activity_sk] = _ta )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fico_disposition[Tour Plandatum],
+        _fFirma, _fStandort, _fPtyp, _fTaet,
+        "touren", [Anzahl Touren (Disposition)],
+        "plandauer_h", [Plandauer Tourelemente (Disposition) [h]]],
+        "fahren_h", [Plandauer Fahren (Disposition) [h]]]
+    ),
+    "tag", fico_disposition[Tour Plandatum],
+    "touren", [touren],
+    "plandauer_h", [plandauer_h],
+    "fahren_h", [fahren_h]
+)
+ORDER BY [tag]

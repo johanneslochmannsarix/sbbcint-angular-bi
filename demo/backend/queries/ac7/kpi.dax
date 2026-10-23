@@ -1,0 +1,80 @@
+-- View 1 KPI band: _Kennzahlen measures under the filter set. Each tile group ignores its own dimension (status
+-- tiles ignore status, Geschäftsart tiles ignore ga, leaver tiles ignore jahr), so a tile stays a selector.
+-- AÜ only / AÜ+DL / leavers / with stint 2 = [Anzahl Personen] under one extra predicate.
+DEFINE
+    VAR _ga = {{ga}}
+    VAR _gaName = SWITCH ( _ga, "AU", "AÜ", "DL", "DL", "AU_DL", "AÜ+DL" )
+    VAR _ta = {{taet}}
+    VAR _taName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_au_verleihliste[Taetigkeit] ),
+                    "@rang",
+                        VAR v = fact_au_verleihliste[Taetigkeit]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fact_au_verleihliste[Taetigkeit] ), fact_au_verleihliste[Taetigkeit] <= v ) )
+                ),
+                [@rang] = _ta
+            ),
+            fact_au_verleihliste[Taetigkeit]
+        )
+    VAR _or = {{ort}}
+    VAR _orte =
+        FILTER (
+            DISTINCT (
+                UNION (
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 1 Ort] ), "@o", fact_au_verleihliste[Einsatz 1 Ort] ),
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 2 Ort] ), "@o", fact_au_verleihliste[Einsatz 2 Ort] )
+                )
+            ),
+            NOT ISBLANK ( [@o] )
+        )
+    VAR _orName = MAXX ( FILTER ( _orte, VAR v = [@o] RETURN COUNTROWS ( FILTER ( _orte, [@o] <= v ) ) = _or ), [@o] )
+    VAR _au = {{auftrag_nr}}
+    VAR _auftraege =
+        FILTER (
+            DISTINCT (
+                UNION (
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 1 Auftrag] ), "@a", fact_au_verleihliste[Einsatz 1 Auftrag] ),
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 2 Auftrag] ), "@a", fact_au_verleihliste[Einsatz 2 Auftrag] )
+                )
+            ),
+            NOT ISBLANK ( [@a] )
+        )
+    VAR _auName = MAXX ( FILTER ( _auftraege, VAR v = [@a] RETURN COUNTROWS ( FILTER ( _auftraege, [@a] <= v ) ) = _au ), [@a] )
+    VAR _j = {{jahr}}
+    VAR _fStatus = {{status_filter}}
+    VAR _fGa = FILTER ( ALL ( fact_au_verleihliste[Geschaeftsart] ), ISBLANK ( _ga ) || fact_au_verleihliste[Geschaeftsart] = _gaName )
+    VAR _fTa = FILTER ( ALL ( fact_au_verleihliste[Taetigkeit] ), ISBLANK ( _ta ) || ( NOT ISBLANK ( _taName ) && fact_au_verleihliste[Taetigkeit] = _taName ) )
+    VAR _fOrt =
+        FILTER (
+            ALL ( fact_au_verleihliste[Einsatz 1 Ort], fact_au_verleihliste[Einsatz 2 Ort] ),
+            ISBLANK ( _or ) || ( NOT ISBLANK ( _orName ) && ( fact_au_verleihliste[Einsatz 1 Ort] = _orName || fact_au_verleihliste[Einsatz 2 Ort] = _orName ) )
+        )
+    VAR _fAuftrag =
+        FILTER (
+            ALL ( fact_au_verleihliste[Einsatz 1 Auftrag], fact_au_verleihliste[Einsatz 2 Auftrag] ),
+            ISBLANK ( _au ) || ( NOT ISBLANK ( _auName ) && ( fact_au_verleihliste[Einsatz 1 Auftrag] = _auName || fact_au_verleihliste[Einsatz 2 Auftrag] = _auName ) )
+        )
+    VAR _fJahr = FILTER ( ALL ( fact_au_verleihliste[Austritt] ), ISBLANK ( _j ) || ( NOT ISBLANK ( fact_au_verleihliste[Austritt] ) && YEAR ( fact_au_verleihliste[Austritt] ) = _j ) )
+    VAR _fPerson = {{person_filter}}
+EVALUATE
+ROW (
+    "personen", CALCULATE ( [Anzahl Personen], _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "personen_status_basis", CALCULATE ( [Anzahl Personen], _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "aktiv", CALCULATE ( [Anzahl aktiv], _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "inaktiv", CALCULATE ( [Anzahl inaktiv], _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "personen_ga_basis", CALCULATE ( [Anzahl Personen], _fStatus, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "mit_au", CALCULATE ( [Anzahl mit AÜ], _fStatus, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "nur_dl", CALCULATE ( [Anzahl nur DL], _fStatus, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "nur_au", CALCULATE ( [Anzahl Personen], KEEPFILTERS ( fact_au_verleihliste[Geschaeftsart] = "AÜ" ), _fStatus, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "au_und_dl", CALCULATE ( [Anzahl Personen], KEEPFILTERS ( fact_au_verleihliste[Geschaeftsart] = "AÜ+DL" ), _fStatus, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "jahr_heute", YEAR ( TODAY () ),
+    "austritt_jahr", CALCULATE ( [Anzahl Personen], FILTER ( ALL ( fact_au_verleihliste[Austritt] ), NOT ISBLANK ( fact_au_verleihliste[Austritt] ) && YEAR ( fact_au_verleihliste[Austritt] ) = YEAR ( TODAY () ) && fact_au_verleihliste[Austritt] <= TODAY () ), _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fPerson ),
+    "austritt_vorjahr", CALCULATE ( [Anzahl Personen], FILTER ( ALL ( fact_au_verleihliste[Austritt] ), NOT ISBLANK ( fact_au_verleihliste[Austritt] ) && YEAR ( fact_au_verleihliste[Austritt] ) = YEAR ( TODAY () ) - 1 ), _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fPerson ),
+    "austritt_geplant", CALCULATE ( [Anzahl Personen], FILTER ( ALL ( fact_au_verleihliste[Austritt] ), NOT ISBLANK ( fact_au_verleihliste[Austritt] ) && fact_au_verleihliste[Austritt] > TODAY () ), _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fPerson ),
+    "mit_austritt", CALCULATE ( [Anzahl Personen], FILTER ( ALL ( fact_au_verleihliste[Austritt] ), NOT ISBLANK ( fact_au_verleihliste[Austritt] ) ), _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "mit_einsatz2", CALCULATE ( [Anzahl Personen], FILTER ( ALL ( fact_au_verleihliste[Einsatz 2 von] ), NOT ISBLANK ( fact_au_verleihliste[Einsatz 2 von] ) ), _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "einsatz1_geplant", CALCULATE ( [Anzahl Personen], FILTER ( ALL ( fact_au_verleihliste[Einsatz 1 von] ), fact_au_verleihliste[Einsatz 1 von] > NOW () ), _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson ),
+    "ohne_arbeitszeit", CALCULATE ( [Anzahl ohne Arbeitszeit], _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson )
+)

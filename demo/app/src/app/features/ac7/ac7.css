@@ -1,0 +1,59 @@
+/*
+ * AC-7 Verleihliste. Global (ViewEncapsulation.None) but every selector is ac7-prefixed or under .ac7; the print rules
+ * apply only while the AC-7 page is in the DOM (body:has(.ac7)). Tokens come from the shell (styles.css).
+ * Character: a filled-in official form. The questions and the sheet are set in Sitka (Windows' optical-size serif,
+ * the voice of a printed Formblatt), every figure in Bahnschrift with tabular digits; the KPI band is a row of ruled
+ * form fields with a corner caption. The one loud element is the Einsatz-Timeline; everything else stays quiet.
+ */
+.ac7 { --ac7-serif: "Sitka Text", "Sitka Small", Cambria, Georgia, serif; --ac7-serif-head: "Sitka Heading", "Sitka Text", Cambria, Georgia, serif; }
+.ac7-title { font-family: var(--ac7-serif-head, "Sitka Heading", Georgia, serif); font-size: 17px; color: var(--ink); }
+.ac7 .card-head h2 { font-family: var(--ac7-serif-head); font-weight: 600; font-size: 17px; letter-spacing: 0; line-height: 1.25; }
+.ac7 .card-sub { max-width: 80ch; }
+
+/* ---------------------------------------------------------------- layout */
+.ac7-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ac7-pair-where { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+.ac7-tools { display: flex; align-items: center; gap: 8px; }
+.ac7-tools-label { font-size: 12px; color: var(--muted); }
+.ac7-legend { justify-content: flex-start; margin-top: 4px; }
+.ac7-key-older { opacity: 0.5; }
+.ac7-key-line { width: 2px; height: 12px; background: var(--ink); border-radius: 0; vertical-align: -2px; }
+.ac7-key-tick { width: 3px; height: 12px; background: var(--ink); border-radius: 0; vertical-align: -2px; }
+.ac7-where { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 12px; align-items: start; }
+.ac7-where-map { height: 360px; }
+
+/* the sub bar: breadcrumbs + pickers */
+.ac7-bar { gap: 12px; }
+.ac7-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.ac7-crumbs li { display: inline-flex; align-items: center; gap: 2px; }
+.ac7-crumbs li + li::before { content: "›"; color: var(--muted); margin: 0 6px 0 2px; }
+.ac7-crumbs [aria-current] { font-weight: 600; color: var(--ink); }
+.ac7-pick { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; }
+.ac7-pick .select { max-width: 220px; color: var(--ink); }
+.ac7-bar .ac7-pick:first-of-type { margin-left: auto; }
+
+/* «offen»: the placeholder the PDF prints too - a dashed slot, never filled */
+.ac7-offen { display: inline-block; padding: 0 6px; border: 1px dashed var(--rule-strong); border-radius: 3px; color: var(--ink-2); font-size: 11.5px; line-height: 1.5; background: var(--surface-2); }
+
+/* ---------------------------------------------------------------- footer */
+.ac7-foot { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(0, 1.1fr); gap: 24px; padding: 14px 18px; }
+.ac7-foot h2 { font-family: var(--ac7-serif-head); font-size: 15px; margin-bottom: 4px; }
+.ac7-foot p { margin: 0 0 4px; max-width: 70ch; }
+.ac7-offen-list, .ac7-read { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; }
+.ac7-read { padding-left: 16px; list-style: disc; }
+
+/* printing outside the Formular view: only a hint (the sheet's own print rules live in views/formular.css) */
+@media print {
+  body:has(.ac7) .shell-head, body:has(.ac7) .shell-foot, body:has(.ac7) app-story-panel { display: none !important; }
+  .ac7:not(.ac7-is-form) .page > * { display: none !important; }
+  .ac7:not(.ac7-is-form) .page::before { content: "Zum Drucken die Ansicht «Formular» wählen."; }
+}
+
+/* ---------------------------------------------------------------- responsive */
+@media (max-width: 1280px) {
+  .ac7-pair-where { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 1000px) {
+  .ac7-pair, .ac7-foot, .ac7-where { grid-template-columns: minmax(0, 1fr); }
+  .ac7-bar .ac7-pick:first-of-type { margin-left: 0; }
+}

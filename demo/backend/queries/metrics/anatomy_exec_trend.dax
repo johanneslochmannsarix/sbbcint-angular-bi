@@ -1,0 +1,13 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: lineChart 8c9e0fd4f5ce6a656df4 (start_date x Exec min, series stage)
+-- grain: start_date x stage
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_stage_run'[start_date],
+    'fact_stage_run'[stage],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "exec_min", [Exec min]
+)
+ORDER BY 'fact_stage_run'[start_date], 'fact_stage_run'[stage]

@@ -1,0 +1,33 @@
+{
+  "model": "platform_metrics",
+  "replaces": "(new) Spark-stage detail + stage Gantt of one chain; no report visual",
+  "view": "Run anatomy (ADR-055)",
+  "grain": "activity_name x Spark stage name x status",
+  "params": {
+    "chain_id": {
+      "type": "uuid",
+      "required": true
+    }
+  },
+  "columns": {
+    "activity_name": "label_technical",
+    "name": "label_technical",
+    "status": "code",
+    "spark_stages": "measure",
+    "stage_run_min": "measure",
+    "num_tasks": "measure",
+    "cpu_min": "measure",
+    "gc_min": "measure",
+    "input_gib": "measure",
+    "input_rows": "measure",
+    "output_gib": "measure",
+    "output_rows": "measure",
+    "shuffle_read_gib": "measure",
+    "shuffle_write_gib": "measure",
+    "spill_mem_gib": "measure",
+    "spill_disk_gib": "measure",
+    "peak_exec_mem_mib": "measure",
+    "first_submission": "date",
+    "last_completion": "date"
+  }
+}

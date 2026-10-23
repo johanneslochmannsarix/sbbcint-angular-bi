@@ -1,0 +1,20 @@
+-- Header + footer (all views): the build stamp, rule version, Gold window and the five disclosures, exactly
+-- as the report's footer reads them (measures of _Kennzahlen; gold_build_ts / fenster_* / the share are the
+-- build-info columns behind them). modell_heute = the day dim_date[ist_heute] was frozen on at build time;
+-- the app windows on the browser's today (the report's date picker is Now-anchored the same way).
+EVALUATE
+ROW (
+    "datenstand", [Stand der Daten],
+    "gold_build_ts", MAX ( 'agg_gold_build_info'[gold_build_ts] ),
+    "regelversion", [Regelversion Besetzungspflicht],
+    "zeitfenster", [Zeitfenster],
+    "fenster_von", MAX ( 'agg_gold_build_info'[fenster_von] ),
+    "fenster_bis", MAX ( 'agg_gold_build_info'[fenster_bis] ),
+    "modell_heute", CALCULATE ( MAX ( 'dim_date'[datum] ), 'dim_date'[ist_heute] = TRUE () ),
+    "betriebsstellen_name_pct", MAX ( 'agg_gold_build_info'[betriebsstelle_name_anteil_pct] ),
+    "hinweis_datenstand", [Hinweis Datenstand],
+    "hinweis_besetzungspflicht", [Hinweis Besetzungspflicht],
+    "hinweis_betriebsstellen", [Hinweis Betriebsstellen],
+    "hinweis_geschlossene_schichten", [Hinweis Geschlossene Schichten],
+    "hinweis_stammdaten", [Hinweis Stammdaten]
+)

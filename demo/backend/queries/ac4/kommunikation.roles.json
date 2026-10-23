@@ -1,0 +1,20 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "column chart «Kommunizierte Schichten je Planmonat nach Änderungsverlauf» (Änderungen & Akzeptanz)",
+  "view": "5 Änderungen & Akzeptanz: sankey + month bars",
+  "grain": "one row per Planmonat × Verlauf × Akzeptanzart × Kommunikationsstand",
+  "params": {
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 }
+  },
+  "columns": {
+    "planmonat": "code",
+    "verlauf": "code",
+    "akzeptanzart": "code",
+    "kommunikationsstand": "code",
+    "schichten": "measure",
+    "versionen": "measure"
+  }
+}

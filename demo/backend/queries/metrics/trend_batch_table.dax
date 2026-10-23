@@ -1,0 +1,22 @@
+-- page: Trend by tenant / env / batch
+-- replaces: tableEx 8260db06c7ab3a7ad650 (batch_id, tenant, env, fidelity + Delivered Files, Delivered Size (GiB), Batch Growth %)
+-- grain: batch_id (x tenant x env x fidelity, one tenant+env)
+-- The report visual pins tenant=CARGOCONTROL, env=PROD as visual filters on fact_csv_file[tenant]/[env];
+-- here the app's selection filters dim_env (same env_key) and fact_csv_file[tenant]/[env] are grouping
+-- columns, which is what Batch Growth % needs: its ALLEXCEPT keeps exactly those two fact columns.
+-- delivered batches only: fact_csv_file[is_delivered] (done/ before ADR-056, processed/…-done since; superseded / failed excluded), 2026-10-22.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_csv_file'[batch_id],
+    'fact_csv_file'[tenant],
+    'fact_csv_file'[env],
+    'fact_csv_file'[fidelity],
+    TREATAS ( { TRUE () }, 'fact_csv_file'[is_delivered] ),
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "delivered_files", [Delivered Files],
+    "delivered_size_gib", [Delivered Size (GiB)],
+    "batch_growth", [Batch Growth %]
+)
+ORDER BY [delivered_size_gib] DESC

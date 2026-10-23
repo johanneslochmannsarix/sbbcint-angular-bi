@@ -1,0 +1,82 @@
+<div class="page">
+  <section class="grid-2">
+    <app-card heading="Size per batch by environment" [sub]="'Tenant ' + scopeText().split(' ')[0] + ', every environment, done zone'" [q]="sizeByEnv">
+      <div echarts class="chart h-260" [options]="sizeByEnvOptions()!" [theme]="theme.echartsTheme()"></div>
+    </app-card>
+    <app-card heading="Size per batch by tenant" [sub]="'Environment ' + scopeText().split(' ')[1] + ', every tenant, done zone'" [q]="sizeByTenant">
+      <div echarts class="chart h-260" [options]="sizeByTenantOptions()!" [theme]="theme.echartsTheme()"></div>
+    </app-card>
+  </section>
+
+  <section class="linked">
+    <div class="linked-left">
+      <app-card heading="Delivered size per batch" [sub]="scopeText() + '. Drag across the bars to set the Pareto range.'" [q]="batchSize" class="brush-card">
+        @if (range()) {
+          <button card-tools type="button" class="btn" (click)="clearBrush()">Clear range</button>
+        }
+        <div echarts class="chart h-320" [options]="batchOptions()!" [theme]="theme.echartsTheme()"
+          (chartInit)="onChartInit($event)" (chartBrushEnd)="onBrushEnd($any($event))"></div>
+      </app-card>
+
+      <app-card heading="Batches" [sub]="batchTable.rows().length + ' batches, largest first' + (range() ? '. Rows in the brushed range are marked.' : '')" [q]="batchTable">
+        <div class="table-wrap table-tall">
+          <table class="tbl">
+            <thead>
+              <tr><th>Batch</th><th>Fidelity</th><th class="r">Files</th><th class="r">Size GiB</th><th class="r">Growth</th></tr>
+            </thead>
+            <tbody>
+              @for (r of batchTable.rows(); track $index) {
+                <tr [class.is-marked]="inRange(r.batch_id)">
+                  <td>{{ r.batch_id }}</td><td>{{ r.fidelity }}</td>
+                  <td class="r">{{ fmt.num(r.delivered_files, 0) }}</td><td class="r">{{ fmt.num(r.delivered_size_gib, 3) }}</td>
+                  <td class="r" [title]="r.batch_growth == null ? fmt.BLANK_TITLE : ''">{{ fmt.pct(r.batch_growth, 1) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </app-card>
+    </div>
+
+    <aside class="linked-right" aria-label="Entity Pareto for the brushed range" [attr.aria-busy]="paretoLoading()">
+      <div class="pareto-head" [class.is-loading]="paretoLoading()">
+        <h2>Where ingest, silver and gold time goes</h2>
+        <p>{{ scopeText() }}, {{ rangeText() }}</p>
+      </div>
+
+      <app-card heading="Share of time in the ten slowest keys" [q]="pKpis" class="card-flat">
+        @if (pKpis.rows()[0]; as k) {
+          <div class="tile-row tile-row-sm">
+            <div class="tile"><span class="tile-label">Ingest</span><span class="tile-value">{{ fmt.pct(k.top10_ingest, 1) }}</span></div>
+            <div class="tile"><span class="tile-label">Silver</span><span class="tile-value">{{ fmt.pct(k.top10_silver, 1) }}</span></div>
+            <div class="tile"><span class="tile-label">Gold</span><span class="tile-value">{{ fmt.pct(k.top10_gold, 1) }}</span></div>
+            <div class="tile"><span class="tile-label">Fixed s per file</span><span class="tile-value">{{ fmt.num(k.fixed_s_per_file, 1) }}</span></div>
+            <div class="tile"><span class="tile-label">Ingest s per MiB</span><span class="tile-value">{{ fmt.num(k.ingest_s_per_mib, 2) }}</span></div>
+          </div>
+        }
+      </app-card>
+
+      <app-card heading="Slowest 20 files to ingest" sub="Seconds and MiB per file, same keys on both panels" [q]="pTop20">
+        <div echarts class="chart" [style.height.px]="top20Height()" [options]="top20Options()!" [theme]="theme.echartsTheme()"></div>
+      </app-card>
+
+      <app-card heading="Ingest time against file size" [sub]="pScatter.rows().length + ' keys'" [q]="pScatter">
+        <div echarts class="chart h-260" [options]="scatterOptions()!" [theme]="theme.echartsTheme()"></div>
+      </app-card>
+
+      <app-card heading="Silver time per run by key" [sub]="pSilver.rows().length > topN && !showAllSilver() ? 'Slowest ' + topN + ' of ' + pSilver.rows().length : pSilver.rows().length + ' keys'" [q]="pSilver">
+        @if (pSilver.rows().length > topN) {
+          <button card-tools type="button" class="btn btn-ghost" (click)="showAllSilver.set(!showAllSilver())">{{ showAllSilver() ? 'Show top ' + topN : 'Show all ' + pSilver.rows().length }}</button>
+        }
+        <div echarts class="chart" [style.height.px]="silverHeight()" [options]="silverOptions()!" [theme]="theme.echartsTheme()"></div>
+      </app-card>
+
+      <app-card heading="Gold time per run by key" [sub]="pGold.rows().length > topN && !showAllGold() ? 'Slowest ' + topN + ' of ' + pGold.rows().length : pGold.rows().length + ' keys'" [q]="pGold">
+        @if (pGold.rows().length > topN) {
+          <button card-tools type="button" class="btn btn-ghost" (click)="showAllGold.set(!showAllGold())">{{ showAllGold() ? 'Show top ' + topN : 'Show all ' + pGold.rows().length }}</button>
+        }
+        <div echarts class="chart" [style.height.px]="goldHeight()" [options]="goldOptions()!" [theme]="theme.echartsTheme()"></div>
+      </app-card>
+    </aside>
+  </section>
+</div>

@@ -1,0 +1,14 @@
+EVALUATE
+SUMMARIZECOLUMNS (
+    'dim_qualification'[qualification_sk],
+    'dim_qualification'[qualification_name],
+    "anzahl_gueltig", SUM ( 'agg_qualification_status_counts'[anzahl_gueltig] ),
+    "anzahl_lt_90", SUM ( 'agg_qualification_status_counts'[anzahl_lt_90_tage] ),
+    "anzahl_abgelaufen", SUM ( 'agg_qualification_status_counts'[anzahl_abgelaufen] ),
+    "anzahl_noch_nicht_gueltig", SUM ( 'agg_qualification_status_counts'[anzahl_noch_nicht_gueltig] ),
+    "anzahl_ohne_datum", SUM ( 'agg_qualification_status_counts'[anzahl_ohne_datumsangabe] ),
+    "anzahl_fehlt", CALCULATE (
+        COUNTROWS ( 'fact_person_qualification_latest' ),
+        'fact_person_qualification_latest'[status_code] = "MISSING_NEVER"
+    )
+)

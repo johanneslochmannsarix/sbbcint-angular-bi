@@ -1,0 +1,38 @@
+{
+  "model": "platform_metrics",
+  "replaces": "tableEx 2c2ecfe77867d421e849 (dim_run_regime stage, regime_label, regime_from, change + Regime n)",
+  "view": "Step stability",
+  "grain": "regime (dim_run_regime has no relationship to dim_env; [Regime n] is BLANK for other envs' regimes,",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 90,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "stage": "code",
+    "regime_label": "label_technical",
+    "regime_from": "date",
+    "change": "label_technical",
+    "regime_n": "measure"
+  }
+}

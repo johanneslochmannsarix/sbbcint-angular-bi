@@ -1,0 +1,26 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: (new) «this Spark stage across runs»; no report visual
+-- grain: run_id x activity_name x Spark stage name, for the stage names that occur in the picked chain
+-- Stage names are free text, so they never travel as a request parameter: the backend passes only the
+-- chain id and the window, and the stage set comes from that chain server side. The page filters the
+-- rows to the clicked activity + stage. run_start is MIN of a timestamp (an axis position, no measure).
+EVALUATE
+VAR names_in_chain =
+    CALCULATETABLE (
+        SUMMARIZE ( 'fact_spark_stage', 'fact_spark_stage'[activity_name], 'fact_spark_stage'[name] ),
+        TREATAS ( { {{chain_id}} }, 'fact_spark_stage'[run_id] )
+    )
+RETURN
+    SUMMARIZECOLUMNS (
+        'fact_spark_stage'[run_id],
+        'fact_spark_stage'[activity_name],
+        'fact_spark_stage'[name],
+        names_in_chain,
+        {{env_filter}},
+        {{tenant_filter}},
+        FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+        "run_start", MIN ( 'fact_spark_stage'[first_submission] ),
+        "stage_run_min", [Stage run min],
+        "spark_stages", [Spark stages]
+    )
+ORDER BY [run_start]

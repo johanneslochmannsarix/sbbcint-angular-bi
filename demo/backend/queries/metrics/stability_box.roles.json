@@ -1,0 +1,41 @@
+{
+  "model": "platform_metrics",
+  "replaces": "(new) box plot per step and regime; PBIR has no native box plot",
+  "view": "Step stability",
+  "grain": "stage x step x run_id x regime - the per-run value is [Step s] at that grain, i.e. the same",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 90,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "stage": "code",
+    "step": "label_technical",
+    "run_id": "id",
+    "regime_key": "id",
+    "regime_label": "label_technical",
+    "is_current": "code",
+    "step_s": "measure",
+    "run_start": "date"
+  }
+}

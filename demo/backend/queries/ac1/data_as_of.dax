@@ -1,0 +1,3 @@
+-- Header «Datenstand»: the pipeline's data-as-of in local time (same measure as the AC-2 header cards).
+EVALUATE
+ROW ( "datenstand_local", [Datenstand_Datum] )

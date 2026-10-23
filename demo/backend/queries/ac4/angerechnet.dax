@@ -1,0 +1,51 @@
+-- View 7 (angerechnete Zeit): per Planmonat, the distribution of «Tour angerechnete Zeit (min)» over the
+-- tours that carry it, and the fill (tours with a value / all tours) - F3: sparse Aug / Sep, ~95 % from Oct.
+-- The model has no measure for this (*): the value is a tour attribute repeated on every element, so it is
+-- taken ONCE per tour (MAX per tour_id, SBBCBI-145 runbook §3) and never summed over elements. For the same
+-- tours the tour Plandauer (Tour Planbeginn → Tour Planende) is given alongside, and how many tours carry an
+-- angerechnete Zeit equal to their Plandauer (±1 min). Gaps are not filled.
+DEFINE
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fFirma = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _firma ) || fico_disposition[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_disposition[depot_sk] ), ISBLANK ( _st ) || fico_disposition[depot_sk] = _st )
+    VAR _fPtyp = FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), ISBLANK ( _pt ) || fico_disposition[Personaltyp Tour] = _ptName )
+    VAR _tours =
+        CALCULATETABLE (
+            ADDCOLUMNS (
+                SUMMARIZE ( fico_disposition, fico_disposition[Planmonat], fico_disposition[tour_id] ),
+                "@a", CALCULATE ( MAX ( fico_disposition[Tour angerechnete Zeit (min)] ) ),
+                "@p", CALCULATE ( DATEDIFF ( MIN ( fico_disposition[Tour Planbeginn] ), MAX ( fico_disposition[Tour Planende] ), MINUTE ) )
+            ),
+            _fFirma, _fStandort, _fPtyp
+        )
+EVALUATE
+ADDCOLUMNS (
+    DISTINCT ( SELECTCOLUMNS ( _tours, "planmonat", fico_disposition[Planmonat] ) ),
+    "touren", VAR mm = [planmonat] RETURN COUNTROWS ( FILTER ( _tours, fico_disposition[Planmonat] = mm ) ),
+    "touren_anger", VAR mm = [planmonat] RETURN COUNTROWS ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ) ),
+    "a_min", VAR mm = [planmonat] RETURN MINX ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ), [@a] ),
+    "a_p05", VAR mm = [planmonat] RETURN PERCENTILEX.INC ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ), [@a], 0.05 ),
+    "a_p25", VAR mm = [planmonat] RETURN PERCENTILEX.INC ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ), [@a], 0.25 ),
+    "a_p50", VAR mm = [planmonat] RETURN PERCENTILEX.INC ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ), [@a], 0.5 ),
+    "a_p75", VAR mm = [planmonat] RETURN PERCENTILEX.INC ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ), [@a], 0.75 ),
+    "a_p95", VAR mm = [planmonat] RETURN PERCENTILEX.INC ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ), [@a], 0.95 ),
+    "a_max", VAR mm = [planmonat] RETURN MAXX ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ), [@a] ),
+    "p_p50", VAR mm = [planmonat] RETURN PERCENTILEX.INC ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) ), [@p], 0.5 ),
+    "gleich_plan", VAR mm = [planmonat] RETURN COUNTROWS ( FILTER ( _tours, fico_disposition[Planmonat] = mm && NOT ISBLANK ( [@a] ) && ABS ( [@a] - [@p] ) <= 1 ) )
+)
+ORDER BY [planmonat]

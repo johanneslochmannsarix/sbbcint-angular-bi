@@ -1,0 +1,16 @@
+-- page: Entity / table Pareto
+-- replaces: cards 91c0ff4c461d8c8cf0d4, d242f866f1712093f9a3, fab3ce6d89b0ad6da63e, f343468eb50a221e4ef6, 815ab4720ffb36698002
+-- grain: 1 row (measures need ONE tenant + env: HASONEVALUE(fact_run_step[env_key]))
+EVALUATE
+CALCULATETABLE (
+    ROW (
+        "top10_ingest", [Top-10 ingest],
+        "top10_silver", [Top-10 silver],
+        "top10_gold", [Top-10 gold],
+        "fixed_s_per_file", [Fixed s/file],
+        "ingest_s_per_mib", [Ingest s per MiB]
+    ),
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} )
+)

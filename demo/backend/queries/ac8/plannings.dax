@@ -1,0 +1,9 @@
+-- The SOLL planning variants (dim_shift_planning) with their SOLL totals, for the planning selector of view 2.
+-- The model carries no validity dates: the app's default is picked by name and says so.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'dim_shift_planning'[shift_planning_sk],
+    'dim_shift_planning'[planning_name],
+    "soll", [Anzahl SOLL-Schichten],
+    "soll_h", [SOLL-Schichtdauer [h]]]
+)

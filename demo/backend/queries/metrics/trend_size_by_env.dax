@@ -1,0 +1,15 @@
+-- page: Trend by tenant / env / batch
+-- replaces: lineChart 0533ac481d318abe6d9b (batch_date x Size per Batch (GiB), series env)
+-- grain: batch_date x env
+-- delivered batches only: fact_csv_file[is_delivered] (done/ before ADR-056, processed/…-done since; superseded / failed excluded), 2026-10-22.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_csv_file'[batch_date],
+    'fact_csv_file'[env],
+    TREATAS ( { TRUE () }, 'fact_csv_file'[is_delivered] ),
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "size_per_batch_gib", [Size per Batch (GiB)]
+)
+ORDER BY 'fact_csv_file'[batch_date], 'fact_csv_file'[env]

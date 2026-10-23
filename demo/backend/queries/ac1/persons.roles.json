@@ -1,0 +1,14 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "parameter datasets PersonLookupDataset (Plantafel Auszubildende: dim_person_auszubildende[person_name]) and the trainer rows of Plantafel Ausbilder Tagesraster (TREATAS {\"Ausbilder\"} dim_person[worker_type_name])",
+  "view": "«ansehen als» person picker for both audiences, cohort and Gantt row labels",
+  "grain": "one row per person per audience (a person in both dims appears twice)",
+  "columns": {
+    "person_sk": "label_person",
+    "person_name": "label_person",
+    "audience": "code",
+    "tour_days": "measure"
+  },
+  "person_key": "person_sk"
+}

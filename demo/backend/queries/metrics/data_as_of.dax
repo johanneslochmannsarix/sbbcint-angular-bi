@@ -1,0 +1,9 @@
+-- page: (header stamp, all pages) - also served by /api/health
+-- replaces: the collector freshness cards (Last collected / Hours since collected / Collector errors)
+-- grain: 1 row
+EVALUATE
+ROW (
+    "last_collected", [Last collected],
+    "hours_since_collected", [Hours since collected],
+    "collector_errors", [Collector errors]
+)

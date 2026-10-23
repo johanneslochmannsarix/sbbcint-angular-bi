@@ -1,0 +1,28 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Plan und Ist»: the element set behind «Elemente mit Ist» and the ±15-min shares (the report shows aggregates only)",
+  "view": "4 Plan und Ist: deviation scatter + density + brush",
+  "grain": "one row per tour element with Ist begin and Ist end",
+  "params": {
+    "month": { "type": "month" },
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 },
+    "taet": { "type": "sk" }
+  },
+  "columns": {
+    "element_id": "id",
+    "tour_id": "id",
+    "planmonat": "code",
+    "depot_sk": "id",
+    "tourstandort": "label_org",
+    "taetigkeit": "label_org",
+    "fahren": "code",
+    "plandauer_min": "measure",
+    "abw_beginn_min": "measure",
+    "abw_dauer_min": "measure",
+    "plan_stunde": "measure"
+  },
+  "note": "no person column, no tour name; deviations are the Gold columns behind the report's Plan-und-Ist measures"
+}

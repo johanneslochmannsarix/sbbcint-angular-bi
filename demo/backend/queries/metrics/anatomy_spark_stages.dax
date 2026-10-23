@@ -1,0 +1,19 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: (new) Spark-stage drill-down of one chain; no report visual
+-- grain: activity_name x Spark stage name x status
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_spark_stage'[activity_name],
+    'fact_spark_stage'[name],
+    'fact_spark_stage'[status],
+    TREATAS ( { {{chain_id}} }, 'fact_spark_stage'[run_id] ),
+    "spark_stages", [Spark stages],
+    "stage_run_min", [Stage run min],
+    "input_gib", [Input GiB],
+    "input_rows", [Input rows],
+    "output_rows", [Output rows],
+    "shuffle_gib", [Shuffle GiB],
+    "spill_gib", [Spill GiB],
+    "peak_exec_mem_mib", [Peak exec mem MiB]
+)
+ORDER BY [stage_run_min] DESC

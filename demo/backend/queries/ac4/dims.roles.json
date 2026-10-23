@@ -1,0 +1,14 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "the report's slicers (Planmonat, Firma, Tourstandort, Personaltyp Tour, Tätigkeit)",
+  "view": "filter bar, breadcrumbs",
+  "grain": "one row per filter value (kind firma / standort / ptyp / taet / monat)",
+  "columns": {
+    "kind": "code",
+    "key": "id",
+    "label": "label_org",
+    "parent": "label_org",
+    "rang": "measure"
+  }
+}

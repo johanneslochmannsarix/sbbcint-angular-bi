@@ -1,0 +1,5 @@
+-- Header «Stand»: sm_au_verleihliste carries no stamp of its own. The same RT&S Gold run writes fact_au_verleihliste
+-- and refreshes both models (RTS_SEMANTIC_MODELS in the gold notebook), so the import model's [Datenstand_Datum]
+-- (the AC-1 / AC-2 stamp, local time) is the chain's stand - the app labels it so.
+EVALUATE
+ROW ( "datenstand_local", [Datenstand_Datum] )

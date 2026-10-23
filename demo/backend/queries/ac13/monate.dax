@@ -1,0 +1,62 @@
+-- KPI band (with month sparklines), fill strip (view 7) and the month totals of the rule panel (view 5): every
+-- month with tours or absences up to the last tour month, the model's measures per month. Standort filters tours
+-- by Tour-Standort and absences / ohne Eintrag by Heimatstandort (one dim_standort, D2); Haupttyp filters tours
+-- only («Personaltyp filtert Abwesenheiten nicht»). angerechnet_touren = tours that carry angerechnete Zeit (⚑).
+-- At month level the «übrige» count stays its own column (as on the report's KPI row); only the Standort × day
+-- band merges it with «ohne Eintrag» (Q1 ruling, standort_tage.dax).
+DEFINE
+    VAR _bis = FORMAT ( MAX ( fact_tour_cd[datum] ), "yyyy-MM" )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ),
+        RANKX ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), dim_standort_nachbereitung_cd[standort_name], , ASC, DENSE ) = _s ),
+        dim_standort_nachbereitung_cd[standort_name] )
+    VAR _fS = FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), ISBLANK ( _s ) || dim_standort_nachbereitung_cd[standort_name] = _sN )
+    VAR _h = {{haupttyp}}
+    VAR _hN = MAXX ( FILTER ( ALL ( fact_tour_cd[personaltyp_haupttyp] ),
+        RANKX ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), fact_tour_cd[personaltyp_haupttyp], , ASC, DENSE ) = _h ),
+        fact_tour_cd[personaltyp_haupttyp] )
+    VAR _fH = FILTER ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), ISBLANK ( _h ) || fact_tour_cd[personaltyp_haupttyp] = _hN )
+    VAR _fMon = FILTER ( ALL ( dim_tag_nachbereitung_cd[monat_label] ), dim_tag_nachbereitung_cd[monat_label] <= _bis )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        dim_tag_nachbereitung_cd[monat_label],
+        _fMon, _fS, _fH,
+        "@touren", [Anzahl Touren],
+        "@besetzt", [Touren besetzt],
+        "@offen", [Touren offen],
+        "@personen", [Anzahl Personen],
+        "@az", [Arbeitszeit v1 [h]]],
+        "@plan", [Plandauer [h]]],
+        "@anger", [Angerechnete Zeit [h]]],
+        "@anger_n", CALCULATE ( COUNTROWS ( fact_tour_cd ), KEEPFILTERS ( NOT ISBLANK ( fact_tour_cd[angerechnete_zeit_min] ) ) ),
+        "@ge12", [Touren ≥ 12 h],
+        "@ge14", [Touren ≥ 14 h],
+        "@ue", [Übernachtungstouren],
+        "@paare", [Übernachtungen],
+        "@verkauft", [Verkaufte Touren],
+        "@schulungen", [Schulungen],
+        "@familie", [Abwesenheitstage],
+        "@uebrige", [Abwesenheitstage übrige],
+        "@ohne", [Tage ohne Eintrag]
+    ),
+    "monat", dim_tag_nachbereitung_cd[monat_label],
+    "touren", [@touren] + 0,
+    "besetzt", [@besetzt] + 0,
+    "offen", [@offen] + 0,
+    "personen", [@personen] + 0,
+    "az_h", [@az] + 0,
+    "plan_h", [@plan] + 0,
+    "anger_h", [@anger] + 0,
+    "angerechnet_touren", [@anger_n] + 0,
+    "ge12", [@ge12] + 0,
+    "ge14", [@ge14] + 0,
+    "ue_touren", [@ue] + 0,
+    "paare", [@paare] + 0,
+    "verkauft", [@verkauft] + 0,
+    "schulungen", [@schulungen] + 0,
+    "familie", [@familie] + 0,
+    "uebrige", [@uebrige] + 0,
+    "ohne_eintrag", [@ohne] + 0
+)
+ORDER BY [monat]

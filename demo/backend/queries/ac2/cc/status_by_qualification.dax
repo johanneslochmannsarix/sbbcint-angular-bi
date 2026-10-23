@@ -1,0 +1,15 @@
+EVALUATE
+SUMMARIZECOLUMNS (
+    'dim_qualification'[qualification_sk],
+    'dim_qualification'[qualification_name],
+    {{org_filter}},
+    "anzahl_gueltig", [Anzahl Gültig],
+    "anzahl_lt_90", [Anzahl < 90 Tage gültig],
+    "anzahl_abgelaufen", [Anzahl Abgelaufen],
+    "anzahl_noch_nicht_gueltig", [Anzahl Noch nicht gültig],
+    "anzahl_ohne_datum", [Anzahl Ohne Datumsangabe],
+    "anzahl_fehlt", CALCULATE (
+        COUNTROWS ( 'fact_person_qualification_latest' ),
+        'fact_person_qualification_latest'[status_code] = "MISSING_NEVER"
+    )
+)

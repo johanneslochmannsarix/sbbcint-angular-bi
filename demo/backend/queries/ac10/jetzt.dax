@@ -1,0 +1,53 @@
+-- View 0 «Jetzt» band: open shifts today / tomorrow / the next 7 days (heute .. heute+6), each with its
+-- zwingend part and the shift total, plus the Schichtelemente ohne Schicht of the same days. heute = the
+-- browser's today (sent explicitly), so the band rolls over at local midnight like the report's Now picker.
+-- Tier 2 has no Mandant / Depot / Haupttyp / zwingend flag of its own (R2), so those filters do not apply to
+-- the element counts; the category does.
+-- Filters (README "Filters and params"): mandant / depot / haupttyp / kategorie are ORDINALS into the
+-- model's sorted value lists (same rule as scope.dax), zwingend = alle | zwingend | nicht. Absent = no filter.
+EVALUATE
+VAR _h = {{heute}}
+VAR _mix = {{mandant}}
+VAR _fM =
+    FILTER ( ALL ( 'dim_scope'[tenant_name] ),
+        ISBLANK ( _mix ) || ( NOT ISBLANK ( 'dim_scope'[tenant_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[tenant_name] ), NOT ISBLANK ( 'dim_scope'[tenant_name] ) && 'dim_scope'[tenant_name] < EARLIER ( 'dim_scope'[tenant_name] ) ) ) = _mix ) )
+VAR _dix = {{depot}}
+VAR _fDep =
+    FILTER ( ALL ( 'dim_scope'[depot_name] ),
+        ISBLANK ( _dix ) || ( NOT ISBLANK ( 'dim_scope'[depot_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[depot_name] ), NOT ISBLANK ( 'dim_scope'[depot_name] ) && 'dim_scope'[depot_name] < EARLIER ( 'dim_scope'[depot_name] ) ) ) = _dix ) )
+VAR _hix = {{haupttyp}}
+VAR _fH =
+    FILTER ( ALL ( 'dim_scope'[haupttyp_name] ),
+        ISBLANK ( _hix ) || ( NOT ISBLANK ( 'dim_scope'[haupttyp_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[haupttyp_name] ), NOT ISBLANK ( 'dim_scope'[haupttyp_name] ) && 'dim_scope'[haupttyp_name] < EARLIER ( 'dim_scope'[haupttyp_name] ) ) ) = _hix ) )
+VAR _z = {{zwingend}}
+VAR _fZ =
+    FILTER ( ALL ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] ),
+        ISBLANK ( _z ) || _z = "alle"
+            || ( _z = "zwingend" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () )
+            || ( _z = "nicht" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = FALSE () ) )
+VAR _kix = {{kategorie}}
+VAR _fK =
+    FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ),
+        ISBLANK ( _kix ) || ( NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ), NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] ) && 'fact_shift_besetzung'[fahren_kategorie] < EARLIER ( 'fact_shift_besetzung'[fahren_kategorie] ) ) ) = _kix ) )
+VAR _d0 = FILTER ( ALL ( 'dim_date'[datum] ), 'dim_date'[datum] = _h )
+VAR _d1 = FILTER ( ALL ( 'dim_date'[datum] ), 'dim_date'[datum] = _h + 1 )
+VAR _d7 = FILTER ( ALL ( 'dim_date'[datum] ), 'dim_date'[datum] >= _h && 'dim_date'[datum] <= _h + 6 )
+RETURN
+    ROW (
+        "heute", _h,
+        "heute_ungeplant", CALCULATE ( [Anzahl ungeplante Schichten], _d0, _fM, _fDep, _fH, _fZ ),
+        "heute_zwingend", CALCULATE ( CALCULATE ( [Anzahl ungeplante Schichten], KEEPFILTERS ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () ) ), _d0, _fM, _fDep, _fH, _fZ ),
+        "heute_schichten", CALCULATE ( [Anzahl Schichten], _d0, _fM, _fDep, _fH, _fZ ),
+        "morgen_ungeplant", CALCULATE ( [Anzahl ungeplante Schichten], _d1, _fM, _fDep, _fH, _fZ ),
+        "morgen_zwingend", CALCULATE ( CALCULATE ( [Anzahl ungeplante Schichten], KEEPFILTERS ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () ) ), _d1, _fM, _fDep, _fH, _fZ ),
+        "morgen_schichten", CALCULATE ( [Anzahl Schichten], _d1, _fM, _fDep, _fH, _fZ ),
+        "woche_ungeplant", CALCULATE ( [Anzahl ungeplante Schichten], _d7, _fM, _fDep, _fH, _fZ ),
+        "woche_zwingend", CALCULATE ( CALCULATE ( [Anzahl ungeplante Schichten], KEEPFILTERS ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () ) ), _d7, _fM, _fDep, _fH, _fZ ),
+        "woche_schichten", CALCULATE ( [Anzahl Schichten], _d7, _fM, _fDep, _fH, _fZ ),
+        "heute_elemente", CALCULATE ( [Anzahl offene Schichtelemente], _d0, _fK ),
+        "woche_elemente", CALCULATE ( [Anzahl offene Schichtelemente], _d7, _fK )
+    )

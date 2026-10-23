@@ -1,0 +1,72 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "the two drill-through Detaillisten (Schicht / Schichtelement), one day at a time",
+  "view": "3 Tagesdrill (Gantt) + Detailliste",
+  "grain": "one row per position planned on one day",
+  "params": {
+    "tag": {
+      "type": "date",
+      "required": true
+    },
+    "mandant": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "depot": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "haupttyp": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "zwingend": {
+      "type": "enum",
+      "values": [
+        "alle",
+        "zwingend",
+        "nicht"
+      ]
+    },
+    "kategorie": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "tier": {
+      "type": "enum",
+      "values": [
+        "alle",
+        "schicht",
+        "element"
+      ]
+    },
+    "position": {
+      "type": "sk",
+      "filter_column": "'fact_shift_besetzung'[position_sk]"
+    }
+  },
+  "columns": {
+    "position_sk": "id",
+    "position_typ": "code",
+    "mandant": "label_org",
+    "depot": "label_org",
+    "haupttyp": "label_org",
+    "personaltyp": "label_org",
+    "position_name": "label_freetext",
+    "planned_start": "date",
+    "planned_end": "date",
+    "is_offen": "code",
+    "is_zwingend": "code",
+    "fahren_kategorie": "label_technical",
+    "fahrelement_anzahl": "measure",
+    "fahrelement_liste": "label_freetext",
+    "von": "label_location",
+    "nach": "label_location"
+  },
+  "note": "position_name and fahrelement_liste are free-typed in SaxMS: masked to T- tokens (real only under -Real); no person column exists in this model"
+}

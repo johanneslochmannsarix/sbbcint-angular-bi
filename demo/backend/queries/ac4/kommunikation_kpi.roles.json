@@ -1,0 +1,36 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Änderungen & Akzeptanz»: KPI card, «Arten» cards, Tourstandort table shares",
+  "view": "5 Änderungen & Akzeptanz: KPI row",
+  "grain": "one row per Planmonat plus one total row (ist_gesamt)",
+  "params": {
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 }
+  },
+  "columns": {
+    "planmonat": "code",
+    "ist_gesamt": "code",
+    "schichten": "measure",
+    "kommuniziert": "measure",
+    "akzeptiert": "measure",
+    "akzeptiert_automatisch": "measure",
+    "von_hand": "measure",
+    "vor_geaendert": "measure",
+    "nach_geaendert": "measure",
+    "nach_neu_versendet": "measure",
+    "nach_nicht_versendet": "measure",
+    "anteil_vor": "measure",
+    "anteil_nach": "measure",
+    "anteil_akzeptiert": "measure",
+    "versionen_je_schicht": "measure",
+    "folgeversionen": "measure",
+    "aend_vor": "measure",
+    "aend_nach": "measure",
+    "aend_tourelemente": "measure",
+    "aend_besetzung": "measure",
+    "aend_zeit": "measure",
+    "identisch": "measure"
+  }
+}

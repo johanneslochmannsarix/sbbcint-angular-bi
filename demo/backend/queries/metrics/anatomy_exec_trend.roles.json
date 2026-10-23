@@ -1,0 +1,36 @@
+{
+  "model": "platform_metrics",
+  "replaces": "lineChart 8c9e0fd4f5ce6a656df4 (start_date x Exec min, series stage)",
+  "view": "Run anatomy (ADR-055)",
+  "grain": "start_date x stage",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": false,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 30,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "start_date": "date",
+    "stage": "code",
+    "exec_min": "measure"
+  }
+}

@@ -1,0 +1,31 @@
+-- Tour drill (view 7b), header: ONE tour (tour = doi_id, resolved by the router from the pseudo-id D-...) with
+-- its order, Geschäftsart, both categories, plan (context) and IST times and the tour's hour columns - netto is
+-- the model's ist_dauer_ohne_pause_h, not a sum the app makes.
+DEFINE
+    VAR _rows = CALCULATETABLE ( fact_tour_abrechnung, {{tour_filter}} )
+EVALUATE
+SELECTCOLUMNS (
+    _rows,
+    "doi_id", fact_tour_abrechnung[doi_id],
+    "dor_name", fact_tour_abrechnung[dor_name],
+    "tourbezeichnung", fact_tour_abrechnung[tourbezeichnung],
+    "geschaeftsart", fact_tour_abrechnung[geschaeftsart],
+    "kategorie_auftrag", fact_tour_abrechnung[kategorie_auftrag],
+    "preiskategorie", fact_tour_abrechnung[preiskategorie],
+    "year_month_ist", fact_tour_abrechnung[year_month_ist],
+    "plan_monat", fact_tour_abrechnung[plan_monat],
+    "plan_start", fact_tour_abrechnung[plan_start],
+    "plan_ende", fact_tour_abrechnung[plan_ende],
+    "plan_dauer_h", fact_tour_abrechnung[plan_dauer_h],
+    "ist_start", fact_tour_abrechnung[ist_start],
+    "ist_ende", fact_tour_abrechnung[ist_ende],
+    "ist_dauer_h", fact_tour_abrechnung[ist_dauer_h],
+    "netto_h", fact_tour_abrechnung[ist_dauer_ohne_pause_h],
+    "pause_h", fact_tour_abrechnung[ist_stunden_pause],
+    "azu_h", fact_tour_abrechnung[ist_stunden_azu],
+    "fahrt_h", fact_tour_abrechnung[ist_stunden_fahrt],
+    "ist_vollstaendig", fact_tour_abrechnung[ist_vollstaendig],
+    "tour_abgeschlossen", fact_tour_abrechnung[tour_abgeschlossen],
+    "n_elemente", fact_tour_abrechnung[n_shiftcomponents],
+    "n_elemente_ist", fact_tour_abrechnung[n_shiftcomponents_mit_ist]
+)

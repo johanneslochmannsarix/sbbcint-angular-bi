@@ -1,0 +1,41 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page 1 matrix Mandant > Depot rows x Datum columns ([Anzahl offene Schichten]) - but with zero rows kept (R4)",
+  "view": "1 Depot x Tag heatmap",
+  "grain": "dim_scope Mandant x Depot x day of the window (zeros included)",
+  "params": {
+    "dates": {
+      "type": "date_window",
+      "default_days": 10,
+      "anchor": "from_today",
+      "max_days": 400
+    },
+    "mandant": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "haupttyp": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "zwingend": {
+      "type": "enum",
+      "values": [
+        "alle",
+        "zwingend",
+        "nicht"
+      ]
+    }
+  },
+  "columns": {
+    "tenant_name": "label_org",
+    "depot_name": "label_org",
+    "datum": "date",
+    "ungeplant": "measure",
+    "ungeplant_zwingend": "measure",
+    "schichten": "measure"
+  }
+}

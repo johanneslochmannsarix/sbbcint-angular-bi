@@ -1,0 +1,18 @@
+/* AC-7 person drawer (view 7). Global like ac7.css, every selector ac7-prefixed; tokens from the shell. */
+.ac7-drawer-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0 0; font-size: 12.5px; }
+.ac7-status { color: var(--ink-2); }
+.ac7-status.is-aktiv { color: var(--ink); font-weight: 600; }
+.ac7-stint-list { display: grid; gap: 10px; margin-bottom: 16px; }
+.ac7-stint { border: 1px solid var(--rule); border-radius: var(--r-card); padding: 10px 12px; }
+.ac7-stint.is-older { background: var(--surface-2); }
+.ac7-stint h3 { font-family: var(--ac7-serif-head); font-size: 15px; display: flex; align-items: center; gap: 2px; }
+.ac7-stint-dur { margin-left: auto; font-family: var(--font-display); font-weight: 400; color: var(--ink-2); font-size: 13px; }
+.ac7-stint-dates { margin: 2px 0 6px; font-family: var(--font-display); font-size: 18px; font-variant-numeric: tabular-nums; }
+.ac7-dl { margin: 0; display: grid; gap: 6px; font-size: 13px; }
+.ac7-dl div { display: grid; grid-template-columns: 11em minmax(0, 1fr); gap: 8px; }
+.ac7-dl dt { color: var(--muted); }
+.ac7-dl dd { margin: 0; }
+.ac7-dl-person { border-top: 1px solid var(--rule); padding-top: 12px; }
+.ac7-note { margin: 0; font-size: 12.5px; color: var(--ink); padding: 8px 10px; border-left: 3px solid var(--rule-strong); background: var(--surface-2); }
+.ac7-drawer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 0 8px; }
+@media (max-width: 640px) { .ac7-dl div { grid-template-columns: minmax(0, 1fr); gap: 0; } }

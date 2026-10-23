@@ -1,0 +1,38 @@
+-- View 3 legs: the Übernachtungstouren of ONE month as rows (both legs listed, as in the Zedas hotel list), with the
+-- pair attributes (Rolle Hinweg / Folgetour, Übernachtungsort, Partnertour Beginn / Tourennummer, Folgetag). The
+-- app links a pair by (person, partner begin) among the returned rows; a partner outside the month shows from its
+-- attributes only. Person key = pseudonym_nachbereitung_cd_sk (P-… in every mode), kennung = Gold label MA-…;
+-- tour numbers are free text (T-…). Standort = Tour-Standort.
+DEFINE
+    VAR _m = {{month}}
+    VAR _ml = IF ( ISBLANK ( _m ),
+        CALCULATE ( MIN ( dim_tag_nachbereitung_cd[monat_label] ), dim_tag_nachbereitung_cd[zeitraum] = "Vormonat" ),
+        FORMAT ( _m, "yyyy-MM" ) )
+    VAR _fM = TREATAS ( { _ml }, dim_tag_nachbereitung_cd[monat_label] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ),
+        RANKX ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), dim_standort_nachbereitung_cd[standort_name], , ASC, DENSE ) = _s ),
+        dim_standort_nachbereitung_cd[standort_name] )
+    VAR _fS = FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), ISBLANK ( _s ) || dim_standort_nachbereitung_cd[standort_name] = _sN )
+EVALUATE
+SELECTCOLUMNS (
+    CALCULATETABLE ( fact_tour_cd, _fM, _fS, KEEPFILTERS ( fact_tour_cd[ist_uebernachtung] = TRUE () ) ),
+    "tour", fact_tour_cd[tour_cd_sk],
+    "person", fact_tour_cd[pseudonym_nachbereitung_cd_sk],
+    "kennung", RELATED ( dim_pseudonym_nachbereitung_cd[pseudonym] ),
+    "heimatstandort", RELATED ( dim_pseudonym_nachbereitung_cd[heimatstandort] ),
+    "tourennummer", fact_tour_cd[tourennummer],
+    "tour_standort", fact_tour_cd[tour_standort],
+    "datum", fact_tour_cd[datum],
+    "plan_beginn", fact_tour_cd[plan_beginn],
+    "plan_ende", fact_tour_cd[plan_ende],
+    "start", fact_tour_cd[startbetriebsstelle],
+    "ziel", fact_tour_cd[zielbetriebsstelle],
+    "rolle", fact_tour_cd[uebernachtung_rolle],
+    "folgetour", IF ( fact_tour_cd[ist_folgetour], 1, 0 ),
+    "ort", fact_tour_cd[uebernachtung_ort],
+    "partner_beginn", fact_tour_cd[partnertour_beginn],
+    "partner_tourennummer", fact_tour_cd[partnertour_tourennummer],
+    "am_folgetag", IF ( fact_tour_cd[partnertour_am_folgetag], 1, 0 )
+)
+ORDER BY [plan_beginn]

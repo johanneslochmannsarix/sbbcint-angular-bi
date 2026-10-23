@@ -1,0 +1,12 @@
+EVALUATE
+SELECTCOLUMNS (
+    FILTER (
+        'fact_person_qualification_latest',
+        'fact_person_qualification_latest'[status_code] <> "MISSING_NEVER"
+    ),
+    "person_sk", 'fact_person_qualification_latest'[person_sk],
+    "qualification_sk", 'fact_person_qualification_latest'[qualification_sk],
+    "status_code", 'fact_person_qualification_latest'[status_code],
+    "valid_from", 'fact_person_qualification_latest'[valid_from],
+    "valid_to", 'fact_person_qualification_latest'[valid_to]
+)

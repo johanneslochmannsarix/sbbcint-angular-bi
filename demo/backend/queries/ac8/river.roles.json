@@ -1,0 +1,21 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "4 change river (brushable from 5)",
+  "grain": "creation day x kategorie (Rückmeldung label or Erstversion/Änderung)",
+  "params": {
+    "dates": { "type": "date_window", "default_days": 56, "anchor": "from_today", "max_days": 400 },
+    "serie": { "type": "enum", "values": ["status", "art"], "required": true },
+    "brush_from": { "type": "date" },
+    "brush_to": { "type": "date" },
+    "lead_min": { "type": "int", "min": -100000, "max": 100000 },
+    "lead_max": { "type": "int", "min": -100000, "max": 100000 }
+  },
+  "columns": {
+    "tag": "date",
+    "kategorie": "code",
+    "versionen": "measure"
+  },
+  "note": "row count of fact_shift_snapshot: no _Kennzahlen measure counts versions"
+}

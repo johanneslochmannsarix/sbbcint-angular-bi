@@ -1,0 +1,18 @@
+{
+  "model": "au_verleihliste",
+  "tenant": "RTS",
+  "replaces": "AUE-Verleihliste: column «Entleiher» (the RT&S order name until the customer's mapping exists)",
+  "view": "filter «Auftrag», person drawer",
+  "grain": "one row per order name of the two shown stints",
+  "columns": {
+    "rang": "id",
+    "auftrag": "label_freetext",
+    "geschaeftsart": "code",
+    "personen_einsatz1": "measure",
+    "personen_einsatz2": "measure"
+  },
+  "derived": {
+    "auftrag_token": "id"
+  },
+  "note": "Served only through /api/ac7/auftraege (router transform adds auftrag_token = the T-… token in every mode); /q/auftraege is refused."
+}

@@ -1,0 +1,66 @@
+/*
+ * AC-13 Nachbereitung SBB CD. Global (ViewEncapsulation.None) but every selector is ac13-prefixed or under .ac13, so
+ * the shell and the other showcases are untouched. Tokens come from the shell (styles.css).
+ * Character: the month's duty roster after the fact. The page reads like a Dienstplan sheet laid open at month
+ * end: month tabs on a heavy rule, the KPI band as ledger cells, figures in Bahnschrift with tabular numerals. One
+ * loud element: the person × day calendar. Everything else is quiet, ruled rather than boxed.
+ */
+.ac13 {
+  --ac13-num: "Bahnschrift", "DIN Alternate", var(--font-display);
+  --ac13-cond: "Bahnschrift SemiCondensed", "Bahnschrift", var(--font-display);
+}
+
+.ac13-title { font-family: var(--ac13-cond); font-size: 17px; font-weight: 600; color: var(--ink); }
+.ac13-muted { color: var(--muted); }
+
+/* ---------------------------------------------------------------- lede */
+.ac13-lede { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 56ch); gap: 8px 32px; align-items: end; padding: 4px 2px 0; }
+.ac13-h1 { font-family: var(--ac13-num); font-weight: 600; font-size: 28px; line-height: 1.15; margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ac13-dek { margin: 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+
+/* ---------------------------------------------------------------- card anatomy: question / answer / chart / rule note */
+.ac13 .card-head h2 { font-family: var(--ac13-cond); font-weight: 600; font-size: 18px; line-height: 1.25; color: var(--ink); margin: 0; }
+.ac13-answer { font-size: 14.5px; line-height: 1.5; color: var(--ink); margin: 2px 0 10px; max-width: 82ch; font-variant-numeric: tabular-nums; }
+.ac13-answer:empty { display: none; }
+.ac13-note { margin: 10px 0 0; padding-top: 8px; border-top: 1px dashed var(--rule-strong); font-size: 12px; line-height: 1.45; color: var(--ink-2); max-width: 115ch; }
+.ac13-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.ac13-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); justify-content: flex-end; max-width: 62ch; }
+.ac13-legend span { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.ac13-legend i { width: 12px; height: 10px; border-radius: 2px; display: inline-block; }
+.ac13-legend i.ac13-dot { width: 7px; height: 7px; border-radius: 50%; }
+.ac13-hatch { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.7) 0 1.5px, transparent 1.5px 4px) !important; }
+.ac13-empty { color: var(--muted); font-size: 13px; padding: 18px 8px; }
+
+/* ---------------------------------------------------------------- rules (panel + footer) */
+.ac13-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; margin: 10px 0 0; padding-top: 8px; border-top: 1px dashed var(--rule-strong); }
+.ac13-rules dt { font-family: var(--ac13-cond); font-weight: 600; font-size: 12.5px; color: var(--ink); }
+.ac13-rules dd { margin: 2px 0 0; font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+.ac13-rules-foot { grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 3px solid var(--ink); }
+
+/* month bar, lists, overnight pair and tour drill live in views/*.css since 2026-10-22 (style budget). */
+/* ---------------------------------------------------------------- layout */
+.ac13-page { display: flex; flex-direction: column; gap: 16px; }
+.ac13-row { display: grid; gap: 16px; align-items: start; }
+.ac13-row-az { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+.ac13-row-even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.ac13-split { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }
+.ac13-crumbs { gap: 8px; }
+.ac13-crumb-gap { flex: 1; }
+.ac13-field { display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--ink-2); }
+.ac13-foot { padding: 0 2px 8px; }
+
+@media (max-width: 1200px) {
+  .ac13-row-az, .ac13-row-even, .ac13-split { grid-template-columns: minmax(0, 1fr); }
+  .ac13-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ac13-tile:nth-child(3) { border-right: 0; }
+  .ac13-rules-foot { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .ac13-lede, .ac13-pair, .ac13-rules, .ac13-rules-foot { grid-template-columns: minmax(0, 1fr); }
+  .ac13-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ac13-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ac13-h1 { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac13 * { transition: none !important; }
+}

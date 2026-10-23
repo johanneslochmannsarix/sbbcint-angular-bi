@@ -1,0 +1,16 @@
+-- page: Step stability
+-- replaces: tableEx 2c2ecfe77867d421e849 (dim_run_regime stage, regime_label, regime_from, change + Regime n)
+-- grain: regime (dim_run_regime has no relationship to dim_env; [Regime n] is BLANK for other envs' regimes,
+-- which drops them - same mechanism as in the report)
+EVALUATE
+SUMMARIZECOLUMNS (
+    'dim_run_regime'[stage],
+    'dim_run_regime'[regime_label],
+    'dim_run_regime'[regime_from],
+    'dim_run_regime'[change],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "regime_n", [Regime n]
+)
+ORDER BY 'dim_run_regime'[regime_from] DESC

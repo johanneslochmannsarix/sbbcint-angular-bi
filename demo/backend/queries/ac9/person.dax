@@ -1,0 +1,42 @@
+-- Person drill (view 7c, the RDL's section B «Stunden je Mitarbeiter/in» for one person, and the AC-7 link):
+-- ONE person (pseudonym resolved server side to person_sk) per element month (year_month = month of the
+-- element's IST start - the model's person-level month; the RDL uses the tour's month, so a tour across a month
+-- end can fall one month apart) x order, with the person-level measures. No name, no personnel number; the
+-- person appears only as the filter. (*) touren = distinct tours of the person's reported elements.
+DEFINE
+    VAR _von = {{von}}
+    VAR _bis = {{bis}}
+    VAR _vonM = IF ( ISBLANK ( _von ), BLANK (), FORMAT ( _von, "yyyy-MM" ) )
+    VAR _bisM = IF ( ISBLANK ( _bis ), BLANK (), FORMAT ( _bis, "yyyy-MM" ) )
+    VAR _fMonat =
+        FILTER (
+            ALL ( fact_person_tour_ist[year_month] ),
+            NOT ISBLANK ( fact_person_tour_ist[year_month] )
+                && ( ISBLANK ( _vonM ) || fact_person_tour_ist[year_month] >= _vonM )
+                && ( ISBLANK ( _bisM ) || fact_person_tour_ist[year_month] <= _bisM )
+        )
+EVALUATE
+SELECTCOLUMNS (
+    FILTER (
+        SUMMARIZECOLUMNS (
+            fact_person_tour_ist[year_month],
+            fact_person_tour_ist[dor_name],
+            fact_person_tour_ist[geschaeftsart],
+            {{person_filter}},
+            _fMonat,
+            "elemente", [Anzahl Tourelemente],
+            "brutto_h", [Mitarbeiterstunden brutto],
+            "netto_h", [Mitarbeiterstunden ohne Pause],
+            "touren", CALCULATE ( DISTINCTCOUNT ( fact_person_tour_ist[doi_id] ), KEEPFILTERS ( fact_person_tour_ist[ist_vollstaendig] = TRUE () ) )
+        ),
+        [elemente] > 0
+    ),
+    "year_month", fact_person_tour_ist[year_month],
+    "dor_name", fact_person_tour_ist[dor_name],
+    "geschaeftsart", fact_person_tour_ist[geschaeftsart],
+    "elemente", [elemente],
+    "brutto_h", [brutto_h],
+    "netto_h", [netto_h],
+    "touren", [touren]
+)
+ORDER BY [year_month], [netto_h] DESC

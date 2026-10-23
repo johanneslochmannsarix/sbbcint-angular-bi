@@ -1,0 +1,65 @@
+-- View 5, plan vs disposition, as TWO separate aggregates (seite = plan / dispo) - never a row join; the model
+-- has no relationship between fico_planung and fico_disposition and none is made here. Only «Schichtbildung 1»
+-- has a settled period (07.09.-12.12.2026, Filippo 2026-10-08; validity fields empty, SAX-40), so the version
+-- and the window are fixed by name and date in this query. Shared attributes: Tourstandort (both tables), the
+-- weekday of the tour start (plan: musterwochentag_nr 0 = Mo; disposition: WEEKDAY ( Tour Plandatum, 3 )).
+--   plan:  Dauer Tourelemente / Anzahl Touren (Planung) of the pattern week
+--   dispo: Plandauer Tourelemente / Anzahl Touren (Disposition) in the window, in total and (*) per occurrence of
+--          that weekday in the window (14 Mondays ... 13 Sundays) = an average week, comparable with the pattern
+--          week. Anzahl Touren adds up over dates: a tour has one Tour Plandatum.
+-- Filters (ranks resolved to plan names) apply to both sides by name: Firma -> Firma, Personaltyp ->
+-- Personaltyp Tour, Tätigkeit -> Taetigkeit. A name the disposition does not carry yields no dispo rows.
+DEFINE
+    VAR _f = {{firma}}
+    VAR _fN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) ),
+        "@r", VAR x = fico_planung[Firma] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) && fico_planung[Firma] <= x ) ) ),
+        [@r] = _f ), fico_planung[Firma] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) ),
+        "@r", VAR x = fico_planung[Tourstandort] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) && fico_planung[Tourstandort] <= x ) ) ),
+        [@r] = _s ), fico_planung[Tourstandort] )
+    VAR _p = {{ptyp}}
+    VAR _pN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) ),
+        "@r", VAR x = fico_planung[Personaltyp] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) && fico_planung[Personaltyp] <= x ) ) ),
+        [@r] = _p ), fico_planung[Personaltyp] )
+    VAR _t = {{taet}}
+    VAR _tN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) ),
+        "@r", VAR x = fico_planung[Taetigkeit] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) && fico_planung[Taetigkeit] <= x ) ) ),
+        [@r] = _t ), fico_planung[Taetigkeit] )
+    VAR _from = DATE ( 2026, 9, 7 )
+    VAR _to = DATE ( 2026, 12, 12 )
+    VAR _fV = FILTER ( ALL ( fico_planung[JUP Version] ), fico_planung[JUP Version] = "Schichtbildung 1" )
+    VAR _fF = FILTER ( ALL ( fico_planung[Firma] ), ISBLANK ( _f ) || fico_planung[Firma] = _fN )
+    VAR _fS = FILTER ( ALL ( fico_planung[Tourstandort] ), ISBLANK ( _s ) || fico_planung[Tourstandort] = _sN )
+    VAR _fP = FILTER ( ALL ( fico_planung[Personaltyp] ), ISBLANK ( _p ) || fico_planung[Personaltyp] = _pN )
+    VAR _fT = FILTER ( ALL ( fico_planung[Taetigkeit] ), ISBLANK ( _t ) || fico_planung[Taetigkeit] = _tN )
+    VAR _dW = FILTER ( ALL ( fico_disposition[Tour Plandatum] ), fico_disposition[Tour Plandatum] >= _from && fico_disposition[Tour Plandatum] <= _to )
+    VAR _dF = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _f ) || fico_disposition[Firma] = _fN )
+    VAR _dS = FILTER ( ALL ( fico_disposition[Tourstandort] ), ISBLANK ( _s ) || fico_disposition[Tourstandort] = _sN )
+    VAR _dP = FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), ISBLANK ( _p ) || fico_disposition[Personaltyp Tour] = _pN )
+    VAR _dT = FILTER ( ALL ( fico_disposition[Taetigkeit] ), ISBLANK ( _t ) || fico_disposition[Taetigkeit] = _tN )
+EVALUATE
+VAR _plan =
+    SELECTCOLUMNS (
+        SUMMARIZECOLUMNS ( fico_planung[Tourstandort], fico_planung[musterwochentag_nr], _fV, _fF, _fS, _fP, _fT,
+            "@h", [Dauer Tourelemente (Planung) [h]]], "@n", [Anzahl Touren (Planung)] ),
+        "seite", "plan", "tourstandort", fico_planung[Tourstandort], "tag", fico_planung[musterwochentag_nr],
+        "h", [@h], "touren", [@n], "h_je_woche", [@h], "touren_je_woche", [@n] + 0.0
+    )
+VAR _days =
+    SELECTCOLUMNS (
+        SUMMARIZECOLUMNS ( fico_disposition[Tourstandort], fico_disposition[Tour Plandatum], _dW, _dF, _dS, _dP, _dT,
+            "@h", [Plandauer Tourelemente (Disposition) [h]]], "@n", [Anzahl Touren (Disposition)] ),
+        "ts", fico_disposition[Tourstandort], "wd", WEEKDAY ( fico_disposition[Tour Plandatum], 3 ), "dh", [@h], "dn", [@n]
+    )
+VAR _disp =
+    GROUPBY ( _days, [ts], [wd], "@h", SUMX ( CURRENTGROUP (), [dh] ), "@n", SUMX ( CURRENTGROUP (), [dn] ) )
+VAR _dispOut =
+    SELECTCOLUMNS (
+        _disp,
+        "seite", "dispo", "tourstandort", [ts], "tag", [wd], "h", [@h], "touren", [@n],
+        "h_je_woche", VAR w = [wd] RETURN DIVIDE ( [@h], COUNTROWS ( FILTER ( CALENDAR ( _from, _to ), WEEKDAY ( [Date], 3 ) = w ) ) ),
+        "touren_je_woche", VAR w = [wd] RETURN DIVIDE ( [@n], COUNTROWS ( FILTER ( CALENDAR ( _from, _to ), WEEKDAY ( [Date], 3 ) = w ) ) )
+    )
+RETURN
+    UNION ( _plan, _dispOut )

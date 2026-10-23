@@ -1,0 +1,23 @@
+-- page: Step stability
+-- replaces: (new) box plot per step and regime; PBIR has no native box plot
+-- grain: stage x step x run_id x regime - the per-run value is [Step s] at that grain, i.e. the same
+-- per-run total (@s) the Regime * measures summarise. Quartiles/whiskers are drawn client-side from these
+-- points; the model's own Regime median/p90/CV come from stability_table (parity: box median of the
+-- current regime == Regime median s).
+-- run_start is MIN of a timestamp column (axis position / click target, no model measure exists).
+-- Columns from two tables (fact_run_step, dim_run_regime): the measure keeps it to real combinations.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_run_step'[stage],
+    'fact_run_step'[step],
+    'fact_run_step'[run_id],
+    'dim_run_regime'[regime_key],
+    'dim_run_regime'[regime_label],
+    'dim_run_regime'[is_current],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "step_s", [Step s],
+    "run_start", MIN ( 'fact_run_step'[activity_start] )
+)
+ORDER BY 'fact_run_step'[stage], 'fact_run_step'[step], [run_start]

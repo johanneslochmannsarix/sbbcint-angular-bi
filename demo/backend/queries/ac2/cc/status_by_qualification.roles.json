@@ -1,0 +1,24 @@
+{
+  "model": "import",
+  "tenant": "CARGOCONTROL",
+  "replaces": "«Anzahl MA pro Qualifikation und Status» pivot + the five status cards (Übersicht): measures Anzahl Gültig, Anzahl < 90 Tage gültig, Anzahl Abgelaufen, Anzahl Noch nicht gültig, Anzahl Ohne Datumsangabe; extends with the MISSING_NEVER count of «Wer hat eine Qualifikation noch nicht?»",
+  "view": "6 sankey, KPI strip",
+  "grain": "one row per qualification (SUMMARIZECOLUMNS drops qualifications where every measure is blank)",
+  "params": {
+    "org": {
+      "type": "sk",
+      "required": false,
+      "filter_column": "'dim_tenant'[tenant_sk]"
+    }
+  },
+  "columns": {
+    "qualification_sk": "id",
+    "qualification_name": "label_qualification",
+    "anzahl_gueltig": "measure",
+    "anzahl_lt_90": "measure",
+    "anzahl_abgelaufen": "measure",
+    "anzahl_noch_nicht_gueltig": "measure",
+    "anzahl_ohne_datum": "measure",
+    "anzahl_fehlt": "measure"
+  }
+}

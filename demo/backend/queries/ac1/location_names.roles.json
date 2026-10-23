@@ -1,0 +1,11 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "nothing (the RDLs print location names only)",
+  "view": "5 map: which names need coordinates",
+  "grain": "one row per referenced location name",
+  "columns": {
+    "location": "label_location",
+    "rows": "measure"
+  }
+}

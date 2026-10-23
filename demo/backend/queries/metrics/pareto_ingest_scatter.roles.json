@@ -1,0 +1,36 @@
+{
+  "model": "platform_metrics",
+  "replaces": "scatterChart 93aeced5dc923f208e43 (key: X Ingest MiB/file, Y Ingest s/file)",
+  "view": "Entity / table Pareto",
+  "grain": "key",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 30,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "key": "label_technical",
+    "ingest_mib_per_file": "measure",
+    "ingest_s_per_file": "measure"
+  }
+}

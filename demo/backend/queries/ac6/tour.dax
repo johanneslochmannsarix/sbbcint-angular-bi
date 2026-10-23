@@ -1,0 +1,26 @@
+-- View 6, Gantt: the elements of ONE planned tour (tour = its pseudo-id, an sk). Pattern-week offsets in ms from
+-- Monday 00:00 (no calendar date: the JUP is a week template), Element Dauer / Arbeitszeit (min) as delivered,
+-- Tätigkeit + the source flag Fahren (ja/nein), stations, Zugnummer and Kostenallokation. No element name (free
+-- text, not needed) and no person: the plan has none. Tour name masked (label_freetext).
+EVALUATE
+SELECTCOLUMNS (
+    CALCULATETABLE ( fico_planung, {{tour_filter}}, NOT ISBLANK ( fico_planung[element_id] ) ),
+    "element_id", fico_planung[element_id],
+    "tour", fico_planung[Tour],
+    "version", fico_planung[JUP Version],
+    "tourstandort", fico_planung[Tourstandort],
+    "personaltyp", fico_planung[Personaltyp],
+    "tour_start_ms", fico_planung[tour_start_ms],
+    "tour_ende_ms", fico_planung[tour_ende_ms],
+    "start_ms", fico_planung[element_start_ms],
+    "ende_ms", fico_planung[element_ende_ms],
+    "dauer_min", fico_planung[Element Dauer (min)],
+    "arbeitszeit_min", fico_planung[Element Arbeitszeit (min)],
+    "taetigkeit", fico_planung[Taetigkeit],
+    "fahren", fico_planung[Fahren (ja/nein)],
+    "startbahnhof", fico_planung[Startbahnhof],
+    "zielbahnhof", fico_planung[Zielbahnhof],
+    "zugnummer", fico_planung[Zugnummer],
+    "kostenallokation", fico_planung[Kostenallokation]
+)
+ORDER BY [start_ms]

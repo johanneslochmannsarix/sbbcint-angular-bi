@@ -1,0 +1,59 @@
+-- Order drill (view 7a), tour list: the tours of ONE order in the selected months - reported tours by their
+-- Abrechnungsmonat (year_month_ist) and unreported finished ones by their planned month (they have no IST month)
+-- - with the tour's own hour columns (the report's drillthrough table «Touren dieses Auftrags»). Plan columns are
+-- context (R-IST). doi_id is replaced by the pseudo-id (D-...); tourbezeichnung is typed in SaxMS and masked.
+DEFINE
+    VAR _von = {{von}}
+    VAR _bis = {{bis}}
+    VAR _nr = {{auftrag}}
+    VAR _vonM = IF ( ISBLANK ( _von ), BLANK (), FORMAT ( _von, "yyyy-MM" ) )
+    VAR _bisM = IF ( ISBLANK ( _bis ), BLANK (), FORMAT ( _bis, "yyyy-MM" ) )
+    VAR _auftrag =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_tour_abrechnung[dor_name] ),
+                    "@nr",
+                        VAR v = fact_tour_abrechnung[dor_name]
+                        RETURN 1 + COUNTROWS ( FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), fact_tour_abrechnung[dor_name] < v ) )
+                ),
+                [@nr] = _nr
+            ),
+            fact_tour_abrechnung[dor_name]
+        )
+    VAR _rows =
+        FILTER (
+            CALCULATETABLE ( fact_tour_abrechnung, TREATAS ( { _auftrag }, fact_tour_abrechnung[dor_name] ) ),
+            VAR m = IF ( ISBLANK ( fact_tour_abrechnung[year_month_ist] ), fact_tour_abrechnung[plan_monat], fact_tour_abrechnung[year_month_ist] )
+            RETURN
+                ( NOT ISBLANK ( fact_tour_abrechnung[year_month_ist] ) || fact_tour_abrechnung[tour_abgeschlossen] = TRUE () )
+                    && ( ISBLANK ( _vonM ) || m >= _vonM )
+                    && ( ISBLANK ( _bisM ) || m <= _bisM )
+        )
+EVALUATE
+SELECTCOLUMNS (
+    _rows,
+    "doi_id", fact_tour_abrechnung[doi_id],
+    "tourbezeichnung", fact_tour_abrechnung[tourbezeichnung],
+    "geschaeftsart", fact_tour_abrechnung[geschaeftsart],
+    "kategorie_auftrag", fact_tour_abrechnung[kategorie_auftrag],
+    "preiskategorie", fact_tour_abrechnung[preiskategorie],
+    "year_month_ist", fact_tour_abrechnung[year_month_ist],
+    "plan_monat", fact_tour_abrechnung[plan_monat],
+    "plan_start", fact_tour_abrechnung[plan_start],
+    "plan_ende", fact_tour_abrechnung[plan_ende],
+    "plan_dauer_h", fact_tour_abrechnung[plan_dauer_h],
+    "ist_start", fact_tour_abrechnung[ist_start],
+    "ist_ende", fact_tour_abrechnung[ist_ende],
+    "ist_dauer_h", fact_tour_abrechnung[ist_dauer_h],
+    "netto_h", fact_tour_abrechnung[ist_dauer_ohne_pause_h],
+    "pause_h", fact_tour_abrechnung[ist_stunden_pause],
+    "azu_h", fact_tour_abrechnung[ist_stunden_azu],
+    "fahrt_h", fact_tour_abrechnung[ist_stunden_fahrt],
+    "ist_vollstaendig", fact_tour_abrechnung[ist_vollstaendig],
+    "tour_abgeschlossen", fact_tour_abrechnung[tour_abgeschlossen],
+    "n_elemente", fact_tour_abrechnung[n_shiftcomponents],
+    "n_elemente_ist", fact_tour_abrechnung[n_shiftcomponents_mit_ist],
+    "auftrag_echo", _auftrag
+)
+ORDER BY [ist_start] DESC, [plan_start] DESC

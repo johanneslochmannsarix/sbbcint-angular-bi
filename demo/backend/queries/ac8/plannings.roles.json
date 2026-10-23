@@ -1,0 +1,13 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "2 planning selector",
+  "grain": "one row per planning variant with SOLL",
+  "columns": {
+    "shift_planning_sk": "id",
+    "planning_name": "label_org",
+    "soll": "measure",
+    "soll_h": "measure"
+  }
+}

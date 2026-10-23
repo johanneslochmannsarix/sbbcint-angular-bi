@@ -1,0 +1,26 @@
+-- View 1 row drill: the tours of ONE person (pseudonym, resolved server side to the hidden key) in ONE month, for
+-- the row strip under the calendar. Absences of that person are already in the calendar cells (family only).
+DEFINE
+    VAR _m = {{month}}
+    VAR _ml = IF ( ISBLANK ( _m ),
+        CALCULATE ( MIN ( dim_tag_nachbereitung_cd[monat_label] ), dim_tag_nachbereitung_cd[zeitraum] = "Vormonat" ),
+        FORMAT ( _m, "yyyy-MM" ) )
+    VAR _fM = TREATAS ( { _ml }, dim_tag_nachbereitung_cd[monat_label] )
+EVALUATE
+SELECTCOLUMNS (
+    CALCULATETABLE ( fact_tour_cd, _fM, {{person_filter}}, KEEPFILTERS ( fact_tour_cd[ist_offen] = FALSE () ) ),
+    "tour", fact_tour_cd[tour_cd_sk],
+    "person", fact_tour_cd[pseudonym_nachbereitung_cd_sk],
+    "tourennummer", fact_tour_cd[tourennummer],
+    "tour_standort", fact_tour_cd[tour_standort],
+    "personaltyp", fact_tour_cd[personaltyp],
+    "datum", fact_tour_cd[datum],
+    "plan_beginn", fact_tour_cd[plan_beginn],
+    "plan_ende", fact_tour_cd[plan_ende],
+    "arbeitszeit_min", fact_tour_cd[arbeitszeit_min],
+    "angerechnet_min", fact_tour_cd[angerechnete_zeit_min],
+    "start", fact_tour_cd[startbetriebsstelle],
+    "ziel", fact_tour_cd[zielbetriebsstelle],
+    "rolle", fact_tour_cd[uebernachtung_rolle]
+)
+ORDER BY [plan_beginn]

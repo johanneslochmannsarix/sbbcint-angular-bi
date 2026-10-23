@@ -1,0 +1,11 @@
+-- Months that carry plan rows, per audience (counts only): the month pickers, like the RDLs'
+-- YearMonthLookupDataSet but on the calendar month and without the «from this month on» cut.
+EVALUATE
+FILTER (
+    SUMMARIZECOLUMNS (
+        'dim_date'[year_month],
+        "rows_ausbilder", CALCULATE ( COUNTROWS ( 'fact_person_tour_day' ), TREATAS ( VALUES ( 'dim_person_ausbilder'[person_sk] ), 'fact_person_tour_day'[person_sk] ) ),
+        "rows_auszubildende", CALCULATE ( COUNTROWS ( 'fact_person_tour_day' ), TREATAS ( VALUES ( 'dim_person_auszubildende'[person_sk] ), 'fact_person_tour_day'[person_sk] ) )
+    ),
+    NOT ISBLANK ( [rows_ausbilder] ) || NOT ISBLANK ( [rows_auszubildende] )
+)

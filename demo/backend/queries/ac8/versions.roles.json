@@ -1,0 +1,21 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "5 lead-time scatter + density",
+  "grain": "one row per version of a shift whose snapshot_date lies in the window",
+  "params": {
+    "dates": { "type": "date_window", "default_days": 56, "anchor": "from_today", "max_days": 400 }
+  },
+  "columns": {
+    "shift_snapshot_sk": "id",
+    "shift_sk": "id",
+    "created_ts": "date",
+    "snapshot_start": "date",
+    "version_nr": "code",
+    "rueckmeldung_status": "code",
+    "ist_aktueller_stand": "code",
+    "schicht_im_plan": "code",
+    "vorlauf_h": "measure"
+  }
+}

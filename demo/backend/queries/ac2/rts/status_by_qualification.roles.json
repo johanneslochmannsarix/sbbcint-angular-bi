@@ -1,0 +1,17 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "«Anzahl MA pro Qualifikation und Status» pivot + the five status cards (Übersicht): SUM of agg_qualification_status_counts[anzahl_gueltig / anzahl_lt_90_tage / anzahl_abgelaufen / anzahl_noch_nicht_gueltig / anzahl_ohne_datumsangabe]; extends with the MISSING_NEVER count of «Wer hat eine Qualifikation noch nicht?»",
+  "view": "6 sankey, KPI strip",
+  "grain": "one row per qualification",
+  "columns": {
+    "qualification_sk": "id",
+    "qualification_name": "label_qualification",
+    "anzahl_gueltig": "measure",
+    "anzahl_lt_90": "measure",
+    "anzahl_abgelaufen": "measure",
+    "anzahl_noch_nicht_gueltig": "measure",
+    "anzahl_ohne_datum": "measure",
+    "anzahl_fehlt": "measure"
+  }
+}

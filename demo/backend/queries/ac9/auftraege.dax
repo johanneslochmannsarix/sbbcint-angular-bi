@@ -1,0 +1,70 @@
+-- Portfolio (view 2): one row per order with a reported tour in the selected Abrechnungsmonate von..bis
+-- (absent = all), with Geschäftsart and order category (the hierarchy of the treemap / sunburst) and the
+-- measures of the report's order tables (p1 «Aufträge nach abrechenbaren Stunden», p3 «Alle Aufträge»).
+-- nr as in auftrag_liste (captured and dropped by the router). dor_name masked (R-ORD).
+DEFINE
+    VAR _von = {{von}}
+    VAR _bis = {{bis}}
+    VAR _ga = {{ga}}
+    VAR _kat = {{kat}}
+    VAR _vonM = IF ( ISBLANK ( _von ), BLANK (), FORMAT ( _von, "yyyy-MM" ) )
+    VAR _bisM = IF ( ISBLANK ( _bis ), BLANK (), FORMAT ( _bis, "yyyy-MM" ) )
+    VAR _gaName = SWITCH ( _ga, "AUE", "AÜ", "DL", "DL" )
+    VAR _katName = SWITCH ( _kat, "int", "Internationale Leistungen", "nat", "Nationale Leistungen", "res", "Reserven", "ll", "Langläufer Köln-Basel" )
+    VAR _fMonat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[year_month_ist] ),
+            NOT ISBLANK ( fact_tour_abrechnung[year_month_ist] )
+                && ( ISBLANK ( _vonM ) || fact_tour_abrechnung[year_month_ist] >= _vonM )
+                && ( ISBLANK ( _bisM ) || fact_tour_abrechnung[year_month_ist] <= _bisM )
+        )
+    VAR _fGa = FILTER ( ALL ( fact_tour_abrechnung[geschaeftsart] ), ISBLANK ( _ga ) || fact_tour_abrechnung[geschaeftsart] = _gaName )
+    VAR _fKat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[kategorie_auftrag] ),
+            ISBLANK ( _kat )
+                || ( _kat = "ohne" && ISBLANK ( fact_tour_abrechnung[kategorie_auftrag] ) )
+                || ( _kat <> "ohne" && fact_tour_abrechnung[kategorie_auftrag] = _katName )
+        )
+EVALUATE
+SELECTCOLUMNS (
+    ADDCOLUMNS (
+        FILTER (
+            SUMMARIZECOLUMNS (
+                fact_tour_abrechnung[dor_name],
+                fact_tour_abrechnung[geschaeftsart],
+                fact_tour_abrechnung[kategorie_auftrag],
+                _fMonat, _fGa, _fKat,
+                "touren", [Anzahl Touren mit IST],
+                "brutto_h", [IST-Stunden brutto],
+                "netto_h", [IST-Stunden ohne Pause],
+                "pause_h", [IST-Stunden Pause],
+                "azu_h", [IST-Stunden AZU],
+                "fahrt_h", [IST-Stunden Fahrten],
+                "avg_h", [Ø IST-Dauer je Tour],
+                "ue12", [Anzahl Touren über 12 h],
+                "ue14", [Anzahl Touren über 14 h],
+                "abweichungen", [Anzahl Preiskategorie-Abweichungen]
+            ),
+            [touren] > 0
+        ),
+        "@nr",
+            VAR v = fact_tour_abrechnung[dor_name]
+            RETURN 1 + COUNTROWS ( FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), fact_tour_abrechnung[dor_name] < v ) )
+    ),
+    "dor_name", fact_tour_abrechnung[dor_name],
+    "nr", [@nr],
+    "geschaeftsart", fact_tour_abrechnung[geschaeftsart],
+    "kategorie_auftrag", fact_tour_abrechnung[kategorie_auftrag],
+    "touren", [touren],
+    "brutto_h", [brutto_h],
+    "netto_h", [netto_h],
+    "pause_h", [pause_h],
+    "azu_h", [azu_h],
+    "fahrt_h", [fahrt_h],
+    "avg_h", [avg_h],
+    "ue12", [ue12],
+    "ue14", [ue14],
+    "abweichungen", [abweichungen]
+)
+ORDER BY [netto_h] DESC

@@ -1,0 +1,17 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "the slicers of page «Planung (JUP)» (JUP Version, Tourstandort, Personaltyp) plus Firma, Tätigkeit, Musterwochentag",
+  "view": "version bar, filters, breadcrumbs, version-pair rule of view 4",
+  "grain": "one row per filter value (kind version / firma / standort / ptyp / taet / tag / vts)",
+  "columns": {
+    "kind": "code",
+    "rang": "id",
+    "label": "label_org",
+    "parent": "label_org",
+    "touren": "measure",
+    "elemente": "measure",
+    "dauer_h": "measure",
+    "standorte": "measure"
+  }
+}

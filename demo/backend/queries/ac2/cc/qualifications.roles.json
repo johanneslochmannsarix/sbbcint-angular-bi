@@ -1,0 +1,11 @@
+{
+  "model": "import",
+  "tenant": "CARGOCONTROL",
+  "replaces": "column headers of «Qualifikationsmatrix» (Matrix) and «Wer hat eine Qualifikation noch nicht?» (Übersicht); slicer dim_qualification[qualification_name]",
+  "view": "1 heatmap columns, 3 swimlanes, 4 treemap, 6 sankey (labels)",
+  "grain": "one row per dim_qualification row",
+  "columns": {
+    "qualification_sk": "id",
+    "qualification_name": "label_qualification"
+  }
+}

@@ -1,0 +1,12 @@
+-- page: Step stability
+-- replaces: clusteredBarChart 60fad317b502cd62f3bc (step x Regime CV)
+-- grain: step (all stages that share a step name are pooled, as in the report bar)
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_run_step'[step],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "regime_cv", [Regime CV]
+)
+ORDER BY [regime_cv] DESC

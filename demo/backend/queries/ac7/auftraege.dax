@@ -1,0 +1,34 @@
+-- Filter «Auftrag» + drawer: every RT&S order name of the two shown stints, its Geschäftsart, its rank in the sorted
+-- union (the router resolves a token to this rank, the filtered queries resolve the rank to the name) and
+-- [Anzahl Personen] with it as stint 1 / stint 2. Order names are business data: free text, a T-… token in masked
+-- mode; the router adds the token as its own column in every mode. Unfiltered.
+DEFINE
+    VAR _u =
+        DISTINCT (
+            UNION (
+                SELECTCOLUMNS (
+                    FILTER ( ALL ( fact_au_verleihliste[Einsatz 1 Auftrag], fact_au_verleihliste[Einsatz 1 Geschaeftsart] ), NOT ISBLANK ( fact_au_verleihliste[Einsatz 1 Auftrag] ) ),
+                    "@a", fact_au_verleihliste[Einsatz 1 Auftrag], "@g", fact_au_verleihliste[Einsatz 1 Geschaeftsart]
+                ),
+                SELECTCOLUMNS (
+                    FILTER ( ALL ( fact_au_verleihliste[Einsatz 2 Auftrag], fact_au_verleihliste[Einsatz 2 Geschaeftsart] ), NOT ISBLANK ( fact_au_verleihliste[Einsatz 2 Auftrag] ) ),
+                    "@a", fact_au_verleihliste[Einsatz 2 Auftrag], "@g", fact_au_verleihliste[Einsatz 2 Geschaeftsart]
+                )
+            )
+        )
+    VAR _names = DISTINCT ( SELECTCOLUMNS ( _u, "@a", [@a] ) )
+EVALUATE
+SELECTCOLUMNS (
+    ADDCOLUMNS (
+        _u,
+        "@rang", VAR v = [@a] RETURN COUNTROWS ( FILTER ( _names, [@a] <= v ) ),
+        "@e1", VAR v = [@a] RETURN CALCULATE ( [Anzahl Personen], KEEPFILTERS ( fact_au_verleihliste[Einsatz 1 Auftrag] = v ) ),
+        "@e2", VAR v = [@a] RETURN CALCULATE ( [Anzahl Personen], KEEPFILTERS ( fact_au_verleihliste[Einsatz 2 Auftrag] = v ) )
+    ),
+    "rang", [@rang],
+    "auftrag", [@a],
+    "geschaeftsart", [@g],
+    "personen_einsatz1", [@e1],
+    "personen_einsatz2", [@e2]
+)
+ORDER BY [rang]

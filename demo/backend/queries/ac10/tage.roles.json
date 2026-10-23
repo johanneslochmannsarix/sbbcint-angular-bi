@@ -1,0 +1,51 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page 1 matrix column total per day (Datum level) and page 2 matrix column total per day",
+  "view": "0 sparklines, 6 mini timeline (whole Gold window)",
+  "grain": "one row per day of the window",
+  "params": {
+    "dates": {
+      "type": "date_window",
+      "default_days": 10,
+      "anchor": "from_today",
+      "max_days": 400
+    },
+    "mandant": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "depot": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "haupttyp": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "zwingend": {
+      "type": "enum",
+      "values": [
+        "alle",
+        "zwingend",
+        "nicht"
+      ]
+    },
+    "kategorie": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    }
+  },
+  "columns": {
+    "datum": "date",
+    "jahr_kw": "code",
+    "ungeplant": "measure",
+    "ungeplant_zwingend": "measure",
+    "schichten": "measure",
+    "elemente_offen": "measure"
+  }
+}

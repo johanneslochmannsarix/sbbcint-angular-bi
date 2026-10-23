@@ -1,0 +1,31 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Übernachtungen», table (Kennung · Personal-Standort · Tour-Standort · Datum · Tourennummer · Start / Ziel · Rolle · Planbeginn / -ende · Partnertour Beginn · Folgetag)",
+  "view": "3 Übernachtungstouren: leg list + pair panel",
+  "grain": "one row per Übernachtungstour (leg) of one month",
+  "params": {
+    "month": { "type": "month" },
+    "standort": { "type": "int", "min": 1, "max": 100 }
+  },
+  "columns": {
+    "tour": "id",
+    "person": "label_person",
+    "kennung": { "role": "label_person", "person": "person" },
+    "heimatstandort": "label_org",
+    "tourennummer": "label_freetext",
+    "tour_standort": "label_org",
+    "datum": "date",
+    "plan_beginn": "date",
+    "plan_ende": "date",
+    "start": "label_location",
+    "ziel": "label_location",
+    "rolle": "code",
+    "folgetour": "measure",
+    "ort": "label_location",
+    "partner_beginn": "date",
+    "partner_tourennummer": "label_freetext",
+    "am_folgetag": "measure"
+  },
+  "person_key": "person"
+}

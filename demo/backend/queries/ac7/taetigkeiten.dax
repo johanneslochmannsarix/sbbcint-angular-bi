@@ -1,0 +1,16 @@
+-- Filter «Tätigkeit»: every Haupt-Personaltyp on the list with its rank in the sorted column (the `taet` param
+-- resolves the same rank server side, AC-4's rank trick) and [Anzahl Personen]. Unfiltered: the options stay put.
+EVALUATE
+SELECTCOLUMNS (
+    ADDCOLUMNS (
+        FILTER ( ALL ( fact_au_verleihliste[Taetigkeit] ), NOT ISBLANK ( fact_au_verleihliste[Taetigkeit] ) ),
+        "@rang",
+            VAR v = fact_au_verleihliste[Taetigkeit]
+            RETURN COUNTROWS ( FILTER ( ALL ( fact_au_verleihliste[Taetigkeit] ), fact_au_verleihliste[Taetigkeit] <= v ) ),
+        "@n", CALCULATE ( [Anzahl Personen] )
+    ),
+    "rang", [@rang],
+    "taetigkeit", fact_au_verleihliste[Taetigkeit],
+    "personen", [@n]
+)
+ORDER BY [rang]

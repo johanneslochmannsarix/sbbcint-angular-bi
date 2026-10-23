@@ -1,0 +1,23 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "bars «Plandauer je Personaltyp der Tour» and «Person Zuordnung der Tourelemente» (Tätigkeiten & Personaltypen)",
+  "view": "2 Tätigkeiten & Personaltypen",
+  "grain": "one row per Personaltyp Tour × Personaltyp Person × Quelle × Person Zuordnung × Fahren",
+  "params": {
+    "month": { "type": "month" },
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "taet": { "type": "sk" }
+  },
+  "columns": {
+    "personaltyp_tour": "label_org",
+    "personaltyp_person": "label_org",
+    "quelle": "code",
+    "person_zuordnung": "code",
+    "fahren": "code",
+    "tourelemente": "measure",
+    "plandauer_h": "measure"
+  },
+  "note": "Personaltyp Person is a worker type; the derived ones are labelled by Quelle (F5)"
+}

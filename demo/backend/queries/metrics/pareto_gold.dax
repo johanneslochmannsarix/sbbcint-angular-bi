@@ -1,0 +1,12 @@
+-- page: Entity / table Pareto
+-- replaces: clusteredBarChart b8b077024d49f2187570 (key x Gold s/run)
+-- grain: key
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_run_step'[key],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "gold_s_per_run", [Gold s/run]
+)
+ORDER BY [gold_s_per_run] DESC

@@ -1,0 +1,23 @@
+-- Everything planned on one calendar day for both audiences: Gantt bars and map positions. kommentar is the
+-- order item's free text (masked); the ALP:/TN:/Pruefer tags are parsed by /day_tags, not here.
+EVALUATE
+VAR _people =
+    -- the blank member of VALUES would match fact rows without a person (shift not in dim_person): excluded
+    FILTER ( DISTINCT ( UNION ( VALUES ( 'dim_person_ausbilder'[person_sk] ), VALUES ( 'dim_person_auszubildende'[person_sk] ) ) ), NOT ISBLANK ( [person_sk] ) )
+RETURN
+    SUMMARIZECOLUMNS (
+        'fact_person_tour_day'[person_sk],
+        'fact_person_tour_day'[tourbezeichnung],
+        'fact_person_tour_day'[zugnummer],
+        'fact_person_tour_day'[start_time],
+        'fact_person_tour_day'[end_time],
+        'fact_person_tour_day'[start_location],
+        'fact_person_tour_day'[end_location],
+        'fact_person_tour_day'[kommentar],
+        'fact_person_tour_day'[dor_name],
+        'dim_workeractivity'[activity_group],
+        'dim_workeractivity'[label_de],
+        TREATAS ( { {{day}} }, 'dim_date'[date] ),
+        TREATAS ( _people, 'fact_person_tour_day'[person_sk] ),
+        "n", [Tour-Tage]
+    )

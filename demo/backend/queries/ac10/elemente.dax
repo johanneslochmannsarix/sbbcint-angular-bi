@@ -1,0 +1,20 @@
+-- View 5 Schichtelemente ohne Schicht (tier 2, R2): [Anzahl offene Schichtelemente] per fahren_kategorie x day
+-- of the window, past days included. Italien and Italien 2A are separate categories (two positions per
+-- section). Tier 2 has no Mandant / Depot / Haupttyp / zwingend flag of its own, so only the category filters.
+-- The measure returns 0, so every category x day is a row.
+-- Filters (README "Filters and params"): mandant / depot / haupttyp / kategorie are ORDINALS into the
+-- model's sorted value lists (same rule as scope.dax), zwingend = alle | zwingend | nicht. Absent = no filter.
+-- The zwingend part uses KEEPFILTERS so it intersects with the zwingend filter instead of overriding it.
+EVALUATE
+VAR _fD = FILTER ( ALL ( 'dim_date'[datum] ), 'dim_date'[datum] >= {{date_from}} && 'dim_date'[datum] <= {{date_to}} )
+VAR _kix = {{kategorie}}
+VAR _fK =
+    FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ),
+        ISBLANK ( _kix ) || ( NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ), NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] ) && 'fact_shift_besetzung'[fahren_kategorie] < EARLIER ( 'fact_shift_besetzung'[fahren_kategorie] ) ) ) = _kix ) )
+RETURN
+    SUMMARIZECOLUMNS ( 'fact_shift_besetzung'[fahren_kategorie], 'dim_date'[datum], _fD, _fK,
+        FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ), NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] ) ),
+        "offen", [Anzahl offene Schichtelemente]
+    )
+ORDER BY 'fact_shift_besetzung'[fahren_kategorie], 'dim_date'[datum]

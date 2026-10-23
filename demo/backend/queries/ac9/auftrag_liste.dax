@@ -1,0 +1,31 @@
+-- Order picker and the order-token resolution: one row per order (dor_name = Auftrag, the Kunde/Preis key) over
+-- all months, with its Geschäftsart, the order category, the first / last Abrechnungsmonat and its totals.
+-- nr = the order's ordinal in the model's sorted name list (1 + names that sort before it); the router keeps
+-- token -> nr per env server side and drops nr from the response, so the browser only ever holds the token.
+-- dor_name is masked (R-ORD: 11 ad-hoc names carry person names).
+EVALUATE
+SELECTCOLUMNS (
+    ADDCOLUMNS (
+        ALL ( fact_tour_abrechnung[dor_name] ),
+        "@nr",
+            VAR v = fact_tour_abrechnung[dor_name]
+            RETURN 1 + COUNTROWS ( FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), fact_tour_abrechnung[dor_name] < v ) ),
+        "@ga", CALCULATE ( MAX ( fact_tour_abrechnung[geschaeftsart] ) ),
+        "@kat", CALCULATE ( MAX ( fact_tour_abrechnung[kategorie_auftrag] ) ),
+        "@erster", CALCULATE ( MIN ( fact_tour_abrechnung[year_month_ist] ) ),
+        "@letzter", CALCULATE ( MAX ( fact_tour_abrechnung[year_month_ist] ) ),
+        "@touren", [Anzahl Touren],
+        "@touren_ist", [Anzahl Touren mit IST],
+        "@netto", [IST-Stunden ohne Pause]
+    ),
+    "dor_name", fact_tour_abrechnung[dor_name],
+    "nr", [@nr],
+    "geschaeftsart", [@ga],
+    "kategorie_auftrag", [@kat],
+    "erster_monat", [@erster],
+    "letzter_monat", [@letzter],
+    "touren", [@touren],
+    "touren_ist", [@touren_ist],
+    "netto_h", [@netto]
+)
+ORDER BY [nr]

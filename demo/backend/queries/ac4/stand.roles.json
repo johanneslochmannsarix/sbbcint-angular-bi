@@ -1,0 +1,17 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "report title row (no data-as-of on the report)",
+  "view": "header, start tile",
+  "grain": "one row",
+  "columns": {
+    "erster_plantag": "date",
+    "letzter_plantag": "date",
+    "juengstes_ist": "date",
+    "touren": "measure",
+    "tourelemente": "measure",
+    "schichten_kommunikation": "measure",
+    "touren_planung": "measure",
+    "jup_versionen": "measure"
+  }
+}

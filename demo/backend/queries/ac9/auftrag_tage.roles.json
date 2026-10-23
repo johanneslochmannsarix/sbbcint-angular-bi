@@ -1,0 +1,17 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "nothing (the drillthrough «Auftrag» shows months, not days)",
+  "view": "7a order drill: calendar heatmap of tour days",
+  "grain": "one row per IST day with a reported tour of the order",
+  "params": {
+    "auftrag": { "type": "int", "min": 1, "max": 5000, "required": true }
+  },
+  "columns": {
+    "datum": "date",
+    "touren": "measure",
+    "netto_h": "measure",
+    "ue12": "measure",
+    "auftrag_echo": "label_freetext"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "model": "platform_metrics",
+  "replaces": "(new) Spark-stage drill-down of one chain; no report visual",
+  "view": "Run anatomy (ADR-055)",
+  "grain": "activity_name x Spark stage name x status",
+  "params": {
+    "chain_id": {
+      "type": "uuid",
+      "required": true
+    }
+  },
+  "columns": {
+    "activity_name": "label_technical",
+    "name": "label_technical",
+    "status": "code",
+    "spark_stages": "measure",
+    "stage_run_min": "measure",
+    "input_gib": "measure",
+    "input_rows": "measure",
+    "output_rows": "measure",
+    "shuffle_gib": "measure",
+    "spill_gib": "measure",
+    "peak_exec_mem_mib": "measure"
+  }
+}

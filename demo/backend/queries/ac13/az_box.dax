@@ -1,0 +1,55 @@
+-- View 2, «AZ je Tour» distribution: Arbeitszeit v1 (rule v1-plandauer_minus_pausen_dienstfahrt) per Tour-Standort
+-- of ONE month, as DAX quantiles (⚑ the model has sums only), plus the threshold counts on angerechnete Zeit
+-- (12H ≥ 720, 14H ≥ 840 as ruled) and the fill of angerechnete Zeit the thresholds depend on. Tours over 24 h
+-- (data oddity, up to ≈ 170 h) are counted, never dropped from the quantiles. One extra row «Alle» (ist_gesamt).
+DEFINE
+    VAR _m = {{month}}
+    VAR _ml = IF ( ISBLANK ( _m ),
+        CALCULATE ( MIN ( dim_tag_nachbereitung_cd[monat_label] ), dim_tag_nachbereitung_cd[zeitraum] = "Vormonat" ),
+        FORMAT ( _m, "yyyy-MM" ) )
+    VAR _fM = TREATAS ( { _ml }, dim_tag_nachbereitung_cd[monat_label] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ),
+        RANKX ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), dim_standort_nachbereitung_cd[standort_name], , ASC, DENSE ) = _s ),
+        dim_standort_nachbereitung_cd[standort_name] )
+    VAR _fS = FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), ISBLANK ( _s ) || dim_standort_nachbereitung_cd[standort_name] = _sN )
+    VAR _h = {{haupttyp}}
+    VAR _hN = MAXX ( FILTER ( ALL ( fact_tour_cd[personaltyp_haupttyp] ),
+        RANKX ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), fact_tour_cd[personaltyp_haupttyp], , ASC, DENSE ) = _h ),
+        fact_tour_cd[personaltyp_haupttyp] )
+    VAR _fH = FILTER ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), ISBLANK ( _h ) || fact_tour_cd[personaltyp_haupttyp] = _hN )
+    VAR _rows =
+        UNION (
+            SELECTCOLUMNS ( VALUES ( fact_tour_cd[tour_standort] ), "@st", fact_tour_cd[tour_standort], "@gesamt", FALSE () ),
+            ROW ( "@st", "Alle", "@gesamt", TRUE () )
+        )
+EVALUATE
+CALCULATETABLE (
+    SELECTCOLUMNS (
+        FILTER (
+            ADDCOLUMNS (
+                _rows,
+                "@n", VAR st = [@st] VAR g = [@gesamt]
+                    RETURN COUNTROWS ( FILTER ( fact_tour_cd, g || fact_tour_cd[tour_standort] = st ) )
+            ),
+            [@n] > 0
+        ),
+        "tour_standort", [@st],
+        "ist_gesamt", [@gesamt],
+        "touren", [@n],
+        "min", VAR st = [@st] VAR g = [@gesamt] RETURN MINX ( FILTER ( fact_tour_cd, g || fact_tour_cd[tour_standort] = st ), fact_tour_cd[arbeitszeit_min] ),
+        "p05", VAR st = [@st] VAR g = [@gesamt] RETURN PERCENTILEX.INC ( FILTER ( fact_tour_cd, g || fact_tour_cd[tour_standort] = st ), fact_tour_cd[arbeitszeit_min], 0.05 ),
+        "p25", VAR st = [@st] VAR g = [@gesamt] RETURN PERCENTILEX.INC ( FILTER ( fact_tour_cd, g || fact_tour_cd[tour_standort] = st ), fact_tour_cd[arbeitszeit_min], 0.25 ),
+        "p50", VAR st = [@st] VAR g = [@gesamt] RETURN PERCENTILEX.INC ( FILTER ( fact_tour_cd, g || fact_tour_cd[tour_standort] = st ), fact_tour_cd[arbeitszeit_min], 0.5 ),
+        "p75", VAR st = [@st] VAR g = [@gesamt] RETURN PERCENTILEX.INC ( FILTER ( fact_tour_cd, g || fact_tour_cd[tour_standort] = st ), fact_tour_cd[arbeitszeit_min], 0.75 ),
+        "p95", VAR st = [@st] VAR g = [@gesamt] RETURN PERCENTILEX.INC ( FILTER ( fact_tour_cd, g || fact_tour_cd[tour_standort] = st ), fact_tour_cd[arbeitszeit_min], 0.95 ),
+        "max", VAR st = [@st] VAR g = [@gesamt] RETURN MAXX ( FILTER ( fact_tour_cd, g || fact_tour_cd[tour_standort] = st ), fact_tour_cd[arbeitszeit_min] ),
+        "ueber_24h", VAR st = [@st] VAR g = [@gesamt] RETURN COUNTROWS ( FILTER ( fact_tour_cd, ( g || fact_tour_cd[tour_standort] = st ) && fact_tour_cd[arbeitszeit_min] > 1440 ) ) + 0,
+        "negativ", VAR st = [@st] VAR g = [@gesamt] RETURN COUNTROWS ( FILTER ( fact_tour_cd, ( g || fact_tour_cd[tour_standort] = st ) && fact_tour_cd[arbeitszeit_min] < 0 ) ) + 0,
+        "angerechnet_touren", VAR st = [@st] VAR g = [@gesamt] RETURN COUNTROWS ( FILTER ( fact_tour_cd, ( g || fact_tour_cd[tour_standort] = st ) && NOT ISBLANK ( fact_tour_cd[angerechnete_zeit_min] ) ) ) + 0,
+        "ge12", VAR st = [@st] VAR g = [@gesamt] RETURN COUNTROWS ( FILTER ( fact_tour_cd, ( g || fact_tour_cd[tour_standort] = st ) && fact_tour_cd[schwellwert_12h] ) ) + 0,
+        "ge14", VAR st = [@st] VAR g = [@gesamt] RETURN COUNTROWS ( FILTER ( fact_tour_cd, ( g || fact_tour_cd[tour_standort] = st ) && fact_tour_cd[schwellwert_14h] ) ) + 0
+    ),
+    _fM, _fS, _fH
+)
+ORDER BY [ist_gesamt] DESC, [touren] DESC

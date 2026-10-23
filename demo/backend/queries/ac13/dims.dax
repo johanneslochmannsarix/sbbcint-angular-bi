@@ -1,0 +1,47 @@
+-- Filter values with their ranks: months (with tours or absences, up to the last tour month; flag Vormonat),
+-- Standorte (rank in the sorted dim_standort names, Firma as parent), Haupttypen of the tours (rank) and the
+-- absence accounts (family accounts by konto_sortierung + the one bucket; catalogue names only, konto_typ as
+-- parent). Ranks are what the other queries take as params (names carry umlauts / parentheses).
+DEFINE
+    VAR _bis = FORMAT ( MAX ( fact_tour_cd[datum] ), "yyyy-MM" )
+    VAR _months =
+        SELECTCOLUMNS (
+            FILTER (
+                ADDCOLUMNS (
+                    VALUES ( dim_tag_nachbereitung_cd[monat_label] ),
+                    "@t", CALCULATE ( [Anzahl Touren] ),
+                    "@vm", CALCULATE ( COUNTROWS ( dim_tag_nachbereitung_cd ), dim_tag_nachbereitung_cd[zeitraum] = "Vormonat" )
+                ),
+                dim_tag_nachbereitung_cd[monat_label] <= _bis
+            ),
+            "kind", "monat", "rang", 0, "label", dim_tag_nachbereitung_cd[monat_label],
+            "parent", IF ( [@vm] > 0, "Vormonat", "" ), "touren", [@t] + 0
+        )
+    VAR _standorte =
+        SELECTCOLUMNS (
+            ADDCOLUMNS (
+                SUMMARIZE ( dim_standort_nachbereitung_cd, dim_standort_nachbereitung_cd[standort_name], dim_standort_nachbereitung_cd[firma] ),
+                "@r", RANKX ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), dim_standort_nachbereitung_cd[standort_name], , ASC, DENSE ),
+                "@t", CALCULATE ( [Anzahl Touren] )
+            ),
+            "kind", "standort", "rang", [@r], "label", dim_standort_nachbereitung_cd[standort_name],
+            "parent", dim_standort_nachbereitung_cd[firma], "touren", [@t] + 0
+        )
+    VAR _haupttypen =
+        SELECTCOLUMNS (
+            ADDCOLUMNS (
+                VALUES ( fact_tour_cd[personaltyp_haupttyp] ),
+                "@r", RANKX ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), fact_tour_cd[personaltyp_haupttyp], , ASC, DENSE ),
+                "@t", CALCULATE ( [Anzahl Touren] )
+            ),
+            "kind", "haupttyp", "rang", [@r], "label", fact_tour_cd[personaltyp_haupttyp], "parent", "", "touren", [@t] + 0
+        )
+    VAR _konten =
+        SELECTCOLUMNS (
+            dim_konto_nachbereitung_cd,
+            "kind", "konto", "rang", dim_konto_nachbereitung_cd[konto_sortierung], "label", dim_konto_nachbereitung_cd[konto_name],
+            "parent", dim_konto_nachbereitung_cd[konto_typ], "touren", 0
+        )
+EVALUATE
+UNION ( _months, _standorte, _haupttypen, _konten )
+ORDER BY [kind], [rang], [label]

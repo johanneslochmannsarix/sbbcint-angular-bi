@@ -1,0 +1,32 @@
+-- View 2 points: every tour of ONE month as a point (Arbeitszeit v1, angerechnete Zeit, Plandauer, threshold
+-- flags, Tour-Standort) for the progressive scatter beside the boxes; tour_cd_sk is the drill key. No person, no
+-- tour name: the drill (tour.dax) resolves the rest server side. ≤ ≈ 7 400 rows per month (Step 2).
+DEFINE
+    VAR _m = {{month}}
+    VAR _ml = IF ( ISBLANK ( _m ),
+        CALCULATE ( MIN ( dim_tag_nachbereitung_cd[monat_label] ), dim_tag_nachbereitung_cd[zeitraum] = "Vormonat" ),
+        FORMAT ( _m, "yyyy-MM" ) )
+    VAR _fM = TREATAS ( { _ml }, dim_tag_nachbereitung_cd[monat_label] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ),
+        RANKX ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), dim_standort_nachbereitung_cd[standort_name], , ASC, DENSE ) = _s ),
+        dim_standort_nachbereitung_cd[standort_name] )
+    VAR _fS = FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), ISBLANK ( _s ) || dim_standort_nachbereitung_cd[standort_name] = _sN )
+    VAR _h = {{haupttyp}}
+    VAR _hN = MAXX ( FILTER ( ALL ( fact_tour_cd[personaltyp_haupttyp] ),
+        RANKX ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), fact_tour_cd[personaltyp_haupttyp], , ASC, DENSE ) = _h ),
+        fact_tour_cd[personaltyp_haupttyp] )
+    VAR _fH = FILTER ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), ISBLANK ( _h ) || fact_tour_cd[personaltyp_haupttyp] = _hN )
+EVALUATE
+SELECTCOLUMNS (
+    CALCULATETABLE ( fact_tour_cd, _fM, _fS, _fH ),
+    "tour", fact_tour_cd[tour_cd_sk],
+    "tour_standort", fact_tour_cd[tour_standort],
+    "datum", fact_tour_cd[datum],
+    "arbeitszeit_min", fact_tour_cd[arbeitszeit_min],
+    "angerechnet_min", fact_tour_cd[angerechnete_zeit_min],
+    "plandauer_min", fact_tour_cd[plandauer_min],
+    "ge12", IF ( fact_tour_cd[schwellwert_12h], 1, 0 ),
+    "ge14", IF ( fact_tour_cd[schwellwert_14h], 1, 0 ),
+    "offen", IF ( fact_tour_cd[ist_offen], 1, 0 )
+)

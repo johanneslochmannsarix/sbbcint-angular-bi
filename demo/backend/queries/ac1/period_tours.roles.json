@@ -1,0 +1,21 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "RTSDataset of both RDLs (_ist: SUMMARIZECOLUMNS dim_date[date] x person x tour), on the calendar month instead of the planungsmonat/Auftragsende page",
+  "view": "1 month calendar, 3 trainee calendar, 4 cohort week grid",
+  "grain": "one row per person x day x tour x plan start/end x order x activity group; n = Tour-Tage rows behind it",
+  "params": {
+    "dates": { "type": "date_window", "default_days": 31, "anchor": "from_today", "max_days": 62 }
+  },
+  "columns": {
+    "person_sk": "label_person",
+    "date": "date",
+    "tourbezeichnung": "code",
+    "start_time": "date",
+    "end_time": "date",
+    "dor_name": "label_org",
+    "activity_group": "code",
+    "n": "measure"
+  },
+  "person_key": "person_sk"
+}

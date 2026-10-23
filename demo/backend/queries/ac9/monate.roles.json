@@ -1,0 +1,32 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "column chart «Abrechenbare Stunden je Abrechnungsmonat» (p1), «Touren über Schwellwert je Abrechnungsmonat» (p3), «Stunden und Touren je Abrechnungsmonat» (p4 drillthrough)",
+  "view": "0 month bar + KPI sparklines, 3 month trend, 6 thresholds per month, 7a order months",
+  "grain": "one row per Abrechnungsmonat x Geschäftsart plus one month total row (ga_total)",
+  "params": {
+    "ga": { "type": "enum", "values": ["AUE", "DL"] },
+    "kat": { "type": "enum", "values": ["int", "nat", "res", "ll", "ohne"] },
+    "auftrag": { "type": "int", "min": 1, "max": 5000 }
+  },
+  "columns": {
+    "year_month_ist": "code",
+    "geschaeftsart": "code",
+    "ga_total": "code",
+    "touren": "measure",
+    "brutto_h": "measure",
+    "netto_h": "measure",
+    "pause_h": "measure",
+    "azu_h": "measure",
+    "fahrt_h": "measure",
+    "avg_h": "measure",
+    "ue10": "measure",
+    "ue12": "measure",
+    "ue14": "measure",
+    "abweichungen": "measure",
+    "touren_int": "measure",
+    "touren_sbbcd": "measure",
+    "auftrag_echo": "label_freetext"
+  },
+  "note": "auftrag is the order's ordinal, resolved by the router from the order token (the browser never sends a number); auftrag_echo = the order name the DAX resolved, masked like every order name (R-ORD)"
+}

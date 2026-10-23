@@ -1,0 +1,21 @@
+# code only (Johannes 2026-10-23): no data, no build output, no synthetic package
+node_modules/
+.angular/
+dist/
+out-tsc/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.env.*
+*.log
+*.zip
+*.gz
+*.parquet
+*.csv
+*.xlsx
+demo/parity/
+demo/probes/
+package/
+package-src/

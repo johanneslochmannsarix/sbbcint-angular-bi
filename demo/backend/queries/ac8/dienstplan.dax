@@ -1,0 +1,40 @@
+-- Duty-plan diff (view 6): what the employee was last told (fact_dienstplan, ADR-051 rule v3) against the
+-- current plan, one row per shift on the roster. person_sk / dienstplan_* = the shown version (pointer, or
+-- the newest version once the pointer is cleared = CCL-3 assumption (a)); plan_person_sk / plan_* = the
+-- current plan (blank for a deleted shift). Optional person filter (pseudonym, resolved server side).
+EVALUATE
+VAR _from = {{date_from}}
+VAR _to = {{date_to}}
+VAR _w = {{worker}}
+VAR _disp = "CINT (CH) - Disponent Leitstelle"
+RETURN
+    CALCULATETABLE (
+        SELECTCOLUMNS (
+            FILTER (
+                'fact_dienstplan',
+                'fact_dienstplan'[dienstplan_datum] >= _from
+                    && 'fact_dienstplan'[dienstplan_datum] <= _to
+                    && (
+                        ISBLANK ( _w ) || _w = "alle"
+                            || ( _w = "disponent" && 'fact_dienstplan'[shift_worker_type_name] = _disp )
+                            || ( _w = "andere" && 'fact_dienstplan'[shift_worker_type_name] <> _disp )
+                    )
+            ),
+            "shift_sk", 'fact_dienstplan'[shift_sk],
+            "shift_snapshot_sk", 'fact_dienstplan'[shift_snapshot_sk],
+            "person_sk", 'fact_dienstplan'[person_sk],
+            "plan_person_sk", 'fact_dienstplan'[plan_person_sk],
+            "shift_name", 'fact_dienstplan'[shift_name],
+            "shift_worker_type_name", 'fact_dienstplan'[shift_worker_type_name],
+            "dienstplan_datum", 'fact_dienstplan'[dienstplan_datum],
+            "dienstplan_start", 'fact_dienstplan'[dienstplan_start],
+            "dienstplan_ende", 'fact_dienstplan'[dienstplan_ende],
+            "plan_start", 'fact_dienstplan'[plan_start],
+            "plan_ende", 'fact_dienstplan'[plan_ende],
+            "dienstplan_quelle", 'fact_dienstplan'[dienstplan_quelle],
+            "rueckmeldung_status_label", 'fact_dienstplan'[rueckmeldung_status_label],
+            "schicht_im_plan", 'fact_dienstplan'[schicht_im_plan],
+            "weicht_vom_plan_ab", 'fact_dienstplan'[weicht_vom_plan_ab]
+        ),
+        {{person_filter}}
+    )

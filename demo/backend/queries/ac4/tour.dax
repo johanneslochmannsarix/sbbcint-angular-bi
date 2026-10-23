@@ -1,0 +1,38 @@
+-- View 6 Gantt: the elements of ONE tour (tour = tour_id, an sk) in element order - plan start / end, the
+-- element Ist where it exists (F4: almost only on driving elements), Plandauer / Istdauer, Tätigkeit, Fahren,
+-- stations, Person Zuordnung (a state, not a person), plus the tour header (Tourstandort, Firma, Personaltyp,
+-- derived Tour-Ist, angerechnete Zeit). The element name (component_name) is not read; no person column.
+DEFINE
+    VAR _tour = {{tour}}
+EVALUATE
+CALCULATETABLE (
+    SELECTCOLUMNS (
+        fico_disposition,
+        "element_id", fico_disposition[element_id],
+        "element_nr", fico_disposition[Element Nr],
+        "taetigkeit", fico_disposition[Taetigkeit],
+        "fahren", fico_disposition[Fahren (ja/nein)],
+        "element_planbeginn", fico_disposition[Element Planbeginn],
+        "element_planende", fico_disposition[Element Planende],
+        "element_istbeginn", fico_disposition[Element Istbeginn],
+        "element_istende", fico_disposition[Element Istende],
+        "plandauer_min", fico_disposition[Element Plandauer (min)],
+        "istdauer_min", fico_disposition[Element Istdauer (min)],
+        "startbahnhof", fico_disposition[Startbahnhof],
+        "zielbahnhof", fico_disposition[Zielbahnhof],
+        "person_zuordnung", fico_disposition[Person Zuordnung],
+        "tour", fico_disposition[Tour],
+        "tourstandort", fico_disposition[Tourstandort],
+        "firma", fico_disposition[Firma],
+        "personaltyp_tour", fico_disposition[Personaltyp Tour],
+        "planmonat", fico_disposition[Planmonat],
+        "tour_planbeginn", fico_disposition[Tour Planbeginn],
+        "tour_planende", fico_disposition[Tour Planende],
+        "tour_istbeginn", fico_disposition[Tour Istbeginn (aus Elementen)],
+        "tour_istende", fico_disposition[Tour Istende (aus Elementen)],
+        "abdeckung", fico_disposition[Tour Ist Abdeckung],
+        "anger_min", fico_disposition[Tour angerechnete Zeit (min)]
+    ),
+    TREATAS ( { _tour }, fico_disposition[tour_id] )
+)
+ORDER BY [element_nr], [element_planbeginn]

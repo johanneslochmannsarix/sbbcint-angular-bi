@@ -1,0 +1,10 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "AUE-Verleihliste subtitle «Stand …» (there Now() at render time)",
+  "view": "header «Stand», footer, start tile",
+  "grain": "one row",
+  "columns": {
+    "datenstand_local": "date"
+  }
+}

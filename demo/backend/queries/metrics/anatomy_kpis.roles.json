@@ -1,0 +1,38 @@
+{
+  "model": "platform_metrics",
+  "replaces": "cards 71dddfb060a32a904955, 7a0f615362197c01ceec, cb4f8cff11d7bc4a081f, c2d8a00dd6a929f1df0e, 5f54a19bfd533e04f2fb",
+  "view": "Run anatomy (ADR-055)",
+  "grain": "1 row",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": false,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 30,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "act_runs": "measure",
+    "stage_median_min": "measure",
+    "stage_p90_min": "measure",
+    "queue_share": "measure",
+    "payload_share": "measure"
+  }
+}

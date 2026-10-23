@@ -1,0 +1,15 @@
+-- SOLL pattern week (view 2): template shifts of ONE planning variant. The model holds five overlapping
+-- variants without validity dates; summing them would inflate SOLL about four times, so planning is
+-- required. start_ms / end_ms are ms-of-week offsets (0 = Monday 00:00, gold.weekday_from_ms), not epochs;
+-- end_ms may lie past the start day (shift over midnight) or past the week (Sunday night).
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_virtual_shift_leitstelle_olten'[virtual_shift_sk],
+    'fact_virtual_shift_leitstelle_olten'[weekday_num],
+    'fact_virtual_shift_leitstelle_olten'[start_ms],
+    'fact_virtual_shift_leitstelle_olten'[end_ms],
+    'dim_worker_type'[worker_type_name],
+    {{planning_filter}},
+    "soll", [Anzahl SOLL-Schichten],
+    "soll_h", [SOLL-Schichtdauer [h]]]
+)

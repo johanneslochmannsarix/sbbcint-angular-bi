@@ -1,0 +1,13 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "row headers dim_person[person_name] of «Qualifikationsmatrix» and «Wer hat eine Qualifikation noch nicht?»; slicer dim_person[person_name]. RT&S has no org level: the report shows none, and fact[tenant_sk] -> dim_tenant[tenant_nk] matches 0 fact rows (probe 2026-10-20)",
+  "view": "1 heatmap rows, 5 histogram population",
+  "grain": "one row per person present in the fact",
+  "columns": {
+    "person_sk": "label_person",
+    "person_name": "label_person",
+    "pairs": "measure"
+  },
+  "person_key": "person_sk"
+}

@@ -1,0 +1,31 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "2 SOLL coverage (planned side), 3 shift lists behind the flows, 7 shift picker",
+  "grain": "one row per planned shift (fact_shift) in the window",
+  "params": {
+    "dates": { "type": "date_window", "default_days": 56, "anchor": "from_today", "max_days": 400 },
+    "worker": { "type": "enum", "values": ["alle", "disponent", "andere"] }
+  },
+  "columns": {
+    "shift_sk": "id",
+    "person_sk": "label_person",
+    "shift_name": "label_freetext",
+    "planned_date": "date",
+    "planned_start": "date",
+    "planned_end": "date",
+    "shift_worker_type_name": "label_org",
+    "ist_kommuniziert": "code",
+    "kommunikationsstand": "code",
+    "rueckmeldung_status": "code",
+    "rueckmeldung_status_label": "code",
+    "kommuniziert_start": "date",
+    "kommuniziert_ende": "date",
+    "juengster_stand_start": "date",
+    "juengster_stand_ende": "date",
+    "weicht_von_juengstem_stand_ab": "code"
+  },
+  "person_key": "person_sk",
+  "note": "shift_name is free-typed in SaxMS and may carry a name: masked as label_freetext"
+}

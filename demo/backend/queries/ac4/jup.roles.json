@@ -1,0 +1,24 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Planung (JUP)»: KPI card, column chart «Dauer je Musterwochentag», version table",
+  "view": "3 Plan vs JUP: weekday profile of one JUP version",
+  "grain": "one row per JUP Version × Musterwochentag × Einsatzart",
+  "params": {
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 }
+  },
+  "columns": {
+    "jup_version": "label_org",
+    "musterwochentag": "label_org",
+    "musterwochentag_nr": "measure",
+    "einsatzart": "code",
+    "touren": "measure",
+    "tourelemente": "measure",
+    "dauer_h": "measure",
+    "fahren_h": "measure",
+    "arbeitszeit_h": "measure",
+    "touren_anger": "measure"
+  }
+}

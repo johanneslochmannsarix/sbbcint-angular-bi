@@ -1,0 +1,20 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: (new) chain picker for the Gantt; no report visual
+-- grain: run_id (one chain run with activity detail)
+-- chain_start / chain_end are MIN/MAX of timestamp columns: no model measure exists for them, they are
+-- axis positions, not metrics. Every number is a model measure.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_stage_run'[run_id],
+    'fact_stage_run'[tenant],
+    'fact_stage_run'[env],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "chain_start", MIN ( 'fact_stage_run'[activity_start] ),
+    "chain_end", MAX ( 'fact_stage_run'[activity_end] ),
+    "exec_min", [Exec min],
+    "session_queued_min", [Session queued min],
+    "retries", [Retries]
+)
+ORDER BY [chain_start] DESC

@@ -1,0 +1,33 @@
+-- View 3 graph: Übernachtungstouren (rule v1-ziel_ungleich_start: staffed tour ending at another Betriebsstelle
+-- than it starts; both legs flagged) of ONE month as directed edges Startbetriebsstelle → Zielbetriebsstelle:
+-- legs, pairs (Hinweg rows, rule v1-folgetour-zielort) and legs whose partner tour is on the next calendar day.
+-- Stations are shortcodes (label_location). Standort = Tour-Standort.
+DEFINE
+    VAR _m = {{month}}
+    VAR _ml = IF ( ISBLANK ( _m ),
+        CALCULATE ( MIN ( dim_tag_nachbereitung_cd[monat_label] ), dim_tag_nachbereitung_cd[zeitraum] = "Vormonat" ),
+        FORMAT ( _m, "yyyy-MM" ) )
+    VAR _fM = TREATAS ( { _ml }, dim_tag_nachbereitung_cd[monat_label] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ),
+        RANKX ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), dim_standort_nachbereitung_cd[standort_name], , ASC, DENSE ) = _s ),
+        dim_standort_nachbereitung_cd[standort_name] )
+    VAR _fS = FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), ISBLANK ( _s ) || dim_standort_nachbereitung_cd[standort_name] = _sN )
+    VAR _fU = FILTER ( ALL ( fact_tour_cd[ist_uebernachtung] ), fact_tour_cd[ist_uebernachtung] = TRUE () )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fact_tour_cd[startbetriebsstelle],
+        fact_tour_cd[zielbetriebsstelle],
+        _fM, _fS, _fU,
+        "@legs", [Übernachtungstouren],
+        "@paare", [Übernachtungen],
+        "@folgetag", CALCULATE ( COUNTROWS ( fact_tour_cd ), KEEPFILTERS ( fact_tour_cd[partnertour_am_folgetag] = TRUE () ) )
+    ),
+    "start", fact_tour_cd[startbetriebsstelle],
+    "ziel", fact_tour_cd[zielbetriebsstelle],
+    "legs", [@legs] + 0,
+    "paare", [@paare] + 0,
+    "folgetag", [@folgetag] + 0
+)
+ORDER BY [legs] DESC

@@ -1,0 +1,19 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing in the report (it has the weekday only); the hour-of-week picture of «Dauer Tourelemente (Planung)»",
+  "view": "3 pattern week (polar 7 x 24 / ribbon)",
+  "grain": "one row per hour of the pattern week (0-167) x art (h_ja / h_nein / h_leer / touren)",
+  "params": {
+    "version": { "type": "int", "min": 1, "max": 60, "required": true },
+    "firma": { "type": "int", "min": 1, "max": 20 },
+    "standort": { "type": "int", "min": 1, "max": 200 },
+    "ptyp": { "type": "int", "min": 1, "max": 300 },
+    "taet": { "type": "int", "min": 1, "max": 400 }
+  },
+  "columns": {
+    "stunde": "measure",
+    "art": "code",
+    "wert": "measure"
+  }
+}

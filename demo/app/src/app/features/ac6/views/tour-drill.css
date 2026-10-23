@@ -1,0 +1,13 @@
+/* Moved out of ac6.css 2026-10-22 (component style budget 4 kB per stylesheet). ViewEncapsulation.None like the
+   page: these rules stay global, and the component renders on every AC-6 page, so nothing changes visually. */
+/* ---------------------------------------------------------------- tour list (view 6) */
+.ac6-list { max-height: 420px; overflow: auto; border-top: 1px solid var(--rule); }
+.ac6-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.ac6-tbl th { position: sticky; top: 0; background: var(--surface); text-align: left; font-weight: 600; color: var(--muted); font-size: 11.5px; padding: 5px 6px; border-bottom: 1px solid var(--rule-strong); }
+.ac6-tbl td { padding: 4px 6px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.ac6-tbl .num { text-align: right; }
+.ac6-tbl tbody tr { cursor: pointer; }
+.ac6-tbl tbody tr:hover { background: var(--mark); }
+.ac6-tbl tbody tr.is-sel { background: var(--accent-wash); box-shadow: inset 3px 0 0 var(--ink); }
+.ac6-tbl tbody tr:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+

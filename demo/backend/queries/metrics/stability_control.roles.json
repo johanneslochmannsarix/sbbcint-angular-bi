@@ -1,0 +1,40 @@
+{
+  "model": "platform_metrics",
+  "replaces": "lineChart 62b27752a47d63deb1ae (activity_start x Step s, Ctl median/upper/lower s)",
+  "view": "Step stability",
+  "grain": "stage x step x activity_start - the report shows ONE step at a time (stage/step slicers); this",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 90,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "stage": "code",
+    "step": "label_technical",
+    "activity_start": "date",
+    "step_s": "measure",
+    "ctl_median_s": "measure",
+    "ctl_upper_s": "measure",
+    "ctl_lower_s": "measure"
+  }
+}

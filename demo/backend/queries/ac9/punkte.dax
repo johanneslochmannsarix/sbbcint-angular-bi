@@ -1,0 +1,63 @@
+-- IST vs PLAN (view 5) and the shift-length histogram (view 6): one row per REPORTED tour (ist_vollstaendig)
+-- in the selected Abrechnungsmonate von..bis. ist_dauer_h is the billing-relevant IST length (brutto, the
+-- Schwellwert basis), plan_dauer_h is context only (R-IST). (*) gap_h = ist_dauer_h - plan_dauer_h per tour.
+-- doi_id is replaced by the router's pseudo-id (D-...) before the rows leave the backend; dor_name masked.
+-- No person column: a point is a tour.
+DEFINE
+    VAR _von = {{von}}
+    VAR _bis = {{bis}}
+    VAR _ga = {{ga}}
+    VAR _kat = {{kat}}
+    VAR _nr = {{auftrag}}
+    VAR _vonM = IF ( ISBLANK ( _von ), BLANK (), FORMAT ( _von, "yyyy-MM" ) )
+    VAR _bisM = IF ( ISBLANK ( _bis ), BLANK (), FORMAT ( _bis, "yyyy-MM" ) )
+    VAR _gaName = SWITCH ( _ga, "AUE", "AÜ", "DL", "DL" )
+    VAR _katName = SWITCH ( _kat, "int", "Internationale Leistungen", "nat", "Nationale Leistungen", "res", "Reserven", "ll", "Langläufer Köln-Basel" )
+    VAR _auftrag =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_tour_abrechnung[dor_name] ),
+                    "@nr",
+                        VAR v = fact_tour_abrechnung[dor_name]
+                        RETURN 1 + COUNTROWS ( FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), fact_tour_abrechnung[dor_name] < v ) )
+                ),
+                [@nr] = _nr
+            ),
+            fact_tour_abrechnung[dor_name]
+        )
+    VAR _fMonat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[year_month_ist] ),
+            NOT ISBLANK ( fact_tour_abrechnung[year_month_ist] )
+                && ( ISBLANK ( _vonM ) || fact_tour_abrechnung[year_month_ist] >= _vonM )
+                && ( ISBLANK ( _bisM ) || fact_tour_abrechnung[year_month_ist] <= _bisM )
+        )
+    VAR _fGa = FILTER ( ALL ( fact_tour_abrechnung[geschaeftsart] ), ISBLANK ( _ga ) || fact_tour_abrechnung[geschaeftsart] = _gaName )
+    VAR _fKat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[kategorie_auftrag] ),
+            ISBLANK ( _kat )
+                || ( _kat = "ohne" && ISBLANK ( fact_tour_abrechnung[kategorie_auftrag] ) )
+                || ( _kat <> "ohne" && fact_tour_abrechnung[kategorie_auftrag] = _katName )
+        )
+    VAR _fAuftrag = FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), ISBLANK ( _nr ) || fact_tour_abrechnung[dor_name] = _auftrag )
+EVALUATE
+CALCULATETABLE (
+    SELECTCOLUMNS (
+        fact_tour_abrechnung,
+        "doi_id", fact_tour_abrechnung[doi_id],
+        "dor_name", fact_tour_abrechnung[dor_name],
+        "geschaeftsart", fact_tour_abrechnung[geschaeftsart],
+        "kategorie_auftrag", fact_tour_abrechnung[kategorie_auftrag],
+        "year_month_ist", fact_tour_abrechnung[year_month_ist],
+        "ist_start", fact_tour_abrechnung[ist_start],
+        "ist_dauer_h", fact_tour_abrechnung[ist_dauer_h],
+        "netto_h", fact_tour_abrechnung[ist_dauer_ohne_pause_h],
+        "plan_dauer_h", fact_tour_abrechnung[plan_dauer_h],
+        "gap_h", fact_tour_abrechnung[ist_dauer_h] - fact_tour_abrechnung[plan_dauer_h]
+    ),
+    fact_tour_abrechnung[ist_vollstaendig] = TRUE (),
+    _fMonat, _fGa, _fKat, _fAuftrag
+)
+ORDER BY [ist_start]

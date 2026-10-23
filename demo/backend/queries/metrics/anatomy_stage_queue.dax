@@ -1,0 +1,13 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: columnChart 5f731aedba2010d5bba0 (stage x Session queued / running min)
+-- grain: stage
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_stage_run'[stage],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "session_queued_min", [Session queued min],
+    "session_running_min", [Session running min]
+)
+ORDER BY 'fact_stage_run'[stage]

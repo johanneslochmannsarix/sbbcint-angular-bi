@@ -1,0 +1,12 @@
+{
+  "model": "au_verleihliste",
+  "tenant": "RTS",
+  "replaces": "AUE-Verleihliste: TaetigkeitLookup (parameter Tätigkeit)",
+  "view": "filter «Tätigkeit», sankey labels",
+  "grain": "one row per Haupt-Personaltyp",
+  "columns": {
+    "rang": "id",
+    "taetigkeit": "label_org",
+    "personen": "measure"
+  }
+}

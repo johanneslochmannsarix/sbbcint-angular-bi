@@ -1,0 +1,58 @@
+-- View 4, version diff: the same _Kennzahlen measures under version A (version) and version B (version_b), per
+-- kind = standort / ptyp / taet / tag. Each side is its own CALCULATE on the version name; nothing is summed over
+-- versions. Firma and weekday filter both sides alike. Int params are ranks (README).
+DEFINE
+    VAR _a = {{version}}
+    VAR _aN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) ),
+        "@r", VAR x = fico_planung[JUP Version] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) && fico_planung[JUP Version] <= x ) ) ),
+        [@r] = _a ), fico_planung[JUP Version] )
+    VAR _b = {{version_b}}
+    VAR _bN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) ),
+        "@r", VAR x = fico_planung[JUP Version] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) && fico_planung[JUP Version] <= x ) ) ),
+        [@r] = _b ), fico_planung[JUP Version] )
+    VAR _f = {{firma}}
+    VAR _fN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) ),
+        "@r", VAR x = fico_planung[Firma] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) && fico_planung[Firma] <= x ) ) ),
+        [@r] = _f ), fico_planung[Firma] )
+    VAR _d = {{tag}}
+    VAR _fA = FILTER ( ALL ( fico_planung[JUP Version] ), fico_planung[JUP Version] = _aN )
+    VAR _fB = FILTER ( ALL ( fico_planung[JUP Version] ), fico_planung[JUP Version] = _bN )
+    VAR _fF = FILTER ( ALL ( fico_planung[Firma] ), ISBLANK ( _f ) || fico_planung[Firma] = _fN )
+    VAR _fD = FILTER ( ALL ( fico_planung[musterwochentag_nr] ), ISBLANK ( _d ) || fico_planung[musterwochentag_nr] == _d )
+    MEASURE _Kennzahlen[@h_a] = CALCULATE ( [Dauer Tourelemente (Planung) [h]]], _fA )
+    MEASURE _Kennzahlen[@h_b] = CALCULATE ( [Dauer Tourelemente (Planung) [h]]], _fB )
+    MEASURE _Kennzahlen[@t_a] = CALCULATE ( [Anzahl Touren (Planung)], _fA )
+    MEASURE _Kennzahlen[@t_b] = CALCULATE ( [Anzahl Touren (Planung)], _fB )
+    MEASURE _Kennzahlen[@e_a] = CALCULATE ( [Anzahl Tourelemente (Planung)], _fA )
+    MEASURE _Kennzahlen[@e_b] = CALCULATE ( [Anzahl Tourelemente (Planung)], _fB )
+EVALUATE
+VAR _ts =
+    SELECTCOLUMNS (
+        SUMMARIZECOLUMNS ( fico_planung[Tourstandort], _fF, _fD,
+            "@ha", [@h_a], "@hb", [@h_b], "@ta", [@t_a], "@tb", [@t_b], "@ea", [@e_a], "@eb", [@e_b] ),
+        "kind", "standort", "label", fico_planung[Tourstandort], "nr", CONVERT ( BLANK (), INTEGER ),
+        "h_a", [@ha], "h_b", [@hb], "touren_a", [@ta], "touren_b", [@tb], "elemente_a", [@ea], "elemente_b", [@eb]
+    )
+VAR _pt =
+    SELECTCOLUMNS (
+        SUMMARIZECOLUMNS ( fico_planung[Personaltyp], _fF, _fD,
+            "@ha", [@h_a], "@hb", [@h_b], "@ta", [@t_a], "@tb", [@t_b], "@ea", [@e_a], "@eb", [@e_b] ),
+        "kind", "ptyp", "label", fico_planung[Personaltyp], "nr", CONVERT ( BLANK (), INTEGER ),
+        "h_a", [@ha], "h_b", [@hb], "touren_a", [@ta], "touren_b", [@tb], "elemente_a", [@ea], "elemente_b", [@eb]
+    )
+VAR _ta =
+    SELECTCOLUMNS (
+        SUMMARIZECOLUMNS ( fico_planung[Taetigkeit], _fF, _fD,
+            "@ha", [@h_a], "@hb", [@h_b], "@ta", [@t_a], "@tb", [@t_b], "@ea", [@e_a], "@eb", [@e_b] ),
+        "kind", "taet", "label", fico_planung[Taetigkeit], "nr", CONVERT ( BLANK (), INTEGER ),
+        "h_a", [@ha], "h_b", [@hb], "touren_a", [@ta], "touren_b", [@tb], "elemente_a", [@ea], "elemente_b", [@eb]
+    )
+VAR _tag =
+    SELECTCOLUMNS (
+        SUMMARIZECOLUMNS ( fico_planung[musterwochentag_nr], fico_planung[Musterwochentag], _fF, _fD,
+            "@ha", [@h_a], "@hb", [@h_b], "@ta", [@t_a], "@tb", [@t_b], "@ea", [@e_a], "@eb", [@e_b] ),
+        "kind", "tag", "label", fico_planung[Musterwochentag], "nr", fico_planung[musterwochentag_nr],
+        "h_a", [@ha], "h_b", [@hb], "touren_a", [@ta], "touren_b", [@tb], "elemente_a", [@ea], "elemente_b", [@eb]
+    )
+RETURN
+    UNION ( _ts, _pt, _ta, _tag )

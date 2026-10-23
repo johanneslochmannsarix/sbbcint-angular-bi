@@ -1,0 +1,31 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "nothing in the RDLs (the pairing is not exported, project-ac1-training-report): kommentar shown verbatim in the Tagesraster CellText",
+  "view": "2 day Gantt «laut Freitext» rows and chips, 3 trainee view «laut Freitext» trainer",
+  "grain": "DAX: tagged rows of the day + name candidates; after the transform: one row per tag x name",
+  "note": "only served through /api/ac1/day_tags (transform tags.tag_rows); /q/day_tags would return the masked raw union",
+  "params": {
+    "day": { "type": "date", "required": true }
+  },
+  "columns": {
+    "kind": "code",
+    "person_sk": "label_person",
+    "tourbezeichnung": "code",
+    "start_time": "date",
+    "kommentar": "label_freetext",
+    "person_name": { "role": "label_person", "person": "person_sk" },
+    "firstname": { "role": "label_person", "person": "person_sk" },
+    "lastname": { "role": "label_person", "person": "person_sk" },
+    "audience": "code"
+  },
+  "derived": {
+    "tag": "code",
+    "tag_index": "measure",
+    "tag_name": "label_freetext",
+    "linked_sk": "label_person",
+    "linked_audience": "code",
+    "match": "code"
+  },
+  "person_key": ["person_sk", "linked_sk"]
+}

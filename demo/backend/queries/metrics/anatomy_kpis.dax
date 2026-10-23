@@ -1,0 +1,16 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: cards 71dddfb060a32a904955, 7a0f615362197c01ceec, cb4f8cff11d7bc4a081f, c2d8a00dd6a929f1df0e, 5f54a19bfd533e04f2fb
+-- grain: 1 row
+EVALUATE
+CALCULATETABLE (
+    ROW (
+        "act_runs", [Act runs],
+        "stage_median_min", [Stage median min],
+        "stage_p90_min", [Stage p90 min],
+        "queue_share", [Queue share %],
+        "payload_share", [Payload %]
+    ),
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} )
+)

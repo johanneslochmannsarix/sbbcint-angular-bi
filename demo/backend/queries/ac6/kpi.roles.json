@@ -1,0 +1,32 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Planung (JUP)» KPI card (Touren, Tourelemente, Dauer, Arbeitszeit, Fahranteil, Ø Dauer je Tour) and the column chart «Dauer je Musterwochentag»",
+  "view": "0 version bar + KPI band",
+  "grain": "one row per Musterwochentag of one version plus the total (ist_gesamt = 1)",
+  "params": {
+    "version": { "type": "int", "min": 1, "max": 60, "required": true },
+    "firma": { "type": "int", "min": 1, "max": 20 },
+    "standort": { "type": "int", "min": 1, "max": 200 },
+    "ptyp": { "type": "int", "min": 1, "max": 300 },
+    "taet": { "type": "int", "min": 1, "max": 400 }
+  },
+  "columns": {
+    "tag": "measure",
+    "ist_gesamt": "measure",
+    "touren": "measure",
+    "tourelemente": "measure",
+    "dauer_h": "measure",
+    "dauer_touren_h": "measure",
+    "arbeitszeit_h": "measure",
+    "fahren_h": "measure",
+    "fahranteil": "measure",
+    "dauer_je_tour_h": "measure",
+    "standorte": "measure",
+    "sel_version": "label_org",
+    "sel_firma": "label_org",
+    "sel_standort": "label_org",
+    "sel_ptyp": "label_org",
+    "sel_taet": "label_technical"
+  }
+}

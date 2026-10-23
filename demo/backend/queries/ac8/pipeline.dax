@@ -1,0 +1,89 @@
+-- Communication pipeline (view 3). Two sources, kept apart by "quelle":
+--   fact_shift       planned shifts of the window by pointer state (kommunikationsstand, ADR-049), the
+--                    Rückmeldung of the pointed version and whether the newest version differs from it
+--   fact_dienstplan  shifts deleted after communication (rule v3: "gelöscht - Kommunikation nicht
+--                    nachweisbar"); they are no longer in fact_shift
+-- Optional brush from view 5: only shifts with a version created in [brush_from, brush_to] whose lead time
+-- (snapshot_start - created_ts, hours) lies in [lead_min, lead_max]. Send all four or none.
+EVALUATE
+VAR _from = {{date_from}}
+VAR _to = {{date_to}}
+VAR _w = {{worker}}
+VAR _bf = {{brush_from}}
+VAR _bt = {{brush_to}}
+VAR _lmin = {{lead_min}}
+VAR _lmax = {{lead_max}}
+VAR _disp = "CINT (CH) - Disponent Leitstelle"
+VAR _brushed = NOT ISBLANK ( _bf )
+VAR _bshifts =
+    SELECTCOLUMNS (
+        FILTER (
+            'fact_shift_snapshot',
+            _brushed
+                && 'fact_shift_snapshot'[created_ts] >= _bf
+                && 'fact_shift_snapshot'[created_ts] < _bt + 1
+                && ( 'fact_shift_snapshot'[snapshot_start] - 'fact_shift_snapshot'[created_ts] ) * 24 >= _lmin
+                && ( 'fact_shift_snapshot'[snapshot_start] - 'fact_shift_snapshot'[created_ts] ) * 24 <= _lmax
+        ),
+        "s", 'fact_shift_snapshot'[shift_sk]
+    )
+VAR _wt =
+    FILTER (
+        ALL ( 'fact_shift'[shift_worker_type_name] ),
+        ISBLANK ( _w ) || _w = "alle"
+            || ( _w = "disponent" && 'fact_shift'[shift_worker_type_name] = _disp )
+            || ( _w = "andere" && 'fact_shift'[shift_worker_type_name] <> _disp )
+    )
+VAR _wd =
+    FILTER (
+        ALL ( 'fact_dienstplan'[shift_worker_type_name] ),
+        ISBLANK ( _w ) || _w = "alle"
+            || ( _w = "disponent" && 'fact_dienstplan'[shift_worker_type_name] = _disp )
+            || ( _w = "andere" && 'fact_dienstplan'[shift_worker_type_name] <> _disp )
+    )
+VAR _plan =
+    SUMMARIZECOLUMNS (
+        'fact_shift'[kommunikationsstand],
+        'fact_shift'[rueckmeldung_status],
+        'fact_shift'[rueckmeldung_status_label],
+        'fact_shift'[weicht_von_juengstem_stand_ab],
+        FILTER ( ALL ( 'fact_shift'[planned_date] ), 'fact_shift'[planned_date] >= _from && 'fact_shift'[planned_date] <= _to ),
+        FILTER ( ALL ( 'fact_shift'[shift_sk] ), NOT _brushed || 'fact_shift'[shift_sk] IN _bshifts ),
+        _wt,
+        "n", [Anzahl Schichten],
+        "ohne_person", CALCULATE ( [Anzahl Schichten], ISBLANK ( 'fact_shift'[person_sk] ) )
+    )
+-- not grouped by dienstplan_quelle: the measure's own quelle filter would override the group (CALCULATE
+-- replaces an outer filter on the same column) and count the deleted rows once per quelle
+VAR _gone =
+    SUMMARIZECOLUMNS (
+        'fact_dienstplan'[rueckmeldung_status],
+        'fact_dienstplan'[rueckmeldung_status_label],
+        FILTER ( ALL ( 'fact_dienstplan'[dienstplan_datum] ), 'fact_dienstplan'[dienstplan_datum] >= _from && 'fact_dienstplan'[dienstplan_datum] <= _to ),
+        FILTER ( ALL ( 'fact_dienstplan'[shift_sk] ), NOT _brushed || 'fact_dienstplan'[shift_sk] IN _bshifts ),
+        _wd,
+        "n", [Anzahl Dienstplan gelöscht]
+    )
+RETURN
+    UNION (
+        SELECTCOLUMNS (
+            _plan,
+            "quelle", "fact_shift",
+            "stand", 'fact_shift'[kommunikationsstand],
+            "rueckmeldung_status", 'fact_shift'[rueckmeldung_status],
+            "rueckmeldung_label", 'fact_shift'[rueckmeldung_status_label],
+            "weicht_ab", 'fact_shift'[weicht_von_juengstem_stand_ab],
+            "n", [n],
+            "ohne_person", [ohne_person]
+        ),
+        SELECTCOLUMNS (
+            _gone,
+            "quelle", "fact_dienstplan",
+            "stand", "gelöscht – Kommunikation nicht nachweisbar",
+            "rueckmeldung_status", 'fact_dienstplan'[rueckmeldung_status],
+            "rueckmeldung_label", 'fact_dienstplan'[rueckmeldung_status_label],
+            "weicht_ab", TRUE (),
+            "n", [n],
+            "ohne_person", BLANK ()
+        )
+    )

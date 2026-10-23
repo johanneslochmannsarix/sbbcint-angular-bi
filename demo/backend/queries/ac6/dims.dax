@@ -1,0 +1,79 @@
+-- Filter values, one row each. key = rank of the value among the column's non-blank values in ascending order:
+-- the same rule every other ac6 query uses to resolve its int params back to the name, so the browser only ever
+-- sends integers. kind: version (+ Touren / Tourelemente / Dauer / Tourstandorte of the version), firma,
+-- standort (parent = its Firma), ptyp, taet (parent = Fahren ja/nein), tag (Musterwochentag, key = its number),
+-- vts (which Tourstandorte a version plans: rang = version rank, label = Tourstandort). No person, no free text.
+EVALUATE
+VAR _versions =
+    SELECTCOLUMNS (
+        ADDCOLUMNS (
+            FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) ),
+            "@r", VAR x = fico_planung[JUP Version] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) && fico_planung[JUP Version] <= x ) )
+        ),
+        "kind", "version", "rang", [@r], "label", fico_planung[JUP Version], "parent", CONVERT ( BLANK (), STRING ),
+        "touren", CALCULATE ( [Anzahl Touren (Planung)] ),
+        "elemente", CALCULATE ( [Anzahl Tourelemente (Planung)] ),
+        "dauer_h", CALCULATE ( [Dauer Tourelemente (Planung) [h]]] ),
+        "standorte", CALCULATE ( DISTINCTCOUNT ( fico_planung[Tourstandort] ) )
+    )
+VAR _firmen =
+    SELECTCOLUMNS (
+        ADDCOLUMNS (
+            FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) ),
+            "@r", VAR x = fico_planung[Firma] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) && fico_planung[Firma] <= x ) )
+        ),
+        "kind", "firma", "rang", [@r], "label", fico_planung[Firma], "parent", CONVERT ( BLANK (), STRING ),
+        "touren", CONVERT ( BLANK (), DOUBLE ), "elemente", CONVERT ( BLANK (), DOUBLE ), "dauer_h", CONVERT ( BLANK (), DOUBLE ),
+        "standorte", CONVERT ( BLANK (), DOUBLE )
+    )
+VAR _standorte =
+    SELECTCOLUMNS (
+        ADDCOLUMNS (
+            FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) ),
+            "@r", VAR x = fico_planung[Tourstandort] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) && fico_planung[Tourstandort] <= x ) )
+        ),
+        "kind", "standort", "rang", [@r], "label", fico_planung[Tourstandort],
+        "parent", CALCULATE ( MAX ( fico_planung[Firma] ) ),
+        "touren", CONVERT ( BLANK (), DOUBLE ), "elemente", CONVERT ( BLANK (), DOUBLE ), "dauer_h", CONVERT ( BLANK (), DOUBLE ),
+        "standorte", CONVERT ( BLANK (), DOUBLE )
+    )
+VAR _ptyp =
+    SELECTCOLUMNS (
+        ADDCOLUMNS (
+            FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) ),
+            "@r", VAR x = fico_planung[Personaltyp] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) && fico_planung[Personaltyp] <= x ) )
+        ),
+        "kind", "ptyp", "rang", [@r], "label", fico_planung[Personaltyp], "parent", CONVERT ( BLANK (), STRING ),
+        "touren", CONVERT ( BLANK (), DOUBLE ), "elemente", CONVERT ( BLANK (), DOUBLE ), "dauer_h", CONVERT ( BLANK (), DOUBLE ),
+        "standorte", CONVERT ( BLANK (), DOUBLE )
+    )
+VAR _taet =
+    SELECTCOLUMNS (
+        ADDCOLUMNS (
+            FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) ),
+            "@r", VAR x = fico_planung[Taetigkeit] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) && fico_planung[Taetigkeit] <= x ) )
+        ),
+        "kind", "taet", "rang", [@r], "label", fico_planung[Taetigkeit],
+        "parent", CALCULATE ( MAX ( fico_planung[Fahren (ja/nein)] ) ),
+        "touren", CONVERT ( BLANK (), DOUBLE ), "elemente", CONVERT ( BLANK (), DOUBLE ), "dauer_h", CONVERT ( BLANK (), DOUBLE ),
+        "standorte", CONVERT ( BLANK (), DOUBLE )
+    )
+VAR _tage =
+    SELECTCOLUMNS (
+        FILTER ( SUMMARIZE ( fico_planung, fico_planung[musterwochentag_nr], fico_planung[Musterwochentag] ), NOT ISBLANK ( fico_planung[Musterwochentag] ) ),
+        "kind", "tag", "rang", fico_planung[musterwochentag_nr], "label", fico_planung[Musterwochentag], "parent", CONVERT ( BLANK (), STRING ),
+        "touren", CONVERT ( BLANK (), DOUBLE ), "elemente", CONVERT ( BLANK (), DOUBLE ), "dauer_h", CONVERT ( BLANK (), DOUBLE ),
+        "standorte", CONVERT ( BLANK (), DOUBLE )
+    )
+VAR _vts =
+    SELECTCOLUMNS (
+        FILTER ( SUMMARIZE ( fico_planung, fico_planung[JUP Version], fico_planung[Tourstandort] ),
+            NOT ISBLANK ( fico_planung[JUP Version] ) && NOT ISBLANK ( fico_planung[Tourstandort] ) ),
+        "kind", "vts",
+        "rang", VAR x = fico_planung[JUP Version] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) && fico_planung[JUP Version] <= x ) ),
+        "label", fico_planung[Tourstandort], "parent", fico_planung[JUP Version],
+        "touren", CONVERT ( BLANK (), DOUBLE ), "elemente", CONVERT ( BLANK (), DOUBLE ), "dauer_h", CONVERT ( BLANK (), DOUBLE ),
+        "standorte", CONVERT ( BLANK (), DOUBLE )
+    )
+RETURN
+    UNION ( _versions, _firmen, _standorte, _ptyp, _taet, _tage, _vts )

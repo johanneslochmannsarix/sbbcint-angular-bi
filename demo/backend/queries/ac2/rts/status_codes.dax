@@ -1,0 +1,8 @@
+EVALUATE
+SELECTCOLUMNS (
+    'dim_status_code',
+    "status_code", 'dim_status_code'[status_code],
+    "label_de", 'dim_status_code'[label_de],
+    "sort_order", 'dim_status_code'[sort_order]
+)
+ORDER BY [sort_order]

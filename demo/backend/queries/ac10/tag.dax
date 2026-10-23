@@ -1,0 +1,65 @@
+-- View 3 Tagesdrill (Gantt) + Detailliste: one row per position planned on one day (dim_date[datum] = tag),
+-- the columns of the report's drill-through lists (Start/Ende, Mandant, Depot, Haupt-/Personaltyp,
+-- Bezeichnung, Von, Nach, Schichtelemente) plus the flags and the pseudo-id position_sk. tier = alle | schicht
+-- | element; position = one position_sk (deep link). No person column exists in this model.
+-- Filters (README "Filters and params"): mandant / depot / haupttyp / kategorie are ORDINALS into the
+-- model's sorted value lists (same rule as scope.dax), zwingend = alle | zwingend | nicht. Absent = no filter.
+-- The zwingend part uses KEEPFILTERS so it intersects with the zwingend filter instead of overriding it.
+EVALUATE
+VAR _t = {{tag}}
+VAR _mix = {{mandant}}
+VAR _fM =
+    FILTER ( ALL ( 'dim_scope'[tenant_name] ),
+        ISBLANK ( _mix ) || ( NOT ISBLANK ( 'dim_scope'[tenant_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[tenant_name] ), NOT ISBLANK ( 'dim_scope'[tenant_name] ) && 'dim_scope'[tenant_name] < EARLIER ( 'dim_scope'[tenant_name] ) ) ) = _mix ) )
+VAR _dix = {{depot}}
+VAR _fDep =
+    FILTER ( ALL ( 'dim_scope'[depot_name] ),
+        ISBLANK ( _dix ) || ( NOT ISBLANK ( 'dim_scope'[depot_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[depot_name] ), NOT ISBLANK ( 'dim_scope'[depot_name] ) && 'dim_scope'[depot_name] < EARLIER ( 'dim_scope'[depot_name] ) ) ) = _dix ) )
+VAR _hix = {{haupttyp}}
+VAR _fH =
+    FILTER ( ALL ( 'dim_scope'[haupttyp_name] ),
+        ISBLANK ( _hix ) || ( NOT ISBLANK ( 'dim_scope'[haupttyp_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[haupttyp_name] ), NOT ISBLANK ( 'dim_scope'[haupttyp_name] ) && 'dim_scope'[haupttyp_name] < EARLIER ( 'dim_scope'[haupttyp_name] ) ) ) = _hix ) )
+VAR _z = {{zwingend}}
+VAR _fZ =
+    FILTER ( ALL ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] ),
+        ISBLANK ( _z ) || _z = "alle"
+            || ( _z = "zwingend" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () )
+            || ( _z = "nicht" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = FALSE () ) )
+VAR _kix = {{kategorie}}
+VAR _fK =
+    FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ),
+        ISBLANK ( _kix ) || ( NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ), NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] ) && 'fact_shift_besetzung'[fahren_kategorie] < EARLIER ( 'fact_shift_besetzung'[fahren_kategorie] ) ) ) = _kix ) )
+VAR _tier = {{tier}}
+VAR _fT =
+    FILTER ( ALL ( 'fact_shift_besetzung'[position_typ] ),
+        ISBLANK ( _tier ) || _tier = "alle"
+            || ( _tier = "schicht" && 'fact_shift_besetzung'[position_typ] = "Schicht" )
+            || ( _tier = "element" && 'fact_shift_besetzung'[position_typ] = "Schichtelement ohne Schicht" ) )
+RETURN
+    CALCULATETABLE (
+        SELECTCOLUMNS ( 'fact_shift_besetzung',
+            "position_sk", 'fact_shift_besetzung'[position_sk],
+            "position_typ", 'fact_shift_besetzung'[position_typ],
+            "mandant", 'fact_shift_besetzung'[tenant_name],
+            "depot", 'fact_shift_besetzung'[depot_name],
+            "haupttyp", 'fact_shift_besetzung'[haupttyp_name],
+            "personaltyp", 'fact_shift_besetzung'[personaltyp_name],
+            "position_name", 'fact_shift_besetzung'[position_name],
+            "planned_start", 'fact_shift_besetzung'[planned_start],
+            "planned_end", 'fact_shift_besetzung'[planned_end],
+            "is_offen", 'fact_shift_besetzung'[is_offen],
+            "is_zwingend", 'fact_shift_besetzung'[is_zwingend_zu_besetzen],
+            "fahren_kategorie", 'fact_shift_besetzung'[fahren_kategorie],
+            "fahrelement_anzahl", 'fact_shift_besetzung'[fahrelement_anzahl],
+            "fahrelement_liste", 'fact_shift_besetzung'[fahrelement_liste],
+            "von", 'fact_shift_besetzung'[start_betriebsstelle_name],
+            "nach", 'fact_shift_besetzung'[ziel_betriebsstelle_name]
+        ),
+        FILTER ( ALL ( 'dim_date'[datum] ), 'dim_date'[datum] = _t ),
+        _fM, _fDep, _fH, _fZ, _fK, _fT, {{position_filter}}
+    )
+ORDER BY [planned_start], [depot]

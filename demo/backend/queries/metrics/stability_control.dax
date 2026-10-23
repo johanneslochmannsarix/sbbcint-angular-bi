@@ -1,0 +1,18 @@
+-- page: Step stability
+-- replaces: lineChart 62b27752a47d63deb1ae (activity_start x Step s, Ctl median/upper/lower s)
+-- grain: stage x step x activity_start - the report shows ONE step at a time (stage/step slicers); this
+-- returns every step at once so switching steps in the app costs no extra call.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_run_step'[stage],
+    'fact_run_step'[step],
+    'fact_run_step'[activity_start],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "step_s", [Step s],
+    "ctl_median_s", [Ctl median s],
+    "ctl_upper_s", [Ctl upper s],
+    "ctl_lower_s", [Ctl lower s]
+)
+ORDER BY 'fact_run_step'[stage], 'fact_run_step'[step], 'fact_run_step'[activity_start]

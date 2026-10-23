@@ -1,0 +1,37 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page 1 matrix Mandant and Depot subtotals over the window",
+  "view": "2 Struktur (treemap) <-> Rangliste",
+  "grain": "Mandant subtotal rows + Mandant x Depot rows",
+  "params": {
+    "dates": {
+      "type": "date_window",
+      "default_days": 10,
+      "anchor": "from_today",
+      "max_days": 400
+    },
+    "haupttyp": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "zwingend": {
+      "type": "enum",
+      "values": [
+        "alle",
+        "zwingend",
+        "nicht"
+      ]
+    }
+  },
+  "columns": {
+    "ebene": "code",
+    "mandant": "label_org",
+    "depot": "label_org",
+    "ungeplant": "measure",
+    "ungeplant_zwingend": "measure",
+    "schichten": "measure",
+    "besetzungsquote": "measure"
+  }
+}

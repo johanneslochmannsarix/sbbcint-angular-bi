@@ -1,0 +1,30 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "nothing (the report has no per-tour distribution; Schwellwerte only as counts)",
+  "view": "5 IST vs PLAN gap distribution, 6 shift-length histogram",
+  "grain": "one row per reported tour in the selected months (<= 1 925 per month, PROD)",
+  "params": {
+    "von": { "type": "month" },
+    "bis": { "type": "month" },
+    "ga": { "type": "enum", "values": ["AUE", "DL"] },
+    "kat": { "type": "enum", "values": ["int", "nat", "res", "ll", "ohne"] },
+    "auftrag": { "type": "int", "min": 1, "max": 5000 }
+  },
+  "columns": {
+    "doi_id": "id",
+    "dor_name": "label_freetext",
+    "geschaeftsart": "code",
+    "kategorie_auftrag": "code",
+    "year_month_ist": "code",
+    "ist_start": "date",
+    "ist_dauer_h": "measure",
+    "netto_h": "measure",
+    "plan_dauer_h": "measure",
+    "gap_h": "measure"
+  },
+  "derived": {
+    "tour": "id"
+  },
+  "note": "doi_id never leaves the backend: the router's transform replaces it with the per-process pseudo-id tour (D-...)"
+}

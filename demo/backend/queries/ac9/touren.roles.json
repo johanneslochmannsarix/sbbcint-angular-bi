@@ -1,0 +1,40 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "table «Touren dieses Auftrags» (p4 drillthrough), RDL section C «Tourliste» for one order",
+  "view": "7a order drill: tour list",
+  "grain": "one row per tour of the order in the selected months (reported by IST month, unreported finished ones by plan month)",
+  "params": {
+    "von": { "type": "month" },
+    "bis": { "type": "month" },
+    "auftrag": { "type": "int", "min": 1, "max": 5000, "required": true }
+  },
+  "columns": {
+    "doi_id": "id",
+    "tourbezeichnung": "label_freetext",
+    "geschaeftsart": "code",
+    "kategorie_auftrag": "code",
+    "preiskategorie": "code",
+    "year_month_ist": "code",
+    "plan_monat": "code",
+    "plan_start": "date",
+    "plan_ende": "date",
+    "plan_dauer_h": "measure",
+    "ist_start": "date",
+    "ist_ende": "date",
+    "ist_dauer_h": "measure",
+    "netto_h": "measure",
+    "pause_h": "measure",
+    "azu_h": "measure",
+    "fahrt_h": "measure",
+    "ist_vollstaendig": "code",
+    "tour_abgeschlossen": "code",
+    "n_elemente": "measure",
+    "n_elemente_ist": "measure",
+    "auftrag_echo": "label_freetext"
+  },
+  "derived": {
+    "tour": "id"
+  },
+  "note": "Tournummer (tourbezeichnung) is typed in SaxMS: masked as free text; doi_id replaced by the pseudo-id"
+}

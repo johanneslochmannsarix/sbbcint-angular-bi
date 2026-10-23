@@ -1,0 +1,52 @@
+<ng-template appHeader>
+  <div class="slot-row">
+    <span class="slot-title">Qualifikationen</span>
+    <div class="seg" role="group" aria-label="Mandant">
+      @for (t of tenants; track t) {
+        <button type="button" [attr.aria-pressed]="store.tenant() === t" (click)="setTenant(t)">{{ tenantLabel(t) }}</button>
+      }
+    </div>
+    <div class="seg" role="group" aria-label="Umgebung">
+      @for (e of envs; track e) {
+        <button type="button" [attr.aria-pressed]="store.env() === e" (click)="setEnv(e)">{{ e }}</button>
+      }
+    </div>
+    <div class="asof" title="Datenstand des Modells (agg_pipeline_datenstand), wie im Bericht">
+      <span class="asof-label">Datenstand</span>
+      <span class="asof-value">{{ asOf() }}</span>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template appHeader="sub">
+  @if (sel.active() || focusName()) {
+    <div class="sel-bar" role="status">
+      @if (sel.active()) {
+        <span class="sel-chip">Auswahl aus der Matrix: {{ sel.brushLabel() }}, {{ sel.people().length }} Personen
+          <button type="button" class="chip-x" (click)="sel.clear()" aria-label="Auswahl aufheben">×</button></span>
+      }
+      @if (focusName()) {
+        <span class="sel-chip">Qualifikation: {{ focusName() }}
+          <button type="button" class="chip-x" (click)="sel.qualification.set(null)" aria-label="Qualifikation abwählen">×</button></span>
+      }
+      <span class="sel-note">Kalender, Abdeckung, Lücken und Gültigkeitsfenster zeigen nur diese Auswahl.</span>
+    </div>
+  }
+</ng-template>
+
+<div class="page">
+  <app-kpis />
+  <app-heatmap />
+  <app-calendar />
+  <section class="grid-2">
+    <app-histogram />
+    <app-coverage />
+  </section>
+  <app-swimlanes />
+  <app-sankey />
+</div>
+
+@if (sel.person()) {
+  <div class="scrim" (click)="sel.person.set(null)" aria-hidden="true"></div>
+  <app-person-drawer />
+}

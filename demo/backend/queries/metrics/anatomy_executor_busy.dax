@@ -1,0 +1,12 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: clusteredBarChart 6c648ec689bc24352aef (activity x Executor busy min)
+-- grain: activity_name
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_spark_executor'[activity_name],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "executor_busy_min", [Executor busy min]
+)
+ORDER BY [executor_busy_min] DESC

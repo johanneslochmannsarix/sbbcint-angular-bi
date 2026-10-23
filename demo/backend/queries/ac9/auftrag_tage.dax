@@ -1,0 +1,38 @@
+-- Order drill (view 7a), calendar heatmap: the IST days of ONE order (auftrag = ordinal, resolved by the router
+-- from the token) over all months - reported tours and billable hours per day of the IST start (dim_date via
+-- date_key_ist, the model's relationship). Days without a reported tour are dropped.
+DEFINE
+    VAR _nr = {{auftrag}}
+    VAR _auftrag =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_tour_abrechnung[dor_name] ),
+                    "@nr",
+                        VAR v = fact_tour_abrechnung[dor_name]
+                        RETURN 1 + COUNTROWS ( FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), fact_tour_abrechnung[dor_name] < v ) )
+                ),
+                [@nr] = _nr
+            ),
+            fact_tour_abrechnung[dor_name]
+        )
+    VAR _fAuftrag = TREATAS ( { _auftrag }, fact_tour_abrechnung[dor_name] )
+EVALUATE
+SELECTCOLUMNS (
+    FILTER (
+        SUMMARIZECOLUMNS (
+            dim_date[date],
+            _fAuftrag,
+            "touren", [Anzahl Touren mit IST],
+            "netto_h", [IST-Stunden ohne Pause],
+            "ue12", [Anzahl Touren über 12 h]
+        ),
+        [touren] > 0
+    ),
+    "datum", dim_date[date],
+    "touren", [touren],
+    "netto_h", [netto_h],
+    "ue12", [ue12],
+    "auftrag_echo", _auftrag
+)
+ORDER BY [datum]

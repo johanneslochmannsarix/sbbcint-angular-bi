@@ -1,0 +1,38 @@
+-- Planned shifts of the window, one row each (fact_shift = the current plan): SOLL coverage (view 2, hour
+-- bucketing in the app), the masked shift lists behind the pipeline flows (view 3) and the shift picker of
+-- the version timeline (view 7). kommuniziert_* = the pointed version, juengster_stand_* = the newest one
+-- (ADR-049: newest is never "communicated").
+EVALUATE
+VAR _from = {{date_from}}
+VAR _to = {{date_to}}
+VAR _w = {{worker}}
+VAR _disp = "CINT (CH) - Disponent Leitstelle"
+RETURN
+    SELECTCOLUMNS (
+        FILTER (
+            'fact_shift',
+            'fact_shift'[planned_date] >= _from
+                && 'fact_shift'[planned_date] <= _to
+                && (
+                    ISBLANK ( _w ) || _w = "alle"
+                        || ( _w = "disponent" && 'fact_shift'[shift_worker_type_name] = _disp )
+                        || ( _w = "andere" && 'fact_shift'[shift_worker_type_name] <> _disp )
+                )
+        ),
+        "shift_sk", 'fact_shift'[shift_sk],
+        "person_sk", 'fact_shift'[person_sk],
+        "shift_name", 'fact_shift'[shift_name],
+        "planned_date", 'fact_shift'[planned_date],
+        "planned_start", 'fact_shift'[planned_start],
+        "planned_end", 'fact_shift'[planned_end],
+        "shift_worker_type_name", 'fact_shift'[shift_worker_type_name],
+        "ist_kommuniziert", 'fact_shift'[ist_kommuniziert],
+        "kommunikationsstand", 'fact_shift'[kommunikationsstand],
+        "rueckmeldung_status", 'fact_shift'[rueckmeldung_status],
+        "rueckmeldung_status_label", 'fact_shift'[rueckmeldung_status_label],
+        "kommuniziert_start", 'fact_shift'[kommuniziert_start],
+        "kommuniziert_ende", 'fact_shift'[kommuniziert_ende],
+        "juengster_stand_start", 'fact_shift'[juengster_stand_start],
+        "juengster_stand_ende", 'fact_shift'[juengster_stand_ende],
+        "weicht_von_juengstem_stand_ab", 'fact_shift'[weicht_von_juengstem_stand_ab]
+    )

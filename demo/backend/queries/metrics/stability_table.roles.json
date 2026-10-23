@@ -1,0 +1,43 @@
+{
+  "model": "platform_metrics",
+  "replaces": "tableEx f0089f8b93488b325a4a (stage, step + Regime, Regime n/median/p90/std/CV/slope, Outlier runs);",
+  "view": "Step stability",
+  "grain": "stage x step",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 90,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "stage": "code",
+    "step": "label_technical",
+    "regime": "measure",
+    "regime_n": "measure",
+    "regime_median_s": "measure",
+    "regime_p90_s": "measure",
+    "regime_std_s": "measure",
+    "regime_cv": "measure",
+    "regime_slope_s_per_d": "measure",
+    "outlier_runs": "measure"
+  }
+}

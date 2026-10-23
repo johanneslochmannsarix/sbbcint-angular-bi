@@ -1,0 +1,49 @@
+-- View 4 (Plan und Ist): one row per tour element WITH Ist - exactly the element set of the report's
+-- «Elemente mit Ist (Disposition)» (both «Abweichung Beginn (min)» and «Abweichung Dauer (min)» filled,
+-- the Gold columns ist_abweichung_*). Columns: ids, Planmonat, Tourstandort, Tätigkeit, Fahren, Plandauer,
+-- the two deviations, the planned start hour. No person, no tour name. ~15 k rows on the whole window.
+DEFINE
+    VAR _m = {{month}}
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _ta = {{taet}}
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fMonat = FILTER ( ALL ( fico_disposition[Planmonat] ), ISBLANK ( _m ) || fico_disposition[Planmonat] = FORMAT ( _m, "yyyy-MM" ) )
+    VAR _fFirma = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _firma ) || fico_disposition[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_disposition[depot_sk] ), ISBLANK ( _st ) || fico_disposition[depot_sk] = _st )
+    VAR _fPtyp = FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), ISBLANK ( _pt ) || fico_disposition[Personaltyp Tour] = _ptName )
+    VAR _fTaet = FILTER ( ALL ( fico_disposition[worker_activity_sk] ), ISBLANK ( _ta ) || fico_disposition[worker_activity_sk] = _ta )
+EVALUATE
+CALCULATETABLE (
+    SELECTCOLUMNS (
+        FILTER (
+            fico_disposition,
+            NOT ISBLANK ( fico_disposition[Abweichung Beginn (min)] ) && NOT ISBLANK ( fico_disposition[Abweichung Dauer (min)] )
+        ),
+        "element_id", fico_disposition[element_id],
+        "tour_id", fico_disposition[tour_id],
+        "planmonat", fico_disposition[Planmonat],
+        "depot_sk", fico_disposition[depot_sk],
+        "tourstandort", fico_disposition[Tourstandort],
+        "taetigkeit", fico_disposition[Taetigkeit],
+        "fahren", fico_disposition[Fahren (ja/nein)],
+        "plandauer_min", fico_disposition[Element Plandauer (min)],
+        "abw_beginn_min", fico_disposition[Abweichung Beginn (min)],
+        "abw_dauer_min", fico_disposition[Abweichung Dauer (min)],
+        "plan_stunde", HOUR ( fico_disposition[Element Planbeginn] )
+    ),
+    _fMonat, _fFirma, _fStandort, _fPtyp, _fTaet
+)

@@ -1,0 +1,79 @@
+/*
+ * AC-4 FiCo Produktivität. Global (ViewEncapsulation.None) but every selector is ac4-prefixed or under .ac4, so
+ * the shell and the other showcases are untouched. Tokens come from the shell (styles.css).
+ * Character: a controller's ledger. Constantia (a Windows ledger serif) sets the questions and the answer
+ * sentences; Bahnschrift carries every figure with tabular numerals; series colours are the report's.
+ * One loud element: the treemap that morphs into the Tourstandort ranking. Everything else stays quiet.
+ */
+.ac4 {
+  --ac4-serif: Constantia, "Iowan Old Style", Georgia, serif;
+  --ac4-num: Bahnschrift, "DIN Alternate", var(--font-display);
+  --ac4-ledger: #186a99;
+}
+:root[data-theme="dark"] .ac4 { --ac4-ledger: #5b8fe0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ac4 { --ac4-ledger: #5b8fe0; } }
+
+.ac4-title { font-family: var(--ac4-serif); font-size: 17px; color: var(--ink); }
+.ac4-inc { font-style: italic; }
+
+/* ---------------------------------------------------------------- lede */
+.ac4-lede { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 52ch); gap: 8px 32px; align-items: end; padding: 4px 2px 0; }
+.ac4-h1 { font-family: var(--ac4-serif); font-weight: 400; font-size: 34px; line-height: 1.1; margin: 0; color: var(--ink); letter-spacing: -0.005em; }
+.ac4-dek { margin: 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+
+/* ---------------------------------------------------------------- card anatomy: question / answer / chart / coverage */
+.ac4 .card-head h2, .ac4-h2 { font-family: var(--ac4-serif); font-weight: 400; font-size: 19px; line-height: 1.25; color: var(--ink); margin: 0; }
+.ac4-h3 { font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin: 8px 0 2px; }
+.ac4-answer { font-family: var(--ac4-serif); font-size: 15.5px; line-height: 1.45; color: var(--ink); margin: 2px 0 10px; max-width: 78ch; }
+.ac4-answer:empty { display: none; }
+.ac4-cover {
+  margin: 10px 0 0; padding: 8px 0 0 10px; border-top: 1px solid var(--rule); border-left: 3px solid var(--rule-strong);
+  font-size: 12px; line-height: 1.45; color: var(--ink-2); max-width: 110ch;
+}
+.ac4-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.ac4-field { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+.ac4-field .select { max-width: 280px; color: var(--ink); }
+.ac4 .card-head .ac4-field .select { max-width: 210px; }
+.ac4-legend { justify-content: flex-start; margin-top: 4px; }
+
+.ac4-facts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; margin: 0 0 10px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.ac4-facts > div { padding: 6px 10px 6px 0; border-right: 1px solid var(--rule); margin-right: 10px; min-width: 0; }
+.ac4-facts > div:last-child { border-right: 0; }
+.ac4-facts dt { font-size: 11.5px; color: var(--muted); }
+.ac4-facts dd { margin: 0; font-family: var(--ac4-num); font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac4-facts-tight dd { font-size: 14.5px; }
+
+.ac4-scale { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin-top: 4px; }
+.ac4-scale-ramp { display: inline-flex; }
+.ac4-scale-ramp i { width: 18px; height: 8px; display: inline-block; }
+.ac4-scale-ramp i:first-child { border-radius: 2px 0 0 2px; }
+.ac4-scale-ramp i:last-child { border-radius: 0 2px 2px 0; }
+
+/* ---------------------------------------------------------------- layout */
+.ac4-row { display: grid; gap: 16px; align-items: start; }
+.ac4-row-main { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
+.ac4-row-even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.ac4-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.ac4-split-wide { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.ac4-row-even .ac4-split-wide { grid-template-columns: minmax(0, 1fr); }
+.ac4-side { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ac4-tbl { font-size: 12.5px; margin-bottom: 6px; }
+.ac4-tbl td:first-child { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+
+
+.ac4-crumbs { gap: 8px; }
+.ac4-crumbs .linkish { font-size: 13px; }
+.ac4-back { padding: 2px 8px; }
+.ac4-crumb-gap { flex: 1; }
+.ac4-foot { font-size: 12px; color: var(--muted); max-width: 110ch; margin: 4px 2px 0; }
+
+@media (max-width: 1280px) {
+  .ac4-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1000px) {
+  .ac4-row-main, .ac4-row-even, .ac4-split, .ac4-split-wide, .ac4-lede { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .ac4-h1 { font-size: 26px; }
+  .ac4-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

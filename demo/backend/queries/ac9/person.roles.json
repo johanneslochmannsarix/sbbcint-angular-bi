@@ -1,0 +1,22 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "RDL section B «Stunden je Mitarbeiter/in» for one person (no name, no personnel number)",
+  "view": "7c person drill (from the tour Gantt and from AC-7)",
+  "grain": "one row per element month x order of the person",
+  "params": {
+    "person": { "type": "pseudonym", "required": true, "filter_column": "'fact_person_tour_ist'[person_sk]" },
+    "von": { "type": "month" },
+    "bis": { "type": "month" }
+  },
+  "columns": {
+    "year_month": "code",
+    "dor_name": "label_freetext",
+    "geschaeftsart": "code",
+    "elemente": "measure",
+    "brutto_h": "measure",
+    "netto_h": "measure",
+    "touren": "measure"
+  },
+  "note": "the person is only a filter (pseudonym -> person_sk server side); the RDL groups by the tour's month, this view by the element's month (model column year_month)"
+}

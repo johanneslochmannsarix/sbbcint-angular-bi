@@ -1,0 +1,31 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "7 version timeline of one shift",
+  "grain": "one row per version of the shift",
+  "params": {
+    "shift": { "type": "sk", "required": true }
+  },
+  "columns": {
+    "shift_snapshot_sk": "id",
+    "person_sk": "label_person",
+    "version_nr": "code",
+    "created_ts": "date",
+    "snapshot_start": "date",
+    "snapshot_end": "date",
+    "rueckmeldung_status": "code",
+    "rueckmeldung_status_label": "code",
+    "snapshot_type_code": "code",
+    "ist_aktueller_stand": "code",
+    "schicht_im_plan": "code",
+    "ist_pointer": "code",
+    "ist_dienstplan": "code",
+    "dienstplan_quelle": "code",
+    "kommunikationsstand": "code",
+    "plan_start": "date",
+    "plan_ende": "date",
+    "plan_person_sk": "label_person"
+  },
+  "person_key": ["person_sk", "plan_person_sk"]
+}

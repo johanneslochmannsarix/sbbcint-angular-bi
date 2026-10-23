@@ -1,0 +1,42 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "KPI cards of the pages Übersicht (p1), Rückmeldequote (p2), Aufträge & Schwellwerte (p3) and the drillthrough Auftrag (p4); bar «Zusammensetzung der IST-Stunden je Geschäftsart»",
+  "view": "0 KPI band, 1 billing waterfall, 6 threshold totals, 7a order KPIs",
+  "grain": "the selected months as one total row (ga_total) plus one row per Geschäftsart",
+  "params": {
+    "von": { "type": "month" },
+    "bis": { "type": "month" },
+    "ga": { "type": "enum", "values": ["AUE", "DL"] },
+    "kat": { "type": "enum", "values": ["int", "nat", "res", "ll", "ohne"] },
+    "auftrag": { "type": "int", "min": 1, "max": 5000 }
+  },
+  "columns": {
+    "geschaeftsart": "code",
+    "ga_total": "code",
+    "touren": "measure",
+    "brutto_h": "measure",
+    "netto_h": "measure",
+    "pause_h": "measure",
+    "azu_h": "measure",
+    "fahrt_h": "measure",
+    "rest_h": "measure",
+    "anteil_pause": "measure",
+    "anteil_azu": "measure",
+    "anteil_fahrt": "measure",
+    "avg_h": "measure",
+    "ue10": "measure",
+    "ue12": "measure",
+    "ue14": "measure",
+    "abweichungen": "measure",
+    "touren_int": "measure",
+    "touren_sbbcd": "measure",
+    "anteil_int": "measure",
+    "quote": "measure",
+    "quote_abgeschlossen": "measure",
+    "quote_fehlt": "measure",
+    "auftraege": "measure",
+    "auftrag_echo": "label_freetext"
+  },
+  "note": "quote_* = the same months as PLANNED months (R-RQ); rest_h / anteil_int / auftraege are query-side (*), README"
+}

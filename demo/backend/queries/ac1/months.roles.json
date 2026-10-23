@@ -1,0 +1,13 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "YearMonthLookupDataSet / YearMonthLoopupDataSet / DefaultMonthDataSet of the RDLs",
+  "view": "month picker (both audiences)",
+  "grain": "one row per calendar month with plan rows",
+  "person_aggregate": true,
+  "columns": {
+    "year_month": "date",
+    "rows_ausbilder": "measure",
+    "rows_auszubildende": "measure"
+  }
+}

@@ -1,0 +1,7 @@
+EVALUATE
+SELECTCOLUMNS (
+    'dim_qualification',
+    "qualification_sk", 'dim_qualification'[qualification_sk],
+    "qualification_name", 'dim_qualification'[qualification_name]
+)
+ORDER BY [qualification_name]

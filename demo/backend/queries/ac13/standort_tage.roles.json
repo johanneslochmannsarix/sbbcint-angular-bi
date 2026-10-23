@@ -1,0 +1,23 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Menge», matrix «Je Standort» (rows Standort → Tag) with «übrige» and «ohne Eintrag» merged (Q1 ruling)",
+  "view": "1 Standort × Tag band, 4 Standort × Tag heatmap",
+  "grain": "one row per Standort × day of one month",
+  "params": {
+    "month": { "type": "month" },
+    "standort": { "type": "int", "min": 1, "max": 100 },
+    "haupttyp": { "type": "int", "min": 1, "max": 50 }
+  },
+  "columns": {
+    "standort": "label_org",
+    "datum": "date",
+    "touren": "measure",
+    "besetzt": "measure",
+    "offen": "measure",
+    "verkauft": "measure",
+    "offen_nicht_verkauft": "measure",
+    "familie": "measure",
+    "uebrige_oder_ohne": "measure"
+  }
+}

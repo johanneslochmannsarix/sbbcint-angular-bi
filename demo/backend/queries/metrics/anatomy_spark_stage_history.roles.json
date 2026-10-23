@@ -1,0 +1,43 @@
+{
+  "model": "platform_metrics",
+  "replaces": "(new) «this Spark stage across runs»; no report visual",
+  "view": "Run anatomy (ADR-055)",
+  "grain": "run_id x activity_name x Spark stage name (names of the picked chain only)",
+  "params": {
+    "chain_id": {
+      "type": "uuid",
+      "required": true
+    },
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": false,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 30,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "run_id": "id",
+    "activity_name": "label_technical",
+    "name": "label_technical",
+    "run_start": "date",
+    "stage_run_min": "measure",
+    "spark_stages": "measure"
+  }
+}

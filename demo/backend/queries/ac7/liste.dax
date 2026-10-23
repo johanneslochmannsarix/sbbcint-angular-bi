@@ -1,0 +1,95 @@
+-- Views 2 / 4 / 7 / 8: the list at person grain under the filter set (README «Filters»). The columns the BA form
+-- prints plus the stint details the timeline needs. No person_nk / tenant_nk / system columns, no contract
+-- validity dates (minimisation). Order names are free text (token in masked mode), names are person labels.
+DEFINE
+    VAR _ga = {{ga}}
+    VAR _gaName = SWITCH ( _ga, "AU", "AÜ", "DL", "DL", "AU_DL", "AÜ+DL" )
+    VAR _ta = {{taet}}
+    VAR _taName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_au_verleihliste[Taetigkeit] ),
+                    "@rang",
+                        VAR v = fact_au_verleihliste[Taetigkeit]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fact_au_verleihliste[Taetigkeit] ), fact_au_verleihliste[Taetigkeit] <= v ) )
+                ),
+                [@rang] = _ta
+            ),
+            fact_au_verleihliste[Taetigkeit]
+        )
+    VAR _or = {{ort}}
+    VAR _orte =
+        FILTER (
+            DISTINCT (
+                UNION (
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 1 Ort] ), "@o", fact_au_verleihliste[Einsatz 1 Ort] ),
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 2 Ort] ), "@o", fact_au_verleihliste[Einsatz 2 Ort] )
+                )
+            ),
+            NOT ISBLANK ( [@o] )
+        )
+    VAR _orName = MAXX ( FILTER ( _orte, VAR v = [@o] RETURN COUNTROWS ( FILTER ( _orte, [@o] <= v ) ) = _or ), [@o] )
+    VAR _au = {{auftrag_nr}}
+    VAR _auftraege =
+        FILTER (
+            DISTINCT (
+                UNION (
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 1 Auftrag] ), "@a", fact_au_verleihliste[Einsatz 1 Auftrag] ),
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 2 Auftrag] ), "@a", fact_au_verleihliste[Einsatz 2 Auftrag] )
+                )
+            ),
+            NOT ISBLANK ( [@a] )
+        )
+    VAR _auName = MAXX ( FILTER ( _auftraege, VAR v = [@a] RETURN COUNTROWS ( FILTER ( _auftraege, [@a] <= v ) ) = _au ), [@a] )
+    VAR _j = {{jahr}}
+    VAR _fStatus = {{status_filter}}
+    VAR _fGa = FILTER ( ALL ( fact_au_verleihliste[Geschaeftsart] ), ISBLANK ( _ga ) || fact_au_verleihliste[Geschaeftsart] = _gaName )
+    VAR _fTa = FILTER ( ALL ( fact_au_verleihliste[Taetigkeit] ), ISBLANK ( _ta ) || ( NOT ISBLANK ( _taName ) && fact_au_verleihliste[Taetigkeit] = _taName ) )
+    VAR _fOrt =
+        FILTER (
+            ALL ( fact_au_verleihliste[Einsatz 1 Ort], fact_au_verleihliste[Einsatz 2 Ort] ),
+            ISBLANK ( _or ) || ( NOT ISBLANK ( _orName ) && ( fact_au_verleihliste[Einsatz 1 Ort] = _orName || fact_au_verleihliste[Einsatz 2 Ort] = _orName ) )
+        )
+    VAR _fAuftrag =
+        FILTER (
+            ALL ( fact_au_verleihliste[Einsatz 1 Auftrag], fact_au_verleihliste[Einsatz 2 Auftrag] ),
+            ISBLANK ( _au ) || ( NOT ISBLANK ( _auName ) && ( fact_au_verleihliste[Einsatz 1 Auftrag] = _auName || fact_au_verleihliste[Einsatz 2 Auftrag] = _auName ) )
+        )
+    VAR _fJahr = FILTER ( ALL ( fact_au_verleihliste[Austritt] ), ISBLANK ( _j ) || ( NOT ISBLANK ( fact_au_verleihliste[Austritt] ) && YEAR ( fact_au_verleihliste[Austritt] ) = _j ) )
+    VAR _fPerson = {{person_filter}}
+EVALUATE
+CALCULATETABLE (
+    SELECTCOLUMNS (
+        fact_au_verleihliste,
+        "person_sk", fact_au_verleihliste[person_sk],
+        "nachname", fact_au_verleihliste[Nachname],
+        "vorname", fact_au_verleihliste[Vorname],
+        "status_code", fact_au_verleihliste[Status Code],
+        "status", fact_au_verleihliste[Status],
+        "geschaeftsart", fact_au_verleihliste[Geschaeftsart],
+        "taetigkeit", fact_au_verleihliste[Taetigkeit],
+        "arbeitszeit_monat_h", fact_au_verleihliste[Arbeitszeit Monat (h)],
+        "arbeitszeit_woche_h", fact_au_verleihliste[Arbeitszeit Woche (h)],
+        "vertrag_gueltig", fact_au_verleihliste[Vertrag gueltig],
+        "eintritt", fact_au_verleihliste[Eintritt],
+        "austritt", fact_au_verleihliste[Austritt],
+        "einsatz1_von", fact_au_verleihliste[Einsatz 1 von],
+        "einsatz1_bis", fact_au_verleihliste[Einsatz 1 bis],
+        "einsatz1_ort", fact_au_verleihliste[Einsatz 1 Ort],
+        "einsatz1_anzahl_orte", fact_au_verleihliste[Einsatz 1 Anzahl Orte],
+        "einsatz1_auftrag", fact_au_verleihliste[Einsatz 1 Auftrag],
+        "einsatz1_geschaeftsart", fact_au_verleihliste[Einsatz 1 Geschaeftsart],
+        "einsatz2_von", fact_au_verleihliste[Einsatz 2 von],
+        "einsatz2_bis", fact_au_verleihliste[Einsatz 2 bis],
+        "einsatz2_ort", fact_au_verleihliste[Einsatz 2 Ort],
+        "einsatz2_anzahl_orte", fact_au_verleihliste[Einsatz 2 Anzahl Orte],
+        "einsatz2_auftrag", fact_au_verleihliste[Einsatz 2 Auftrag],
+        "einsatz2_geschaeftsart", fact_au_verleihliste[Einsatz 2 Geschaeftsart],
+        "anzahl_verleihstationen", fact_au_verleihliste[Anzahl Verleihstationen],
+        "erster_einsatz_von", fact_au_verleihliste[Erster Einsatz von],
+        "letzter_einsatz_bis", fact_au_verleihliste[Letzter Einsatz bis]
+    ),
+    _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson
+)
+ORDER BY [einsatz1_von]

@@ -1,0 +1,29 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "the Bericht-1 rows of one tour (fico_planung, Excel); the report shows no tour",
+  "view": "6 tour drill: Gantt of one planned tour",
+  "grain": "one row per element of one tour",
+  "params": {
+    "tour": { "type": "sk", "required": true, "filter_column": "fico_planung[tour_id]" }
+  },
+  "columns": {
+    "element_id": "id",
+    "tour": "label_freetext",
+    "version": "label_org",
+    "tourstandort": "label_org",
+    "personaltyp": "label_org",
+    "tour_start_ms": "measure",
+    "tour_ende_ms": "measure",
+    "start_ms": "measure",
+    "ende_ms": "measure",
+    "dauer_min": "measure",
+    "arbeitszeit_min": "measure",
+    "taetigkeit": "label_technical",
+    "fahren": "code",
+    "startbahnhof": "label_location",
+    "zielbahnhof": "label_location",
+    "zugnummer": "code",
+    "kostenallokation": "label_org"
+  }
+}

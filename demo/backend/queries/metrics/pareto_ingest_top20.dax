@@ -1,0 +1,13 @@
+-- page: Entity / table Pareto
+-- replaces: lineClusteredColumnComboChart fcbb941ab55d9c6523aa (key x Ingest s/file top20, Ingest MiB/file top20)
+-- grain: key (the 20 slowest files; the measures are BLANK for the rest, so SUMMARIZECOLUMNS drops them)
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_run_step'[key],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "ingest_s_per_file_top20", [Ingest s/file top20],
+    "ingest_mib_per_file_top20", [Ingest MiB/file top20]
+)
+ORDER BY [ingest_s_per_file_top20] DESC

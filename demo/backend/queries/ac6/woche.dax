@@ -1,0 +1,77 @@
+-- View 3, pattern week of ONE version, hour by hour (0 = Monday 00-01 ... 167 = Sunday 23-24):
+--   art = h_ja / h_nein / h_leer   (*) planned element hours overlapping the hour, split by the source flag
+--                                  «Fahren (ja/nein)» (SaxMS main-driving flag of the activity; leer = no
+--                                  activity / flag). Σ over hours = Dauer Tourelemente (Planung).
+--   art = touren                   (*) tours whose start..end overlaps the hour (with a Tätigkeit filter: tours
+--                                  that contain that activity).
+-- (*) measure-equivalents: the model has no hour grain. Week offsets (*_ms) count from Monday 00:00; tours and
+-- elements running past Sunday 24:00 (112 tours) wrap onto Monday, as a recurring pattern week does. Each
+-- element is expanded only over the hours it touches (GENERATE + GENERATESERIES), not over all 168.
+DEFINE
+    VAR _v = {{version}}
+    VAR _vN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) ),
+        "@r", VAR x = fico_planung[JUP Version] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) && fico_planung[JUP Version] <= x ) ) ),
+        [@r] = _v ), fico_planung[JUP Version] )
+    VAR _f = {{firma}}
+    VAR _fN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) ),
+        "@r", VAR x = fico_planung[Firma] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) && fico_planung[Firma] <= x ) ) ),
+        [@r] = _f ), fico_planung[Firma] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) ),
+        "@r", VAR x = fico_planung[Tourstandort] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) && fico_planung[Tourstandort] <= x ) ) ),
+        [@r] = _s ), fico_planung[Tourstandort] )
+    VAR _p = {{ptyp}}
+    VAR _pN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) ),
+        "@r", VAR x = fico_planung[Personaltyp] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Personaltyp] ), NOT ISBLANK ( fico_planung[Personaltyp] ) && fico_planung[Personaltyp] <= x ) ) ),
+        [@r] = _p ), fico_planung[Personaltyp] )
+    VAR _t = {{taet}}
+    VAR _tN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) ),
+        "@r", VAR x = fico_planung[Taetigkeit] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Taetigkeit] ), NOT ISBLANK ( fico_planung[Taetigkeit] ) && fico_planung[Taetigkeit] <= x ) ) ),
+        [@r] = _t ), fico_planung[Taetigkeit] )
+    VAR _fV = FILTER ( ALL ( fico_planung[JUP Version] ), fico_planung[JUP Version] = _vN )
+    VAR _fF = FILTER ( ALL ( fico_planung[Firma] ), ISBLANK ( _f ) || fico_planung[Firma] = _fN )
+    VAR _fS = FILTER ( ALL ( fico_planung[Tourstandort] ), ISBLANK ( _s ) || fico_planung[Tourstandort] = _sN )
+    VAR _fP = FILTER ( ALL ( fico_planung[Personaltyp] ), ISBLANK ( _p ) || fico_planung[Personaltyp] = _pN )
+    VAR _fT = FILTER ( ALL ( fico_planung[Taetigkeit] ), ISBLANK ( _t ) || fico_planung[Taetigkeit] = _tN )
+    VAR _W = 604800000
+    VAR _H = 3600000
+EVALUATE
+VAR _els =
+    CALCULATETABLE (
+        SUMMARIZE ( fico_planung, fico_planung[element_id], fico_planung[element_start_ms], fico_planung[element_ende_ms], fico_planung[Fahren (ja/nein)] ),
+        _fV, _fF, _fS, _fP, _fT,
+        NOT ISBLANK ( fico_planung[element_id] ), NOT ISBLANK ( fico_planung[element_start_ms] )
+    )
+VAR _elSeg =
+    UNION (
+        SELECTCOLUMNS ( FILTER ( _els, fico_planung[element_start_ms] < _W ),
+            "s", fico_planung[element_start_ms], "e", MIN ( fico_planung[element_ende_ms], _W ),
+            "f", IF ( ISBLANK ( fico_planung[Fahren (ja/nein)] ), "leer", fico_planung[Fahren (ja/nein)] ) ),
+        SELECTCOLUMNS ( FILTER ( _els, fico_planung[element_ende_ms] > _W ),
+            "s", MAX ( fico_planung[element_start_ms] - _W, 0 ), "e", fico_planung[element_ende_ms] - _W,
+            "f", IF ( ISBLANK ( fico_planung[Fahren (ja/nein)] ), "leer", fico_planung[Fahren (ja/nein)] ) )
+    )
+VAR _elCells = GENERATE ( FILTER ( _elSeg, [e] > [s] ), GENERATESERIES ( INT ( [s] / _H ), INT ( ( [e] - 1 ) / _H ), 1 ) )
+VAR _elHours =
+    GROUPBY ( _elCells, [Value], [f],
+        "@h", SUMX ( CURRENTGROUP (), ( MIN ( [e], ( [Value] + 1 ) * _H ) - MAX ( [s], [Value] * _H ) ) / _H ) )
+VAR _tours =
+    CALCULATETABLE (
+        SUMMARIZE ( fico_planung, fico_planung[tour_id], fico_planung[tour_start_ms], fico_planung[tour_ende_ms] ),
+        _fV, _fF, _fS, _fP, _fT,
+        NOT ISBLANK ( fico_planung[tour_id] ), NOT ISBLANK ( fico_planung[tour_start_ms] )
+    )
+VAR _tSeg =
+    UNION (
+        SELECTCOLUMNS ( FILTER ( _tours, fico_planung[tour_start_ms] < _W ),
+            "s", fico_planung[tour_start_ms], "e", MIN ( fico_planung[tour_ende_ms], _W ) ),
+        SELECTCOLUMNS ( FILTER ( _tours, fico_planung[tour_ende_ms] > _W ),
+            "s", MAX ( fico_planung[tour_start_ms] - _W, 0 ), "e", fico_planung[tour_ende_ms] - _W )
+    )
+VAR _tCells = GENERATE ( FILTER ( _tSeg, [e] > [s] ), GENERATESERIES ( INT ( [s] / _H ), INT ( ( [e] - 1 ) / _H ), 1 ) )
+VAR _tHours = GROUPBY ( _tCells, [Value], "@n", COUNTX ( CURRENTGROUP (), 1 ) )
+RETURN
+    UNION (
+        SELECTCOLUMNS ( _elHours, "stunde", [Value], "art", "h_" & [f], "wert", [@h] ),
+        SELECTCOLUMNS ( _tHours, "stunde", [Value], "art", "touren", "wert", [@n] )
+    )

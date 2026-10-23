@@ -1,0 +1,17 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (new on the Dispo side since cc 1.35.0)",
+  "view": "7 angerechnete Zeit: histogram heat strip per month",
+  "grain": "one row per Planmonat × 30-min bucket",
+  "params": {
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 }
+  },
+  "columns": {
+    "planmonat": "code",
+    "bucket": "measure",
+    "touren": "measure"
+  }
+}

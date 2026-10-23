@@ -1,0 +1,30 @@
+-- View 2: Firma -> Tourstandort -> Personaltyp -> Tätigkeit of ONE version (leaves only; the app rolls the
+-- additive hours / element counts up to the inner rings). Tour counts are per leaf only - a tour spans several
+-- activities, so they are not additive and the app never sums them. Firma / Tourstandort / Personaltyp /
+-- Tätigkeit are not filtered here: the sunburst IS that drill; the weekday filter applies. Int params are ranks.
+DEFINE
+    VAR _v = {{version}}
+    VAR _vN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) ),
+        "@r", VAR x = fico_planung[JUP Version] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) && fico_planung[JUP Version] <= x ) ) ),
+        [@r] = _v ), fico_planung[JUP Version] )
+    VAR _d = {{tag}}
+    VAR _fV = FILTER ( ALL ( fico_planung[JUP Version] ), fico_planung[JUP Version] = _vN )
+    VAR _fD = FILTER ( ALL ( fico_planung[musterwochentag_nr] ), ISBLANK ( _d ) || fico_planung[musterwochentag_nr] == _d )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fico_planung[Firma], fico_planung[Tourstandort], fico_planung[Personaltyp], fico_planung[Taetigkeit], fico_planung[Fahren (ja/nein)],
+        _fV, _fD,
+        "@dauer", [Dauer Tourelemente (Planung) [h]]],
+        "@elemente", [Anzahl Tourelemente (Planung)],
+        "@touren", [Anzahl Touren (Planung)]
+    ),
+    "firma", fico_planung[Firma],
+    "tourstandort", fico_planung[Tourstandort],
+    "personaltyp", fico_planung[Personaltyp],
+    "taetigkeit", fico_planung[Taetigkeit],
+    "fahren", fico_planung[Fahren (ja/nein)],
+    "dauer_h", [@dauer],
+    "tourelemente", [@elemente],
+    "touren", [@touren]
+)

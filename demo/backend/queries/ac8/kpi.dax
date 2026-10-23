@@ -1,0 +1,69 @@
+-- KPI tiles (view 1), sparklines, absence-window calendar (view 9) and story mode (view 10). Every value is
+-- a _Kennzahlen measure (or one with a single extra filter on its own fact), evaluated per period:
+--   grain tag     one row per day of the window
+--   grain woche   one row per Monday-started week (the window should start on a Monday)
+--   grain fenster one row for the whole window (distinct counts such as Personen are not additive)
+-- Each measure is filtered on ITS fact only (fact_shift planned_date, fact_dienstplan dienstplan_datum,
+-- fact_shift_snapshot snapshot_date, absence windows overlapping the period): the model's bidirectional
+-- person relationships would otherwise carry a fact_shift filter over to fact_absence.
+-- worker: alle (default) / disponent / andere - applies to fact_shift and fact_dienstplan only.
+EVALUATE
+VAR _from = {{date_from}}
+VAR _to = {{date_to}}
+VAR _g = {{grain}}
+VAR _w = {{worker}}
+VAR _disp = "CINT (CH) - Disponent Leitstelle"
+VAR _len = SWITCH ( _g, "woche", 7, "fenster", INT ( _to - _from ) + 1, 1 )
+VAR _starts =
+    FILTER (
+        SELECTCOLUMNS ( CALENDAR ( _from, _to ), "von", [Date] ),
+        _g = "tag"
+            || ( _g = "woche" && WEEKDAY ( [von], 2 ) = 1 )
+            || ( _g = "fenster" && [von] = _from )
+    )
+VAR _wt =
+    FILTER (
+        ALL ( 'fact_shift'[shift_worker_type_name] ),
+        ISBLANK ( _w ) || _w = "alle"
+            || ( _w = "disponent" && 'fact_shift'[shift_worker_type_name] = _disp )
+            || ( _w = "andere" && 'fact_shift'[shift_worker_type_name] <> _disp )
+    )
+VAR _wd =
+    FILTER (
+        ALL ( 'fact_dienstplan'[shift_worker_type_name] ),
+        ISBLANK ( _w ) || _w = "alle"
+            || ( _w = "disponent" && 'fact_dienstplan'[shift_worker_type_name] = _disp )
+            || ( _w = "andere" && 'fact_dienstplan'[shift_worker_type_name] <> _disp )
+    )
+RETURN
+    GENERATE (
+        _starts,
+        VAR a = [von]
+        VAR b = MIN ( a + _len - 1, _to )
+        VAR fs = FILTER ( ALL ( 'fact_shift'[planned_date] ), 'fact_shift'[planned_date] >= a && 'fact_shift'[planned_date] <= b )
+        VAR fd = FILTER ( ALL ( 'fact_dienstplan'[dienstplan_datum] ), 'fact_dienstplan'[dienstplan_datum] >= a && 'fact_dienstplan'[dienstplan_datum] <= b )
+        VAR fv = FILTER ( ALL ( 'fact_shift_snapshot'[snapshot_date] ), 'fact_shift_snapshot'[snapshot_date] >= a && 'fact_shift_snapshot'[snapshot_date] <= b )
+        VAR fa = FILTER ( ALL ( 'fact_absence'[start_date], 'fact_absence'[end_date] ), 'fact_absence'[start_date] <= b && 'fact_absence'[end_date] >= a )
+        RETURN
+            ROW (
+                "bis", b,
+                "schichten", CALCULATE ( [Anzahl Schichten], fs, _wt ),
+                "kommuniziert", CALCULATE ( [Anzahl kommunizierte Schichten], fs, _wt ),
+                "nicht_kommuniziert", CALCULATE ( [Anzahl Schichten nicht kommuniziert], fs, _wt ),
+                "geaendert_nicht_kommuniziert", CALCULATE ( [Anzahl Schichten geändert nicht kommuniziert], fs, _wt ),
+                "nie_kommuniziert", CALCULATE ( [Anzahl Schichten], fs, _wt, 'fact_shift'[kommunikationsstand] = "nie kommuniziert" ),
+                "unbesetzt", CALCULATE ( [Anzahl Schichten], fs, _wt, 'fact_shift'[kommunikationsstand] = "unbesetzt" ),
+                "besetzt", CALCULATE ( [Anzahl Schichten], fs, _wt, NOT ISBLANK ( 'fact_shift'[person_sk] ) ),
+                "schichtstunden", CALCULATE ( [Schichtstunden], fs, _wt ),
+                "personen_mit_schicht", CALCULATE ( [Personen mit Schicht], fs, _wt ),
+                "dienstplan", CALCULATE ( [Anzahl Dienstplan-Schichten], fd, _wd ),
+                "dp_kommuniziert", CALCULATE ( [Anzahl Dienstplan-Schichten], fd, _wd, 'fact_dienstplan'[dienstplan_quelle] = "kommuniziert" ),
+                "dp_vorheriger_stand", CALCULATE ( [Anzahl Dienstplan vorheriger Stand], fd, _wd ),
+                "dp_geloescht", CALCULATE ( [Anzahl Dienstplan gelöscht], fd, _wd ),
+                "dp_person_entfernt", CALCULATE ( [Anzahl Dienstplan Person entfernt], fd, _wd ),
+                "abgelehnt", CALCULATE ( [Anzahl Rückmeldungen abgelehnt], fv ),
+                "veraltet", CALCULATE ( [Anzahl veraltete Stände], fv ),
+                "personen_abwesend", CALCULATE ( [Personen abwesend], fa ),
+                "abwesenheiten", CALCULATE ( [Anzahl Abwesenheiten], fa )
+            )
+    )

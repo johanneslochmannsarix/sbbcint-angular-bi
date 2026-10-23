@@ -1,0 +1,105 @@
+-- KPI band + sparklines (view 0), the Plan-und-Ist month strip (view 4) and the angerechnete-Zeit fill
+-- (view 7): per Planmonat plus one total row (ist_gesamt = TRUE). Every figure the report's KPI cards show
+-- is the _Kennzahlen measure itself. Marked (*) where the model has no measure:
+--   (*) touren_anger: tours with a non-blank «Tour angerechnete Zeit (min)» (a tour attribute repeated on
+--       every element: counted per DISTINCT tour, never summed over elements - SBBCBI-145 runbook §3)
+--   (*) anger_h / plan_anger_h: Σ angerechnete Zeit per tour and the tour Plandauer of the SAME tours
+--   (*) touren_ist / touren_ist_alle_fahr: tours by «Tour Ist Abdeckung» (derived from element Ist)
+-- Filters like the report's slicers: Firma, Tourstandort (depot_sk), Personaltyp Tour (rank), Tätigkeit.
+DEFINE
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _ta = {{taet}}
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fFirma = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _firma ) || fico_disposition[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_disposition[depot_sk] ), ISBLANK ( _st ) || fico_disposition[depot_sk] = _st )
+    VAR _fPtyp = FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), ISBLANK ( _pt ) || fico_disposition[Personaltyp Tour] = _ptName )
+    VAR _fTaet = FILTER ( ALL ( fico_disposition[worker_activity_sk] ), ISBLANK ( _ta ) || fico_disposition[worker_activity_sk] = _ta )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        ROLLUPADDISSUBTOTAL ( fico_disposition[Planmonat], "ist_gesamt" ),
+        _fFirma, _fStandort, _fPtyp, _fTaet,
+        "touren", [Anzahl Touren (Disposition)],
+        "tourelemente", [Anzahl Tourelemente (Disposition)],
+        "plandauer_touren_h", [Plandauer Touren (Disposition) [h]]],
+        "plandauer_h", [Plandauer Tourelemente (Disposition) [h]]],
+        "fahren_h", [Plandauer Fahren (Disposition) [h]]],
+        "dauer_je_tour_h", [Durchschnitt Dauer je Tour (Disposition) [h]]],
+        "fahranteil", [Fahranteil (Disposition) [%]]],
+        "ist_erfassung", [Ist-Erfassungsgrad vergangene Elemente (Disposition) [%]]],
+        "personen", [Anzahl Personen eingeteilt (Disposition)],
+        "anteil_person", [Anteil Person eingeteilt (Disposition) [%]]],
+        "touren_anger", CALCULATE ( DISTINCTCOUNT ( fico_disposition[tour_id] ), KEEPFILTERS ( NOT ISBLANK ( fico_disposition[Tour angerechnete Zeit (min)] ) ) ),
+        "anger_h", DIVIDE ( SUMX ( VALUES ( fico_disposition[tour_id] ), CALCULATE ( MAX ( fico_disposition[Tour angerechnete Zeit (min)] ) ) ), 60 ),
+        "plan_anger_h",
+            DIVIDE (
+                SUMX (
+                    FILTER ( VALUES ( fico_disposition[tour_id] ), NOT ISBLANK ( CALCULATE ( MAX ( fico_disposition[Tour angerechnete Zeit (min)] ) ) ) ),
+                    CALCULATE ( DATEDIFF ( MIN ( fico_disposition[Tour Planbeginn] ), MAX ( fico_disposition[Tour Planende] ), MINUTE ) )
+                ),
+                60
+            ),
+        "touren_beendet", CALCULATE ( DISTINCTCOUNT ( fico_disposition[tour_id] ), KEEPFILTERS ( fico_disposition[Tour Planende] < NOW () ) ),
+        "touren_ist", CALCULATE ( DISTINCTCOUNT ( fico_disposition[tour_id] ), KEEPFILTERS ( fico_disposition[Tour Ist Abdeckung] <> "keine Ist-Daten" ) ),
+        "touren_ist_alle_fahr", CALCULATE ( DISTINCTCOUNT ( fico_disposition[tour_id] ), KEEPFILTERS ( fico_disposition[Tour Ist Abdeckung] = "alle Fahrelemente" ) ),
+        "elemente_mit_ist", [Elemente mit Ist (Disposition)],
+        "elemente_vergangen", [Vergangene Elemente (Disposition)],
+        "plan_mit_ist_h", [Plandauer Elemente mit Ist (Disposition) [h]]],
+        "ist_mit_ist_h", [Istdauer Elemente mit Ist (Disposition) [h]]],
+        "ist_zu_plan", [Ist zu Plan (Disposition) [%]]],
+        "median_beginn", [Median Abweichung Beginn (Disposition) [min]]],
+        "median_dauer", [Median Abweichung Dauer (Disposition) [min]]],
+        "beginn_spaeter", [Anteil Beginn spaeter als 15 min (Disposition) [%]]],
+        "beginn_frueher", [Anteil Beginn frueher als 15 min (Disposition) [%]]],
+        "beginn_innerhalb", [Anteil Beginn innerhalb 15 min (Disposition) [%]]],
+        "dauer_laenger", [Anteil Dauer laenger als 15 min (Disposition) [%]]],
+        "dauer_kuerzer", [Anteil Dauer kuerzer als 15 min (Disposition) [%]]],
+        "dauer_innerhalb", [Anteil Dauer innerhalb 15 min (Disposition) [%]]]
+    ),
+    "planmonat", fico_disposition[Planmonat],
+    "ist_gesamt", [ist_gesamt],
+    "touren", [touren],
+    "tourelemente", [tourelemente],
+    "plandauer_touren_h", [plandauer_touren_h],
+    "plandauer_h", [plandauer_h],
+    "fahren_h", [fahren_h],
+    "dauer_je_tour_h", [dauer_je_tour_h],
+    "fahranteil", [fahranteil],
+    "ist_erfassung", [ist_erfassung],
+    "personen", [personen],
+    "anteil_person", [anteil_person],
+    "touren_anger", [touren_anger],
+    "anger_h", [anger_h],
+    "plan_anger_h", [plan_anger_h],
+    "touren_beendet", [touren_beendet],
+    "touren_ist", [touren_ist],
+    "touren_ist_alle_fahr", [touren_ist_alle_fahr],
+    "elemente_mit_ist", [elemente_mit_ist],
+    "elemente_vergangen", [elemente_vergangen],
+    "plan_mit_ist_h", [plan_mit_ist_h],
+    "ist_mit_ist_h", [ist_mit_ist_h],
+    "ist_zu_plan", [ist_zu_plan],
+    "median_beginn", [median_beginn],
+    "median_dauer", [median_dauer],
+    "beginn_spaeter", [beginn_spaeter],
+    "beginn_frueher", [beginn_frueher],
+    "beginn_innerhalb", [beginn_innerhalb],
+    "dauer_laenger", [dauer_laenger],
+    "dauer_kuerzer", [dauer_kuerzer],
+    "dauer_innerhalb", [dauer_innerhalb]
+)
+ORDER BY [planmonat]

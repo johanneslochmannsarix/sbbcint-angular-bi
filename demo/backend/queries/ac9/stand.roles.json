@@ -1,0 +1,19 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "the RDL subtitle «Stand …» (report run time) - here the data's own time",
+  "view": "header data-as-of, start tile, month range",
+  "grain": "one row",
+  "columns": {
+    "ingested_max": "date",
+    "ist_ende_max": "date",
+    "erster_ist_monat": "code",
+    "letzter_ist_monat": "code",
+    "erster_plan_monat": "code",
+    "letzter_plan_monat": "code",
+    "touren": "measure",
+    "touren_ist": "measure",
+    "auftraege": "measure"
+  },
+  "note": "_ingested_at is the Gold write time (UTC, naive); ist_ende is local wall-clock time"
+}

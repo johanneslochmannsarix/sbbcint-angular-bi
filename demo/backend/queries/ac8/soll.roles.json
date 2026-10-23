@@ -1,0 +1,19 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "2 SOLL vs planned coverage (SOLL side)",
+  "grain": "one row per template shift of the chosen planning",
+  "params": {
+    "planning": { "type": "sk", "required": true, "filter_column": "'dim_shift_planning'[shift_planning_sk]" }
+  },
+  "columns": {
+    "virtual_shift_sk": "id",
+    "weekday_num": "code",
+    "start_ms": "measure",
+    "end_ms": "measure",
+    "worker_type_name": "label_org",
+    "soll": "measure",
+    "soll_h": "measure"
+  }
+}

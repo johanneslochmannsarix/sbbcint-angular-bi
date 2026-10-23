@@ -1,0 +1,52 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "tables «Aufträge nach abrechenbaren Stunden» (p1) and «Alle Aufträge» (p3)",
+  "view": "2 portfolio treemap / sunburst <-> ranked bars + Pareto",
+  "grain": "one row per order with a reported tour in the selected months",
+  "params": {
+    "von": {
+      "type": "month"
+    },
+    "bis": {
+      "type": "month"
+    },
+    "ga": {
+      "type": "enum",
+      "values": [
+        "AUE",
+        "DL"
+      ]
+    },
+    "kat": {
+      "type": "enum",
+      "values": [
+        "int",
+        "nat",
+        "res",
+        "ll",
+        "ohne"
+      ]
+    }
+  },
+  "columns": {
+    "dor_name": "label_freetext",
+    "nr": "id",
+    "geschaeftsart": "code",
+    "kategorie_auftrag": "code",
+    "touren": "measure",
+    "brutto_h": "measure",
+    "netto_h": "measure",
+    "pause_h": "measure",
+    "azu_h": "measure",
+    "fahrt_h": "measure",
+    "avg_h": "measure",
+    "ue12": "measure",
+    "ue14": "measure",
+    "abweichungen": "measure"
+  },
+  "note": "nr is captured server side (token -> ordinal) and replaced by auftrag_token (the order's filter handle in every mode) in the router's transform",
+  "derived": {
+    "auftrag_token": "id"
+  }
+}

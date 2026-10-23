@@ -1,0 +1,50 @@
+-- View 3 (Plan vs JUP), JUP side: fico_planung per JUP Version × Musterwochentag × Einsatzart - the report's
+-- page «Planung (JUP)» measures. Every version is its own pattern week: the app shows ONE version at a
+-- time and never sums over versions. «Ungeplant» rows have no version and no Tourstandort.
+-- fico_planung has no relationship to fico_disposition (F10) and carries no depot_sk: the Tourstandort sk
+-- and the Personaltyp rank are mapped to their NAMES via fico_disposition here, then filter fico_planung's
+-- own columns. (*) touren_anger: JUP tours with angerechnete Zeit > 0.
+DEFINE
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _stName = CALCULATE ( MAX ( fico_disposition[Tourstandort] ), REMOVEFILTERS (), fico_disposition[depot_sk] = _st )
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fFirma = FILTER ( ALL ( fico_planung[Firma] ), ISBLANK ( _firma ) || fico_planung[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_planung[Tourstandort] ), ISBLANK ( _st ) || fico_planung[Tourstandort] = _stName )
+    VAR _fPtyp = FILTER ( ALL ( fico_planung[Personaltyp] ), ISBLANK ( _pt ) || fico_planung[Personaltyp] = _ptName )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fico_planung[JUP Version], fico_planung[Musterwochentag], fico_planung[musterwochentag_nr], fico_planung[Einsatzart],
+        _fFirma, _fStandort, _fPtyp,
+        "touren", [Anzahl Touren (Planung)],
+        "tourelemente", [Anzahl Tourelemente (Planung)],
+        "dauer_h", [Dauer Tourelemente (Planung) [h]]],
+        "fahren_h", [Dauer Fahren (Planung) [h]]],
+        "arbeitszeit_h", [Arbeitszeit Tourelemente (Planung) [h]]],
+        "touren_anger", CALCULATE ( DISTINCTCOUNT ( fico_planung[tour_id] ), KEEPFILTERS ( fico_planung[Tour angerechnete Zeit (min)] > 0 ) )
+    ),
+    "jup_version", fico_planung[JUP Version],
+    "musterwochentag", fico_planung[Musterwochentag],
+    "musterwochentag_nr", fico_planung[musterwochentag_nr],
+    "einsatzart", fico_planung[Einsatzart],
+    "touren", [touren],
+    "tourelemente", [tourelemente],
+    "dauer_h", [dauer_h],
+    "fahren_h", [fahren_h],
+    "arbeitszeit_h", [arbeitszeit_h],
+    "touren_anger", [touren_anger]
+)

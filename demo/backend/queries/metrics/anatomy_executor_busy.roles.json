@@ -1,0 +1,35 @@
+{
+  "model": "platform_metrics",
+  "replaces": "clusteredBarChart 6c648ec689bc24352aef (activity x Executor busy min)",
+  "view": "Run anatomy (ADR-055)",
+  "grain": "activity_name",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": false,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 30,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "activity_name": "label_technical",
+    "executor_busy_min": "measure"
+  }
+}

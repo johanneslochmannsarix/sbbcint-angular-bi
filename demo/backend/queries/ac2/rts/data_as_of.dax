@@ -1,0 +1,2 @@
+EVALUATE
+ROW ( "datenstand_local", [Datenstand_Datum] )

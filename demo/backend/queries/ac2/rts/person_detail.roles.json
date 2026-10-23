@@ -1,0 +1,21 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "one row of «Qualifikationsmatrix» filtered by the dim_person[person_name] slicer",
+  "view": "person drawer (from heatmap, histogram, calendar day list)",
+  "grain": "one row per fact row of one person (all qualifications incl. MISSING_NEVER)",
+  "params": {
+    "person": {
+      "type": "pseudonym",
+      "required": true,
+      "filter_column": "'dim_person'[person_sk]"
+    }
+  },
+  "columns": {
+    "qualification_sk": "id",
+    "qualification_name": "label_qualification",
+    "status_code": "code",
+    "valid_from": "date",
+    "valid_to": "date"
+  }
+}

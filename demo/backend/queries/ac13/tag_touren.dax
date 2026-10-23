@@ -1,0 +1,34 @@
+-- View 4 day drill: the tours of ONE day (required), optionally of one Tour-Standort, as a list. Unstaffed tours
+-- carry no person (the «(unbesetzt)» member is returned blank, never pseudonymised). Tour numbers are free text.
+DEFINE
+    VAR _d = {{datum}}
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ),
+        RANKX ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), dim_standort_nachbereitung_cd[standort_name], , ASC, DENSE ) = _s ),
+        dim_standort_nachbereitung_cd[standort_name] )
+    VAR _fS = FILTER ( ALL ( dim_standort_nachbereitung_cd[standort_name] ), ISBLANK ( _s ) || dim_standort_nachbereitung_cd[standort_name] = _sN )
+    VAR _h = {{haupttyp}}
+    VAR _hN = MAXX ( FILTER ( ALL ( fact_tour_cd[personaltyp_haupttyp] ),
+        RANKX ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), fact_tour_cd[personaltyp_haupttyp], , ASC, DENSE ) = _h ),
+        fact_tour_cd[personaltyp_haupttyp] )
+    VAR _fH = FILTER ( ALL ( fact_tour_cd[personaltyp_haupttyp] ), ISBLANK ( _h ) || fact_tour_cd[personaltyp_haupttyp] = _hN )
+EVALUATE
+SELECTCOLUMNS (
+    CALCULATETABLE ( fact_tour_cd, TREATAS ( { _d }, dim_tag_nachbereitung_cd[datum] ), _fS, _fH ),
+    "tour", fact_tour_cd[tour_cd_sk],
+    "person", IF ( fact_tour_cd[ist_offen], BLANK (), fact_tour_cd[pseudonym_nachbereitung_cd_sk] ),
+    "kennung", IF ( fact_tour_cd[ist_offen], BLANK (), RELATED ( dim_pseudonym_nachbereitung_cd[pseudonym] ) ),
+    "tourennummer", fact_tour_cd[tourennummer],
+    "tour_standort", fact_tour_cd[tour_standort],
+    "personaltyp", fact_tour_cd[personaltyp],
+    "datum", fact_tour_cd[datum],
+    "plan_beginn", fact_tour_cd[plan_beginn],
+    "plan_ende", fact_tour_cd[plan_ende],
+    "arbeitszeit_min", fact_tour_cd[arbeitszeit_min],
+    "angerechnet_min", fact_tour_cd[angerechnete_zeit_min],
+    "offen", IF ( fact_tour_cd[ist_offen], 1, 0 ),
+    "verkauft", IF ( fact_tour_cd[ist_verkaufte_tour], 1, 0 ),
+    "schulung", IF ( fact_tour_cd[ist_schulung], 1, 0 ),
+    "rolle", fact_tour_cd[uebernachtung_rolle]
+)
+ORDER BY [tour_standort], [plan_beginn]

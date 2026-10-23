@@ -1,0 +1,41 @@
+-- View 0 sparklines and view 6 mini timeline: one row per day of the window (the timeline asks for the whole
+-- Gold window) with its ISO week (dim_date[jahr_kw]). Measures return 0, not blank, so every day of the window is a row.
+-- Element counts ignore Mandant / Depot / Haupttyp / zwingend (R2).
+-- Filters (README "Filters and params"): mandant / depot / haupttyp / kategorie are ORDINALS into the
+-- model's sorted value lists (same rule as scope.dax), zwingend = alle | zwingend | nicht. Absent = no filter.
+EVALUATE
+VAR _fD = FILTER ( ALL ( 'dim_date'[datum] ), 'dim_date'[datum] >= {{date_from}} && 'dim_date'[datum] <= {{date_to}} )
+VAR _mix = {{mandant}}
+VAR _fM =
+    FILTER ( ALL ( 'dim_scope'[tenant_name] ),
+        ISBLANK ( _mix ) || ( NOT ISBLANK ( 'dim_scope'[tenant_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[tenant_name] ), NOT ISBLANK ( 'dim_scope'[tenant_name] ) && 'dim_scope'[tenant_name] < EARLIER ( 'dim_scope'[tenant_name] ) ) ) = _mix ) )
+VAR _dix = {{depot}}
+VAR _fDep =
+    FILTER ( ALL ( 'dim_scope'[depot_name] ),
+        ISBLANK ( _dix ) || ( NOT ISBLANK ( 'dim_scope'[depot_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[depot_name] ), NOT ISBLANK ( 'dim_scope'[depot_name] ) && 'dim_scope'[depot_name] < EARLIER ( 'dim_scope'[depot_name] ) ) ) = _dix ) )
+VAR _hix = {{haupttyp}}
+VAR _fH =
+    FILTER ( ALL ( 'dim_scope'[haupttyp_name] ),
+        ISBLANK ( _hix ) || ( NOT ISBLANK ( 'dim_scope'[haupttyp_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[haupttyp_name] ), NOT ISBLANK ( 'dim_scope'[haupttyp_name] ) && 'dim_scope'[haupttyp_name] < EARLIER ( 'dim_scope'[haupttyp_name] ) ) ) = _hix ) )
+VAR _z = {{zwingend}}
+VAR _fZ =
+    FILTER ( ALL ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] ),
+        ISBLANK ( _z ) || _z = "alle"
+            || ( _z = "zwingend" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () )
+            || ( _z = "nicht" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = FALSE () ) )
+VAR _kix = {{kategorie}}
+VAR _fK =
+    FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ),
+        ISBLANK ( _kix ) || ( NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'fact_shift_besetzung'[fahren_kategorie] ), NOT ISBLANK ( 'fact_shift_besetzung'[fahren_kategorie] ) && 'fact_shift_besetzung'[fahren_kategorie] < EARLIER ( 'fact_shift_besetzung'[fahren_kategorie] ) ) ) = _kix ) )
+RETURN
+    SUMMARIZECOLUMNS ( 'dim_date'[datum], 'dim_date'[jahr_kw], _fD,
+        "ungeplant", CALCULATE ( [Anzahl ungeplante Schichten], _fM, _fDep, _fH, _fZ ),
+        "ungeplant_zwingend", CALCULATE ( CALCULATE ( [Anzahl ungeplante Schichten], KEEPFILTERS ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () ) ), _fM, _fDep, _fH, _fZ ),
+        "schichten", CALCULATE ( [Anzahl Schichten], _fM, _fDep, _fH, _fZ ),
+        "elemente_offen", CALCULATE ( [Anzahl offene Schichtelemente], _fK )
+    )
+ORDER BY 'dim_date'[datum]

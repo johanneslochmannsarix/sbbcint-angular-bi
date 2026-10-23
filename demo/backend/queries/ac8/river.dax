@@ -1,0 +1,41 @@
+-- Change river (view 4): versions (fact_shift_snapshot rows) of the window's shifts per creation day,
+-- split by serie = status (Rückmeldung label) or art (Erstversion = version_nr 1 / Änderung = later).
+-- No _Kennzahlen measure counts versions, so this is a row count. snapshot_category_code is 0 on every
+-- row and snapshot_type_code is undecoded (SAX-34): neither is used as a series.
+-- Optional brush from view 5 (same semantics as pipeline.dax).
+EVALUATE
+VAR _from = {{date_from}}
+VAR _to = {{date_to}}
+VAR _serie = {{serie}}
+VAR _bf = {{brush_from}}
+VAR _bt = {{brush_to}}
+VAR _lmin = {{lead_min}}
+VAR _lmax = {{lead_max}}
+VAR _v =
+    FILTER (
+        'fact_shift_snapshot',
+        'fact_shift_snapshot'[snapshot_date] >= _from
+            && 'fact_shift_snapshot'[snapshot_date] <= _to
+            && (
+                ISBLANK ( _bf )
+                    || (
+                        'fact_shift_snapshot'[created_ts] >= _bf
+                            && 'fact_shift_snapshot'[created_ts] < _bt + 1
+                            && ( 'fact_shift_snapshot'[snapshot_start] - 'fact_shift_snapshot'[created_ts] ) * 24 >= _lmin
+                            && ( 'fact_shift_snapshot'[snapshot_start] - 'fact_shift_snapshot'[created_ts] ) * 24 <= _lmax
+                    )
+            )
+    )
+VAR _t =
+    ADDCOLUMNS (
+        _v,
+        "tag", DATE ( YEAR ( 'fact_shift_snapshot'[created_ts] ), MONTH ( 'fact_shift_snapshot'[created_ts] ), DAY ( 'fact_shift_snapshot'[created_ts] ) ),
+        "kategorie",
+            IF (
+                _serie = "art",
+                IF ( 'fact_shift_snapshot'[version_nr] = 1, "Erstversion", "Änderung" ),
+                'fact_shift_snapshot'[rueckmeldung_status_label]
+            )
+    )
+RETURN
+    GROUPBY ( _t, [tag], [kategorie], "versionen", SUMX ( CURRENTGROUP (), 1 ) )

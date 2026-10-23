@@ -1,0 +1,11 @@
+-- Header / start tile. sm_fico has no load timestamp (INFO.VIEW.TABLES carries none): the newest element Ist
+-- reported up to now stands in for the model's data as of, as on AC-4. Plus the disposition window and the
+-- number of JUP versions; «Ungeplant» elements carry no version and are counted apart.
+EVALUATE
+ROW (
+    "juengstes_ist", CALCULATE ( MAX ( fico_disposition[Element Istende] ), fico_disposition[Element Istende] <= NOW () ),
+    "dispo_von", MIN ( fico_disposition[Tour Plandatum] ),
+    "dispo_bis", MAX ( fico_disposition[Tour Plandatum] ),
+    "versionen", COUNTROWS ( FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) ) ),
+    "elemente_ohne_version", CALCULATE ( [Anzahl Tourelemente (Planung)], ISBLANK ( fico_planung[JUP Version] ) )
+)

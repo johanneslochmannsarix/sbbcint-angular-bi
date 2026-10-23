@@ -1,0 +1,22 @@
+-- page: Step stability
+-- replaces: tableEx f0089f8b93488b325a4a (stage, step + Regime, Regime n/median/p90/std/CV/slope, Outlier runs);
+-- also the cards 763b4f53894320ff3726, dc5a49b63194144da49b, 935da5fbaaee1b758596, b387692d985f5efea01b
+-- for a single stage+step selection (the card value is this table's row for that step)
+-- grain: stage x step
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_run_step'[stage],
+    'fact_run_step'[step],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "regime", [Regime],
+    "regime_n", [Regime n],
+    "regime_median_s", [Regime median s],
+    "regime_p90_s", [Regime p90 s],
+    "regime_std_s", [Regime std s],
+    "regime_cv", [Regime CV],
+    "regime_slope_s_per_d", [Regime slope s/d],
+    "outlier_runs", [Outlier runs]
+)
+ORDER BY [regime_cv] DESC

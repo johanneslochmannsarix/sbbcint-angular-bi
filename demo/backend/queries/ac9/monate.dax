@@ -1,0 +1,77 @@
+-- Month bar, KPI sparklines (view 0), month trend (view 3), Schwellwerte per month (view 6), the order's months
+-- (view 7a): per Abrechnungsmonat (year_month_ist = month of the tour's IST start, R4) x Geschäftsart plus one
+-- month total row (ga_total = TRUE). Every figure is a _Kennzahlen measure; (*) = the measure under an extra
+-- category filter (international share: SBB-CD tours of the order category «Internationale Leistungen").
+-- Filters like the report's slicers: Geschäftsart, Preiskategorie of the order, Auftrag (ordinal, resolved by
+-- the router from the order token). Only months with an IST start (unreported tours have none).
+DEFINE
+    VAR _ga = {{ga}}
+    VAR _kat = {{kat}}
+    VAR _nr = {{auftrag}}
+    VAR _gaName = SWITCH ( _ga, "AUE", "AÜ", "DL", "DL" )
+    VAR _katName = SWITCH ( _kat, "int", "Internationale Leistungen", "nat", "Nationale Leistungen", "res", "Reserven", "ll", "Langläufer Köln-Basel" )
+    VAR _auftrag =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_tour_abrechnung[dor_name] ),
+                    "@nr",
+                        VAR v = fact_tour_abrechnung[dor_name]
+                        RETURN 1 + COUNTROWS ( FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), fact_tour_abrechnung[dor_name] < v ) )
+                ),
+                [@nr] = _nr
+            ),
+            fact_tour_abrechnung[dor_name]
+        )
+    VAR _fMonat = FILTER ( ALL ( fact_tour_abrechnung[year_month_ist] ), NOT ISBLANK ( fact_tour_abrechnung[year_month_ist] ) )
+    VAR _fGa = FILTER ( ALL ( fact_tour_abrechnung[geschaeftsart] ), ISBLANK ( _ga ) || fact_tour_abrechnung[geschaeftsart] = _gaName )
+    VAR _fKat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[kategorie_auftrag] ),
+            ISBLANK ( _kat )
+                || ( _kat = "ohne" && ISBLANK ( fact_tour_abrechnung[kategorie_auftrag] ) )
+                || ( _kat <> "ohne" && fact_tour_abrechnung[kategorie_auftrag] = _katName )
+        )
+    VAR _fAuftrag = FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), ISBLANK ( _nr ) || fact_tour_abrechnung[dor_name] = _auftrag )
+EVALUATE
+SELECTCOLUMNS (
+    FILTER (
+        SUMMARIZECOLUMNS (
+            fact_tour_abrechnung[year_month_ist],
+            ROLLUPADDISSUBTOTAL ( fact_tour_abrechnung[geschaeftsart], "ga_total" ),
+            _fMonat, _fGa, _fKat, _fAuftrag,
+            "touren", [Anzahl Touren mit IST],
+            "brutto_h", [IST-Stunden brutto],
+            "netto_h", [IST-Stunden ohne Pause],
+            "pause_h", [IST-Stunden Pause],
+            "azu_h", [IST-Stunden AZU],
+            "fahrt_h", [IST-Stunden Fahrten],
+            "avg_h", [Ø IST-Dauer je Tour],
+            "ue10", [Anzahl Touren über 10 h],
+            "ue12", [Anzahl Touren über 12 h],
+            "ue14", [Anzahl Touren über 14 h],
+            "abweichungen", [Anzahl Preiskategorie-Abweichungen],
+            "touren_int", CALCULATE ( [Anzahl Touren mit IST], KEEPFILTERS ( fact_tour_abrechnung[kategorie_auftrag] = "Internationale Leistungen" ) ),
+            "touren_sbbcd", CALCULATE ( [Anzahl Touren mit IST], KEEPFILTERS ( NOT ISBLANK ( fact_tour_abrechnung[kategorie_auftrag] ) ) )
+        ),
+        [touren] > 0
+    ),
+    "year_month_ist", fact_tour_abrechnung[year_month_ist],
+    "geschaeftsart", fact_tour_abrechnung[geschaeftsart],
+    "ga_total", [ga_total],
+    "touren", [touren],
+    "brutto_h", [brutto_h],
+    "netto_h", [netto_h],
+    "pause_h", [pause_h],
+    "azu_h", [azu_h],
+    "fahrt_h", [fahrt_h],
+    "avg_h", [avg_h],
+    "ue10", [ue10],
+    "ue12", [ue12],
+    "ue14", [ue14],
+    "abweichungen", [abweichungen],
+    "touren_int", [touren_int],
+    "touren_sbbcd", [touren_sbbcd],
+    "auftrag_echo", _auftrag
+)
+ORDER BY [year_month_ist], [ga_total], [geschaeftsart]

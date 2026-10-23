@@ -1,0 +1,7 @@
+/* AC-2-only styles (were the "AC-2 additions" in ac2/app/src/styles.css). Generic ones moved to the shell. */
+.key.ring { border: 1.5px solid; width: 11px; height: 11px; vertical-align: -1px; }
+.tile-row-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.tile-foot { font-size: 12px; color: var(--muted); }
+.kpis .card-body, .kpis { padding: 12px 16px; }
+@media (max-width: 1100px) { .tile-row-7 { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 10px; } }
+@media (max-width: 640px) { .tile-row-7 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

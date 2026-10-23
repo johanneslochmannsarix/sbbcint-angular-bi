@@ -1,0 +1,15 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "cells of «Qualifikationsmatrix» (measures Gültig von (Anzeige) / Gültig bis (Anzeige) = MIN(valid_from) / MIN(valid_to)) and of «Wer hat eine Qualifikation noch nicht?» (status_code)",
+  "view": "1 heatmap cells, 2 calendar, 3 swimlanes, 4 treemap, 5 histogram, 7 linking",
+  "grain": "one row per fact row with status_code <> MISSING_NEVER. RT&S keeps 2 person x qualification pairs twice (alias E-BR_482 next to a native record, RULING 2026-10-12 intended): rows are kept, the heatmap cell shows the better status of the two",
+  "columns": {
+    "person_sk": "label_person",
+    "qualification_sk": "id",
+    "status_code": "code",
+    "valid_from": "date",
+    "valid_to": "date"
+  },
+  "person_key": "person_sk"
+}

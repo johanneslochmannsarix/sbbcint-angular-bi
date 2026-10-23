@@ -1,0 +1,11 @@
+{
+  "model": "import",
+  "tenant": "CARGOCONTROL",
+  "replaces": "header cards MIN(agg_pipeline_datenstand[datenstand_local]) and MIN(fact_person_qualification_latest[_batch_time]) (both pages)",
+  "view": "header «data as of»",
+  "grain": "one row",
+  "columns": {
+    "datenstand_local": "date",
+    "batch_time": "date"
+  }
+}

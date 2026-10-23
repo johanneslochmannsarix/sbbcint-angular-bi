@@ -1,0 +1,29 @@
+/* AC-7 KPI band (view 1): ruled form fields with a corner caption. Global, ac7-prefixed; shell tokens. */
+.ac7-band { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); border: 1px solid var(--rule-strong); border-radius: var(--r-card); background: var(--surface); overflow: hidden; }
+.ac7-field {
+  all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; min-width: 0; cursor: pointer; position: relative;
+  padding: 8px 12px 10px; border-right: 1px solid var(--rule); background: var(--surface);
+}
+.ac7-field:last-child { border-right: 0; }
+.ac7-field:nth-child(3), .ac7-field:nth-child(6) { border-right-color: var(--rule-strong); }
+.ac7-field.is-static { cursor: default; }
+.ac7-field:not(.is-static):hover { background: var(--surface-2); }
+.ac7-field:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ac7-field.is-on { background: var(--accent-wash); box-shadow: inset 0 -3px 0 var(--accent); }
+.ac7-field-cap { font-size: 11.5px; color: var(--muted); line-height: 1.25; display: flex; align-items: center; gap: 2px; }
+.ac7-field-cap .key { margin-right: 4px; }
+.ac7-glyph { color: var(--ink-2); margin-right: 3px; font-size: 10px; }
+.ac7-field-val { font-family: var(--font-display); font-size: 30px; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ac7-field-note { font-size: 11.5px; color: var(--ink-2); line-height: 1.3; min-height: 2.6em; }
+
+@media (max-width: 1280px) {
+  .ac7-band { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ac7-field:nth-child(4n) { border-right: 0; }
+  .ac7-field:nth-child(-n + 4) { border-bottom: 1px solid var(--rule); }
+}
+@media (max-width: 640px) {
+  .ac7-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ac7-field:nth-child(2n) { border-right: 0; }
+  .ac7-field:nth-child(-n + 6) { border-bottom: 1px solid var(--rule); }
+  .ac7-field-val { font-size: 24px; }
+}

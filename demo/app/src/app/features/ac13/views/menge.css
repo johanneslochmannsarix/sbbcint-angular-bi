@@ -1,0 +1,21 @@
+/* Moved out of ac13.css 2026-10-22 (component style budget 4 kB per stylesheet). ViewEncapsulation.None like the
+   page: these rules stay global, and the component renders on every AC-13 page, so nothing changes visually. */
+/* ---------------------------------------------------------------- lists */
+.ac13-list { max-height: 300px; overflow: auto; border-top: 1px solid var(--rule); }
+.ac13-list-tall { max-height: 360px; }
+.ac13-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.ac13-tbl th { position: sticky; top: 0; background: var(--surface); text-align: left; font-weight: 600; color: var(--muted); font-size: 11.5px; padding: 5px 6px; border-bottom: 1px solid var(--rule-strong); z-index: 1; }
+.ac13-tbl td { padding: 4px 6px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.ac13-tbl .num { text-align: right; }
+.ac13-tbl tbody tr { cursor: pointer; }
+.ac13-tbl tbody tr:hover { background: var(--mark); }
+.ac13-tbl tbody tr.is-sel { background: var(--accent-wash); box-shadow: inset 3px 0 0 var(--ink); }
+.ac13-tbl tbody tr:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ac13-side { min-width: 0; }
+.ac13-more { display: block; margin: 8px 6px; font-size: 12.5px; }
+.ac13-side-head, .ac13-person-head { display: flex; gap: 12px; align-items: center; justify-content: space-between; font-size: 13px; color: var(--ink-2);
+  padding: 6px 0; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.ac13-person, .ac13-day { margin-top: 12px; border-top: 2px solid var(--ink); padding-top: 4px; }
+.ac13-person-head { justify-content: flex-start; }
+.ac13-person-head .linkish { margin-left: auto; }
+

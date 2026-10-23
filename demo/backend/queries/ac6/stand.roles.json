@@ -1,0 +1,14 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing in the report (sm_fico has no Datenstand); header and start tile",
+  "view": "header, start tile",
+  "grain": "one row",
+  "columns": {
+    "juengstes_ist": "date",
+    "dispo_von": "date",
+    "dispo_bis": "date",
+    "versionen": "measure",
+    "elemente_ohne_version": "measure"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "model": "import",
+  "tenant": "CARGOCONTROL",
+  "replaces": "cells of «Qualifikationsmatrix» (measures Gültig von (Anzeige) / Gültig bis (Anzeige) = MIN(valid_from) / MIN(valid_to)) and of «Wer hat eine Qualifikation noch nicht?» (status_code)",
+  "view": "1 heatmap cells, 2 calendar, 3 swimlanes, 4 treemap, 5 histogram, 7 linking",
+  "grain": "one row per fact row with status_code <> MISSING_NEVER (held or dated pairs); MISSING_NEVER = persons x qualifications minus these pairs (the fact is the full cross product, probe 2026-10-20; checked by parity)",
+  "columns": {
+    "person_sk": "label_person",
+    "qualification_sk": "id",
+    "status_code": "code",
+    "valid_from": "date",
+    "valid_to": "date"
+  },
+  "person_key": "person_sk"
+}

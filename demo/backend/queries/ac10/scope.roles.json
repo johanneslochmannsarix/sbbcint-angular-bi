@@ -1,0 +1,16 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "rpt_offene_schichten page 1 slicers Mandant / Depot / Haupt-Personaltyp (dim_scope) and the Kategorie rows of page 2",
+  "view": "filter bar, breadcrumbs, zero-shift depots of views 1 and 2",
+  "grain": "one row per selectable value: Mandant, Mandant x Depot, Mandant x Haupttyp, category",
+  "columns": {
+    "art": "code",
+    "ix": "id",
+    "label": "label_org",
+    "mandant": "label_org",
+    "n_gesamt": "measure",
+    "n_offen": "measure",
+    "mandanten": "measure"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "two copies of page «Planung (JUP)» side by side, one per JUP Version slicer value",
+  "view": "4 version diff (diverging bars + slope chart)",
+  "grain": "one row per kind (standort / ptyp / taet / tag) x value, with version A and version B measures",
+  "params": {
+    "version": { "type": "int", "min": 1, "max": 60, "required": true },
+    "version_b": { "type": "int", "min": 1, "max": 60, "required": true },
+    "firma": { "type": "int", "min": 1, "max": 20 },
+    "tag": { "type": "int", "min": 0, "max": 7 }
+  },
+  "columns": {
+    "kind": "code",
+    "label": "label_org",
+    "nr": "measure",
+    "h_a": "measure",
+    "h_b": "measure",
+    "touren_a": "measure",
+    "touren_b": "measure",
+    "elemente_a": "measure",
+    "elemente_b": "measure"
+  }
+}

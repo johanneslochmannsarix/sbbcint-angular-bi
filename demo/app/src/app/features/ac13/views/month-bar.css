@@ -1,0 +1,25 @@
+/* Moved out of ac13.css 2026-10-22 (component style budget 4 kB per stylesheet). ViewEncapsulation.None like the
+   page: these rules stay global, and the component renders on every AC-13 page, so nothing changes visually. */
+/* ---------------------------------------------------------------- month bar: month tabs on a heavy rule + ledger cells */
+.ac13-mbar { display: block; background: var(--surface); border-bottom: 1px solid var(--rule-strong); }
+.ac13-months { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 3px solid var(--ink); }
+.ac13-month { all: unset; cursor: pointer; display: grid; grid-template-columns: auto auto; align-items: baseline; gap: 0 8px; padding: 8px 16px 6px;
+  border-right: 1px solid var(--rule); position: relative; }
+.ac13-month:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ac13-month[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.ac13-month[aria-pressed="true"] .ac13-month-n, .ac13-month[aria-pressed="true"] .ac13-month-tag { color: var(--surface); opacity: 0.85; }
+.ac13-month:hover:not([aria-pressed="true"]) { background: var(--mark); }
+.ac13-month-name { font-family: var(--ac13-num); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ac13-month-n { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ac13-month-tag { grid-column: 1 / -1; font-size: 10.5px; color: var(--ink-2); }
+.ac13-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.ac13-tile { border-right: 1px solid var(--rule); padding: 8px 12px 4px; min-width: 0; display: flex; flex-direction: column; }
+.ac13-tile:last-child { border-right: 0; }
+.ac13-tile.is-focus { box-shadow: inset 0 -3px 0 var(--ink); }
+.ac13-tile-hit { all: unset; display: flex; flex-direction: column; gap: 1px; cursor: pointer; min-width: 0; }
+.ac13-tile-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ac13-tile-label { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac13-tile-value { font-family: var(--ac13-num); font-size: 23px; line-height: 1.15; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ac13-tile-sub { font-size: 11px; color: var(--ink-2); line-height: 1.35; min-height: 2.7em; }
+.ac13-spark { height: 44px; margin-top: 2px; }
+

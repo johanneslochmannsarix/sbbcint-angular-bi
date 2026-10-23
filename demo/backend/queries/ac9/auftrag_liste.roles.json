@@ -1,0 +1,22 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "slicer «Auftrag» (p1-p3) and the drillthrough field dor_name (p4)",
+  "view": "order picker, breadcrumb; server-side order-token resolution",
+  "grain": "one row per order (all months)",
+  "columns": {
+    "dor_name": "label_freetext",
+    "nr": "id",
+    "geschaeftsart": "code",
+    "kategorie_auftrag": "code",
+    "erster_monat": "code",
+    "letzter_monat": "code",
+    "touren": "measure",
+    "touren_ist": "measure",
+    "netto_h": "measure"
+  },
+  "note": "nr is captured server side (token -> ordinal) and replaced by auftrag_token (the order's filter handle in every mode) in the router's transform",
+  "derived": {
+    "auftrag_token": "id"
+  }
+}

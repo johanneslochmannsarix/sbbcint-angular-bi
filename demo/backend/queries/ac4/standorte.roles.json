@@ -1,0 +1,29 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "table «Tourstandorte nach Touren» (Übersicht) and the drillthrough «Tourstandort» KPI card",
+  "view": "1 Produktivität treemap / Tourstandort ranking",
+  "grain": "one row per Firma × Tourstandort",
+  "params": {
+    "month": { "type": "month" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 },
+    "taet": { "type": "sk" }
+  },
+  "columns": {
+    "firma": "label_org",
+    "tourstandort": "label_org",
+    "depot_sk": "id",
+    "touren": "measure",
+    "tourelemente": "measure",
+    "plandauer_touren_h": "measure",
+    "plandauer_h": "measure",
+    "fahren_h": "measure",
+    "dauer_je_tour_h": "measure",
+    "fahranteil": "measure",
+    "anteil_person": "measure",
+    "personen": "measure",
+    "ist_erfassung": "measure",
+    "elemente_mit_ist": "measure",
+    "touren_anger": "measure"
+  }
+}

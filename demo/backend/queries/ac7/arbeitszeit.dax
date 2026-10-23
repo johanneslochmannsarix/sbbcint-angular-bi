@@ -1,0 +1,72 @@
+-- View 6 Arbeitszeit mix: [Anzahl Personen] per contractual monthly hours value (the contract valid at run time,
+-- else the newest version) and status. The blank hours group is the «ohne Arbeitszeit» bar ([Anzahl ohne
+-- Arbeitszeit] in the KPI query). No VZ/TZ/GfB: that threshold is the customer's rule (offen, Marcel).
+DEFINE
+    VAR _ga = {{ga}}
+    VAR _gaName = SWITCH ( _ga, "AU", "AÜ", "DL", "DL", "AU_DL", "AÜ+DL" )
+    VAR _ta = {{taet}}
+    VAR _taName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_au_verleihliste[Taetigkeit] ),
+                    "@rang",
+                        VAR v = fact_au_verleihliste[Taetigkeit]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fact_au_verleihliste[Taetigkeit] ), fact_au_verleihliste[Taetigkeit] <= v ) )
+                ),
+                [@rang] = _ta
+            ),
+            fact_au_verleihliste[Taetigkeit]
+        )
+    VAR _or = {{ort}}
+    VAR _orte =
+        FILTER (
+            DISTINCT (
+                UNION (
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 1 Ort] ), "@o", fact_au_verleihliste[Einsatz 1 Ort] ),
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 2 Ort] ), "@o", fact_au_verleihliste[Einsatz 2 Ort] )
+                )
+            ),
+            NOT ISBLANK ( [@o] )
+        )
+    VAR _orName = MAXX ( FILTER ( _orte, VAR v = [@o] RETURN COUNTROWS ( FILTER ( _orte, [@o] <= v ) ) = _or ), [@o] )
+    VAR _au = {{auftrag_nr}}
+    VAR _auftraege =
+        FILTER (
+            DISTINCT (
+                UNION (
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 1 Auftrag] ), "@a", fact_au_verleihliste[Einsatz 1 Auftrag] ),
+                    SELECTCOLUMNS ( ALL ( fact_au_verleihliste[Einsatz 2 Auftrag] ), "@a", fact_au_verleihliste[Einsatz 2 Auftrag] )
+                )
+            ),
+            NOT ISBLANK ( [@a] )
+        )
+    VAR _auName = MAXX ( FILTER ( _auftraege, VAR v = [@a] RETURN COUNTROWS ( FILTER ( _auftraege, [@a] <= v ) ) = _au ), [@a] )
+    VAR _j = {{jahr}}
+    VAR _fStatus = {{status_filter}}
+    VAR _fGa = FILTER ( ALL ( fact_au_verleihliste[Geschaeftsart] ), ISBLANK ( _ga ) || fact_au_verleihliste[Geschaeftsart] = _gaName )
+    VAR _fTa = FILTER ( ALL ( fact_au_verleihliste[Taetigkeit] ), ISBLANK ( _ta ) || ( NOT ISBLANK ( _taName ) && fact_au_verleihliste[Taetigkeit] = _taName ) )
+    VAR _fOrt =
+        FILTER (
+            ALL ( fact_au_verleihliste[Einsatz 1 Ort], fact_au_verleihliste[Einsatz 2 Ort] ),
+            ISBLANK ( _or ) || ( NOT ISBLANK ( _orName ) && ( fact_au_verleihliste[Einsatz 1 Ort] = _orName || fact_au_verleihliste[Einsatz 2 Ort] = _orName ) )
+        )
+    VAR _fAuftrag =
+        FILTER (
+            ALL ( fact_au_verleihliste[Einsatz 1 Auftrag], fact_au_verleihliste[Einsatz 2 Auftrag] ),
+            ISBLANK ( _au ) || ( NOT ISBLANK ( _auName ) && ( fact_au_verleihliste[Einsatz 1 Auftrag] = _auName || fact_au_verleihliste[Einsatz 2 Auftrag] = _auName ) )
+        )
+    VAR _fJahr = FILTER ( ALL ( fact_au_verleihliste[Austritt] ), ISBLANK ( _j ) || ( NOT ISBLANK ( fact_au_verleihliste[Austritt] ) && YEAR ( fact_au_verleihliste[Austritt] ) = _j ) )
+    VAR _fPerson = {{person_filter}}
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fact_au_verleihliste[Arbeitszeit Monat (h)], fact_au_verleihliste[Status Code],
+        _fStatus, _fGa, _fTa, _fOrt, _fAuftrag, _fJahr, _fPerson,
+        "@n", [Anzahl Personen]
+    ),
+    "stunden", fact_au_verleihliste[Arbeitszeit Monat (h)],
+    "status_code", fact_au_verleihliste[Status Code],
+    "personen", [@n]
+)
+ORDER BY [stunden]

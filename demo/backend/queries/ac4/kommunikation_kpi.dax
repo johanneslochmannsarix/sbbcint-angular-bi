@@ -1,0 +1,75 @@
+-- View 5 KPIs: the report's page «Änderungen & Akzeptanz» KPI cards (six + the two «Arten» cards + the
+-- table's shares), per Planmonat plus one total row - every value a _Kennzahlen «(Kommunikation)» measure on
+-- fico_kommunikation (one row per shift; its Firma is the shift's company, its Tourstandort the name).
+-- Tourstandort sk and Personaltyp rank are mapped to names via fico_disposition (no relationship, F10).
+DEFINE
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _stName = CALCULATE ( MAX ( fico_disposition[Tourstandort] ), REMOVEFILTERS (), fico_disposition[depot_sk] = _st )
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fFirma = FILTER ( ALL ( fico_kommunikation[Firma] ), ISBLANK ( _firma ) || fico_kommunikation[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_kommunikation[Tourstandort] ), ISBLANK ( _st ) || fico_kommunikation[Tourstandort] = _stName )
+    VAR _fPtyp = FILTER ( ALL ( fico_kommunikation[Personaltyp Tour] ), ISBLANK ( _pt ) || fico_kommunikation[Personaltyp Tour] = _ptName )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        ROLLUPADDISSUBTOTAL ( fico_kommunikation[Planmonat], "ist_gesamt" ),
+        _fFirma, _fStandort, _fPtyp,
+        "schichten", [Anzahl Schichten (Kommunikation)],
+        "kommuniziert", [Schichten kommuniziert (Kommunikation)],
+        "akzeptiert", [Schichten akzeptiert (Kommunikation)],
+        "akzeptiert_automatisch", [Schichten akzeptiert automatisch (Kommunikation)],
+        "von_hand", [Schichten von Hand akzeptiert (Kommunikation)],
+        "vor_geaendert", [Schichten vor Akzeptanz geaendert (Kommunikation)],
+        "nach_geaendert", [Schichten nach Akzeptanz geaendert (Kommunikation)],
+        "nach_neu_versendet", [Schichten nach Akzeptanz neu versendet (Kommunikation)],
+        "nach_nicht_versendet", [Schichten nach Akzeptanz nicht versendet (Kommunikation)],
+        "anteil_vor", [Anteil vor Akzeptanz geaendert (Kommunikation) [%]]],
+        "anteil_nach", [Anteil nach Akzeptanz geaendert (Kommunikation) [%]]],
+        "anteil_akzeptiert", [Anteil akzeptiert (Kommunikation) [%]]],
+        "versionen_je_schicht", [Versionen je Schicht (Kommunikation)],
+        "folgeversionen", [Folgeversionen (Kommunikation)],
+        "aend_vor", [Aenderungen vor Akzeptanz (Kommunikation)],
+        "aend_nach", [Aenderungen nach Akzeptanz (Kommunikation)],
+        "aend_tourelemente", [Aenderungen Tourelemente (Kommunikation)],
+        "aend_besetzung", [Aenderungen Besetzung (Kommunikation)],
+        "aend_zeit", [Aenderungen Zeit (Kommunikation)],
+        "identisch", [Identische Neuversaende (Kommunikation)]
+    ),
+    "planmonat", fico_kommunikation[Planmonat],
+    "ist_gesamt", [ist_gesamt],
+    "schichten", [schichten],
+    "kommuniziert", [kommuniziert],
+    "akzeptiert", [akzeptiert],
+    "akzeptiert_automatisch", [akzeptiert_automatisch],
+    "von_hand", [von_hand],
+    "vor_geaendert", [vor_geaendert],
+    "nach_geaendert", [nach_geaendert],
+    "nach_neu_versendet", [nach_neu_versendet],
+    "nach_nicht_versendet", [nach_nicht_versendet],
+    "anteil_vor", [anteil_vor],
+    "anteil_nach", [anteil_nach],
+    "anteil_akzeptiert", [anteil_akzeptiert],
+    "versionen_je_schicht", [versionen_je_schicht],
+    "folgeversionen", [folgeversionen],
+    "aend_vor", [aend_vor],
+    "aend_nach", [aend_nach],
+    "aend_tourelemente", [aend_tourelemente],
+    "aend_besetzung", [aend_besetzung],
+    "aend_zeit", [aend_zeit],
+    "identisch", [identisch]
+)
+ORDER BY [planmonat]

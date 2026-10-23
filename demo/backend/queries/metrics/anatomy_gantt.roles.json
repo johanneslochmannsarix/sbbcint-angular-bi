@@ -1,0 +1,25 @@
+{
+  "model": "platform_metrics",
+  "replaces": "(new) per-chain Gantt; PBIR has no Gantt without a custom visual",
+  "view": "Run anatomy (ADR-055)",
+  "grain": "one activity run of the chain (retries are separate rows)",
+  "params": {
+    "chain_id": {
+      "type": "uuid",
+      "required": true
+    }
+  },
+  "columns": {
+    "activity_name": "label_technical",
+    "activity_type": "code",
+    "stage": "code",
+    "status": "code",
+    "activity_start": "date",
+    "activity_end": "date",
+    "retry_attempt": "code",
+    "act_runs": "measure",
+    "exec_min": "measure",
+    "session_queued_min": "measure",
+    "session_running_min": "measure"
+  }
+}

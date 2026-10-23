@@ -1,0 +1,26 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (the report has no angerechnete Zeit on the Dispo side; column «Tour angerechnete Zeit (min)» since cc 1.35.0)",
+  "view": "7 angerechnete Zeit: box plot per month + fill",
+  "grain": "one row per Planmonat",
+  "params": {
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 }
+  },
+  "columns": {
+    "planmonat": "code",
+    "touren": "measure",
+    "touren_anger": "measure",
+    "a_min": "measure",
+    "a_p05": "measure",
+    "a_p25": "measure",
+    "a_p50": "measure",
+    "a_p75": "measure",
+    "a_p95": "measure",
+    "a_max": "measure",
+    "p_p50": "measure",
+    "gleich_plan": "measure"
+  }
+}

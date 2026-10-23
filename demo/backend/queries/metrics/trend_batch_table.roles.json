@@ -1,0 +1,40 @@
+{
+  "model": "platform_metrics",
+  "replaces": "tableEx 8260db06c7ab3a7ad650 (batch_id, tenant, env, fidelity + Delivered Files, Delivered Size (GiB), Batch Growth %)",
+  "view": "Trend by tenant / env / batch",
+  "grain": "batch_id (x tenant x env x fidelity, one tenant+env)",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 90,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "batch_id": "id",
+    "tenant": "code",
+    "env": "code",
+    "fidelity": "code",
+    "delivered_files": "measure",
+    "delivered_size_gib": "measure",
+    "batch_growth": "measure"
+  }
+}

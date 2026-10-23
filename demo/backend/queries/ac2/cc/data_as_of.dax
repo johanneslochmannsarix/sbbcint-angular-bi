@@ -1,0 +1,5 @@
+EVALUATE
+ROW (
+    "datenstand_local", MIN ( 'agg_pipeline_datenstand'[datenstand_local] ),
+    "batch_time", MIN ( 'fact_person_qualification_latest'[_batch_time] )
+)

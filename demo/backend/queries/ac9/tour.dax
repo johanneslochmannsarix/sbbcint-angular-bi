@@ -1,0 +1,21 @@
+-- Tour drill (view 7b), Gantt: the elements (Schichtbestandteile) of ONE tour from fact_person_tour_ist, with
+-- Zeitart (Arbeit / Pause / Fahrt / AZU; blank = not reported), Tätigkeit, the element's IST start / end and
+-- hours, and the tour's plan window (context, R-IST). person_sk = the person on the element (one person per tour,
+-- Step 2), masked to the pseudonym P-... in every mode. No name, no personnel number.
+DEFINE
+    VAR _rows = CALCULATETABLE ( fact_person_tour_ist, {{tour_filter}} )
+EVALUATE
+SELECTCOLUMNS (
+    _rows,
+    "person_sk", fact_person_tour_ist[person_sk],
+    "zeitart", fact_person_tour_ist[zeitart],
+    "taetigkeit", fact_person_tour_ist[taetigkeit],
+    "ist_start", fact_person_tour_ist[ist_start],
+    "ist_ende", fact_person_tour_ist[ist_ende],
+    "ist_dauer_h", fact_person_tour_ist[ist_dauer_h],
+    "ist_vollstaendig", fact_person_tour_ist[ist_vollstaendig],
+    "year_month", fact_person_tour_ist[year_month],
+    "plan_start", fact_person_tour_ist[plan_start],
+    "plan_ende", fact_person_tour_ist[plan_ende]
+)
+ORDER BY [ist_start], [ist_ende]

@@ -1,0 +1,58 @@
+-- Rückmeldequote (view 4) and the quote sparkline of the KPI band: per PLANNED month (plan_monat, R-RQ) x
+-- Geschäftsart plus a month total (ga_total). Counted per tour (DOI), never per element: the measures live on
+-- fact_tour_abrechnung (D6). Future tours are not «abgeschlossen» and carry no quote (blank). Same slicers as
+-- the report page «Rückmeldequote»: Geschäftsart, Auftrag; plus the order category.
+DEFINE
+    VAR _ga = {{ga}}
+    VAR _kat = {{kat}}
+    VAR _nr = {{auftrag}}
+    VAR _gaName = SWITCH ( _ga, "AUE", "AÜ", "DL", "DL" )
+    VAR _katName = SWITCH ( _kat, "int", "Internationale Leistungen", "nat", "Nationale Leistungen", "res", "Reserven", "ll", "Langläufer Köln-Basel" )
+    VAR _auftrag =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fact_tour_abrechnung[dor_name] ),
+                    "@nr",
+                        VAR v = fact_tour_abrechnung[dor_name]
+                        RETURN 1 + COUNTROWS ( FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), fact_tour_abrechnung[dor_name] < v ) )
+                ),
+                [@nr] = _nr
+            ),
+            fact_tour_abrechnung[dor_name]
+        )
+    VAR _fGa = FILTER ( ALL ( fact_tour_abrechnung[geschaeftsart] ), ISBLANK ( _ga ) || fact_tour_abrechnung[geschaeftsart] = _gaName )
+    VAR _fKat =
+        FILTER (
+            ALL ( fact_tour_abrechnung[kategorie_auftrag] ),
+            ISBLANK ( _kat )
+                || ( _kat = "ohne" && ISBLANK ( fact_tour_abrechnung[kategorie_auftrag] ) )
+                || ( _kat <> "ohne" && fact_tour_abrechnung[kategorie_auftrag] = _katName )
+        )
+    VAR _fAuftrag = FILTER ( ALL ( fact_tour_abrechnung[dor_name] ), ISBLANK ( _nr ) || fact_tour_abrechnung[dor_name] = _auftrag )
+EVALUATE
+SELECTCOLUMNS (
+    FILTER (
+        SUMMARIZECOLUMNS (
+            fact_tour_abrechnung[plan_monat],
+            ROLLUPADDISSUBTOTAL ( fact_tour_abrechnung[geschaeftsart], "ga_total" ),
+            _fGa, _fKat, _fAuftrag,
+            "touren", [Anzahl Touren],
+            "abgeschlossen", [Anzahl Touren abgeschlossen],
+            "mit_ist", [Anzahl Touren mit IST],
+            "fehlt", [Anzahl Touren Rückmeldung fehlt],
+            "quote", [IST-Quote %]
+        ),
+        [touren] > 0
+    ),
+    "plan_monat", fact_tour_abrechnung[plan_monat],
+    "geschaeftsart", fact_tour_abrechnung[geschaeftsart],
+    "ga_total", [ga_total],
+    "touren", [touren],
+    "abgeschlossen", [abgeschlossen],
+    "mit_ist", [mit_ist],
+    "fehlt", [fehlt],
+    "quote", [quote],
+    "auftrag_echo", _auftrag
+)
+ORDER BY [plan_monat], [ga_total], [geschaeftsart]

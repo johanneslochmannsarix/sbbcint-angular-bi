@@ -1,0 +1,16 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Menge», KPI «Verkaufte Touren», split by Dienstleister and month",
+  "view": "5 rule panel (verkaufte Touren small multiples)",
+  "grain": "one row per month × Dienstleister",
+  "params": {
+    "standort": { "type": "int", "min": 1, "max": 100 }
+  },
+  "columns": {
+    "monat": "code",
+    "dienstleister": "label_org",
+    "verkauft": "measure",
+    "besetzt": "measure"
+  }
+}

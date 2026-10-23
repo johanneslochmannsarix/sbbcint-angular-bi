@@ -1,0 +1,22 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing in the report (it forbids mixing plan and disposition in one visual): two aggregates side by side",
+  "view": "5 plan vs disposition per Tourstandort and weekday",
+  "grain": "one row per seite (plan / dispo) x Tourstandort x weekday (0 = Mo); plan = «Schichtbildung 1», dispo = 07.09.-12.12.2026",
+  "params": {
+    "firma": { "type": "int", "min": 1, "max": 20 },
+    "standort": { "type": "int", "min": 1, "max": 200 },
+    "ptyp": { "type": "int", "min": 1, "max": 300 },
+    "taet": { "type": "int", "min": 1, "max": 400 }
+  },
+  "columns": {
+    "seite": "code",
+    "tourstandort": "label_org",
+    "tag": "measure",
+    "h": "measure",
+    "touren": "measure",
+    "h_je_woche": "measure",
+    "touren_je_woche": "measure"
+  }
+}

@@ -1,0 +1,48 @@
+-- Filter values (one row each): Firma, Tourstandort (key = depot_sk, parent = its Firma), Personaltyp Tour
+-- (key = its rank in the sorted list: the `ptyp` param resolves the same rank server side), Tätigkeit
+-- (key = worker_activity_sk, parent = Fahren ja/nein), Planmonat. Labels are org units, worker types and
+-- activity names - no person.
+EVALUATE
+VAR _firmen =
+    SELECTCOLUMNS (
+        FILTER ( ALL ( fico_disposition[Firma] ), NOT ISBLANK ( fico_disposition[Firma] ) ),
+        "kind", "firma", "key", fico_disposition[Firma], "label", fico_disposition[Firma],
+        "parent", CONVERT ( BLANK (), STRING ), "rang", 0
+    )
+VAR _standorte =
+    SELECTCOLUMNS (
+        FILTER (
+            SUMMARIZE ( fico_disposition, fico_disposition[depot_sk], fico_disposition[Tourstandort], fico_disposition[Firma] ),
+            NOT ISBLANK ( fico_disposition[depot_sk] )
+        ),
+        "kind", "standort", "key", fico_disposition[depot_sk], "label", fico_disposition[Tourstandort],
+        "parent", fico_disposition[Firma], "rang", 0
+    )
+VAR _ptyp =
+    SELECTCOLUMNS (
+        ADDCOLUMNS (
+            ALL ( fico_disposition[Personaltyp Tour] ),
+            "@rang",
+                VAR v = fico_disposition[Personaltyp Tour]
+                RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+        ),
+        "kind", "ptyp", "key", FORMAT ( [@rang], "0" ), "label", fico_disposition[Personaltyp Tour],
+        "parent", CONVERT ( BLANK (), STRING ), "rang", [@rang]
+    )
+VAR _taet =
+    SELECTCOLUMNS (
+        FILTER (
+            SUMMARIZE ( fico_disposition, fico_disposition[worker_activity_sk], fico_disposition[Taetigkeit], fico_disposition[Fahren (ja/nein)] ),
+            NOT ISBLANK ( fico_disposition[worker_activity_sk] )
+        ),
+        "kind", "taet", "key", fico_disposition[worker_activity_sk], "label", fico_disposition[Taetigkeit],
+        "parent", fico_disposition[Fahren (ja/nein)], "rang", 0
+    )
+VAR _monate =
+    SELECTCOLUMNS (
+        FILTER ( ALL ( fico_disposition[Planmonat] ), NOT ISBLANK ( fico_disposition[Planmonat] ) ),
+        "kind", "monat", "key", fico_disposition[Planmonat], "label", fico_disposition[Planmonat],
+        "parent", CONVERT ( BLANK (), STRING ), "rang", 0
+    )
+RETURN
+    UNION ( _firmen, _standorte, _ptyp, _taet, _monate )

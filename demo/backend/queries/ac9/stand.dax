@@ -1,0 +1,15 @@
+-- Header «Stand» and the start tile: data as of = the Gold write time of the tour fact (_ingested_at, UTC) and the
+-- newest reported IST end (local wall-clock time), plus the IST and plan month range and the population. The
+-- model has no Datenstand table of its own.
+EVALUATE
+ROW (
+    "ingested_max", MAX ( fact_tour_abrechnung[_ingested_at] ),
+    "ist_ende_max", MAX ( fact_tour_abrechnung[ist_ende] ),
+    "erster_ist_monat", MIN ( fact_tour_abrechnung[year_month_ist] ),
+    "letzter_ist_monat", MAX ( fact_tour_abrechnung[year_month_ist] ),
+    "erster_plan_monat", MIN ( fact_tour_abrechnung[plan_monat] ),
+    "letzter_plan_monat", MAX ( fact_tour_abrechnung[plan_monat] ),
+    "touren", [Anzahl Touren],
+    "touren_ist", [Anzahl Touren mit IST],
+    "auftraege", DISTINCTCOUNT ( fact_tour_abrechnung[dor_name] )
+)

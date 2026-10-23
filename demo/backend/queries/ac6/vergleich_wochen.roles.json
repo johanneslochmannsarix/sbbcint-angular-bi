@@ -1,0 +1,22 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing in the report: the disposition's weeks of the «Schichtbildung 1» period against the pattern week",
+  "view": "5 plan vs disposition, weekly line",
+  "grain": "one row per ISO week of 07.09.-12.12.2026",
+  "params": {
+    "firma": { "type": "int", "min": 1, "max": 20 },
+    "standort": { "type": "int", "min": 1, "max": 200 },
+    "ptyp": { "type": "int", "min": 1, "max": 300 },
+    "taet": { "type": "int", "min": 1, "max": 400 }
+  },
+  "columns": {
+    "kw": "measure",
+    "erster_tag": "date",
+    "tage": "measure",
+    "dispo_h": "measure",
+    "dispo_touren": "measure",
+    "plan_h": "measure",
+    "plan_touren": "measure"
+  }
+}

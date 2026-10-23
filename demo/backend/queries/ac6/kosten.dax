@@ -1,0 +1,35 @@
+-- View 7, cost-allocation mix per version: Anzahl Tourelemente / Dauer Tourelemente (Planung) per JUP Version x
+-- Kostenallokation (code + label as the model carries them; decode settled by mass: 0 Keiner, 1 Auftrag,
+-- 2 Produkt, 3 Kostenstelle, 4 Sonstige, 5 Zugfahrt). (*) ohne_kostenstelle = elements typed Kostenstelle
+-- (code 3) that carry no Kostenstelle - a data note, not an error. Model counts only (soft-deleted rows are
+-- not in the model). «Ungeplant» rows have no version and are left out. Int params are ranks (README).
+DEFINE
+    VAR _f = {{firma}}
+    VAR _fN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) ),
+        "@r", VAR x = fico_planung[Firma] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Firma] ), NOT ISBLANK ( fico_planung[Firma] ) && fico_planung[Firma] <= x ) ) ),
+        [@r] = _f ), fico_planung[Firma] )
+    VAR _s = {{standort}}
+    VAR _sN = MAXX ( FILTER ( ADDCOLUMNS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) ),
+        "@r", VAR x = fico_planung[Tourstandort] RETURN COUNTROWS ( FILTER ( ALL ( fico_planung[Tourstandort] ), NOT ISBLANK ( fico_planung[Tourstandort] ) && fico_planung[Tourstandort] <= x ) ) ),
+        [@r] = _s ), fico_planung[Tourstandort] )
+    VAR _d = {{tag}}
+    VAR _fNV = FILTER ( ALL ( fico_planung[JUP Version] ), NOT ISBLANK ( fico_planung[JUP Version] ) )
+    VAR _fF = FILTER ( ALL ( fico_planung[Firma] ), ISBLANK ( _f ) || fico_planung[Firma] = _fN )
+    VAR _fS = FILTER ( ALL ( fico_planung[Tourstandort] ), ISBLANK ( _s ) || fico_planung[Tourstandort] = _sN )
+    VAR _fD = FILTER ( ALL ( fico_planung[musterwochentag_nr] ), ISBLANK ( _d ) || fico_planung[musterwochentag_nr] == _d )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fico_planung[JUP Version], fico_planung[Kostenallokation Code], fico_planung[Kostenallokation],
+        _fNV, _fF, _fS, _fD,
+        "@elemente", [Anzahl Tourelemente (Planung)],
+        "@dauer", [Dauer Tourelemente (Planung) [h]]],
+        "@ohne", CALCULATE ( COUNTA ( fico_planung[element_id] ), KEEPFILTERS ( fico_planung[Kostenallokation Code] = 3 ), KEEPFILTERS ( ISBLANK ( fico_planung[kostenstelle_id] ) ) )
+    ),
+    "version", fico_planung[JUP Version],
+    "code", fico_planung[Kostenallokation Code],
+    "kostenallokation", fico_planung[Kostenallokation],
+    "elemente", [@elemente],
+    "dauer_h", [@dauer],
+    "ohne_kostenstelle", [@ohne]
+)

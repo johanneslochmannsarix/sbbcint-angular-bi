@@ -1,0 +1,38 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "one row of «Touren dieses Auftrags» (p4)",
+  "view": "7b tour drill: header",
+  "grain": "one row (one tour)",
+  "params": {
+    "tour": { "type": "sk", "required": true, "filter_column": "'fact_tour_abrechnung'[doi_id]" }
+  },
+  "columns": {
+    "doi_id": "id",
+    "dor_name": "label_freetext",
+    "tourbezeichnung": "label_freetext",
+    "geschaeftsart": "code",
+    "kategorie_auftrag": "code",
+    "preiskategorie": "code",
+    "year_month_ist": "code",
+    "plan_monat": "code",
+    "plan_start": "date",
+    "plan_ende": "date",
+    "plan_dauer_h": "measure",
+    "ist_start": "date",
+    "ist_ende": "date",
+    "ist_dauer_h": "measure",
+    "netto_h": "measure",
+    "pause_h": "measure",
+    "azu_h": "measure",
+    "fahrt_h": "measure",
+    "ist_vollstaendig": "code",
+    "tour_abgeschlossen": "code",
+    "n_elemente": "measure",
+    "n_elemente_ist": "measure"
+  },
+  "derived": {
+    "tour": "id"
+  },
+  "note": "the browser sends the pseudo-id D-...; the router resolves it to doi_id and replaces doi_id in the answer"
+}

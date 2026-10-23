@@ -1,0 +1,29 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "drillthrough «Tourstandort»: table «Touren dieses Tourstandorts»",
+  "view": "6 Tour drill-down: tour list of one Tourstandort and month",
+  "grain": "one row per tour",
+  "params": {
+    "month": { "type": "month", "required": true },
+    "standort": { "type": "sk", "required": true },
+    "ptyp": { "type": "int", "min": 1, "max": 500 },
+    "taet": { "type": "sk" }
+  },
+  "columns": {
+    "tour_id": "id",
+    "tour": "label_freetext",
+    "tour_plandatum": "date",
+    "tour_planbeginn": "date",
+    "tour_planende": "date",
+    "personaltyp_tour": "label_org",
+    "abdeckung": "code",
+    "anger_min": "measure",
+    "tourelemente": "measure",
+    "plandauer_h": "measure",
+    "fahren_h": "measure",
+    "elemente_mit_ist": "measure",
+    "ist_erfassung": "measure"
+  },
+  "note": "Tour = shift name typed in SaxMS, may carry a name: masked as free text"
+}

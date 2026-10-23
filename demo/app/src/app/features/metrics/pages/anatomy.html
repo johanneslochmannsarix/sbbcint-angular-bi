@@ -1,0 +1,197 @@
+<div class="page">
+  <section class="tiles" aria-label="Run anatomy key figures">
+    <app-card heading="Activity runs, stage time and queue share" sub="Stage run times over the window (fact_stage_run)" [q]="kpis" class="card-flat">
+      @if (kpis.rows()[0]; as k) {
+        <div class="tile-row">
+          <div class="tile"><span class="tile-label">Activity runs</span><span class="tile-value" [title]="k.act_runs == null ? fmt.BLANK_TITLE : ''">{{ fmt.num(k.act_runs, 0) }}</span></div>
+          <div class="tile"><span class="tile-label">Stage median</span><span class="tile-value">{{ fmt.num(k.stage_median_min, 1) }}<small> min</small></span></div>
+          <div class="tile"><span class="tile-label">Stage p90</span><span class="tile-value">{{ fmt.num(k.stage_p90_min, 1) }}<small> min</small></span></div>
+          <div class="tile"><span class="tile-label">Queue share</span><span class="tile-value" [title]="k.queue_share == null ? fmt.BLANK_TITLE : ''">{{ fmt.pct(k.queue_share, 1) }}</span></div>
+          <div class="tile"><span class="tile-label">Payload coverage</span><span class="tile-value" [title]="k.payload_share == null ? fmt.BLANK_TITLE : ''">{{ fmt.pct(k.payload_share, 1) }}</span></div>
+        </div>
+      }
+    </app-card>
+  </section>
+
+  <section class="gantt-layout">
+    <app-card heading="Chain runs" [sub]="chains.rows().length + ' runs, newest first. Pick one for its timeline.'" [q]="chains" class="chains-card">
+      <ul class="chain-list" role="listbox" aria-label="Chain runs">
+        @if (linkedNotInList()) {
+          <li>
+            <button type="button" class="chain is-selected" role="option" aria-selected="true">
+              <span class="chain-top"><strong>Linked run {{ fmt.shortId(chain()) }}</strong></span>
+              <span class="chain-meta">From Step stability. Not in the list for this filter and window; the timeline is loaded by its run id.</span>
+            </button>
+          </li>
+        }
+        @for (c of chainItems(); track c.run_id) {
+          <li>
+            <button type="button" class="chain" role="option" [attr.aria-selected]="c.run_id === chainId()" [class.is-selected]="c.run_id === chainId()" (click)="pick(c.run_id)">
+              <span class="chain-top">
+                <strong>{{ fmt.dateTimeLU(c.s) }}</strong>
+                @if (showAllEnvs()) {
+                  <span class="tag">{{ c.tenant === 'CARGOCONTROL' ? 'CC' : c.tenant }} {{ c.env }}</span>
+                }
+              </span>
+              <span class="chain-meta">
+                <span>wall {{ fmt.minutes(c.wallMin) }}</span>
+                <span>exec {{ fmt.minutes(c.exec_min) }}</span>
+                <span>queued {{ fmt.minutes(c.session_queued_min) }}</span>
+                @if (c.retries) {
+                  <span class="retry"><span class="status-icon status-warning" aria-hidden="true"></span>{{ c.retries }} retries</span>
+                }
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    </app-card>
+
+    <div class="gantt-col">
+      <app-card heading="Chain timeline"
+        [sub]="ganttMeta() ? 'Run ' + fmt.shortId(chainId()) + ', ' + fmt.dateTimeLU(ganttMeta()!.s) + ', wall ' + fmt.minutes(ganttMeta()!.wallMin) : 'One row per activity run; retries are their own rows.'"
+        [q]="gantt" idleText="Pick a chain run on the left."
+        emptyNote="No activity detail for this run in fact_stage_run. Activity runs are kept about 10 days, so older runs are unverified, not absent.">
+        <div card-tools class="legend-inline" aria-label="Legend">
+          <span><i class="key" [style.background]="theme.tokens().neutral"></i>Queued (Livy)</span>
+          @for (st of ganttMeta()?.stages ?? []; track st) {
+            <span><i class="key" [style.background]="stageDot(st)"></i>{{ st || 'other' }}</span>
+          }
+        </div>
+        <div echarts class="chart" [style.height.px]="ganttHeight()" [options]="ganttOptions()!" [theme]="theme.echartsTheme()" (chartClick)="onGanttClick($any($event))"></div>
+        <p class="chart-note">Bars run from activity start to end. The grey lead-in is the Livy session queue at true time scale; the coloured part is the rest of the activity. Click a bar for its Spark stages.</p>
+      </app-card>
+
+      <app-card [heading]="selectedActivity() ? 'Spark stages of ' + selectedActivity() : 'Spark stages'"
+        [sub]="selectedActivity() ? sparkRows().length + ' Spark stage rows (fact_spark_stage), longest first' : ''"
+        [q]="spark" idleText="Click a bar in the timeline to see its Spark stages."
+        [forceEmpty]="!!spark.result() && sparkRows().length === 0"
+        emptyNote="No Spark stages recorded for this activity in fact_spark_stage.">
+        @if (selectedActivity()) {
+          <button card-tools type="button" class="btn btn-ghost" (click)="selectedActivity.set(null)">Close</button>
+        }
+        <div echarts class="chart" [style.height.px]="sparkHeight()" [options]="sparkOptions()!" [theme]="theme.echartsTheme()" (chartClick)="onSparkClick($any($event))"></div>
+        <p class="chart-note">Click a bar, the timeline below or a table row for the stage detail and its history across runs.</p>
+        @if (stageSpans().length) {
+          <h3 class="sub-heading">Spark stages over time</h3>
+          <div echarts class="chart" [style.height.px]="stageGanttHeight()" [options]="stageGanttOptions()!" [theme]="theme.echartsTheme()" (chartClick)="onStageGanttClick($any($event))"></div>
+          <p class="chart-note">
+            One bar per stage name and status, from the first submission to the last completion of all stages with that name. A long bar can hold
+            several short stages with gaps; the executor minutes above are the work done inside it. Grey = not complete (e.g. skipped).
+            @if (stageSpanMissing() > 0) { {{ stageSpanMissing() }} stage rows have no timestamps and are not drawn. }
+          </p>
+        }
+        @if (sparkRows().length) {
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead>
+                <tr><th>Spark stage</th><th>Status</th><th class="r">Stages</th><th class="r">Run min</th><th class="r">Input GiB</th><th class="r">Input rows</th><th class="r">Output rows</th><th class="r">Shuffle GiB</th><th class="r">Spill GiB</th><th class="r">Peak exec MiB</th></tr>
+              </thead>
+              <tbody>
+                @for (r of sparkRows(); track $index) {
+                  <tr class="row-click" [class.is-selected]="selectedStage() === keyOf(r)" (click)="pickStage(keyOf(r))">
+                    <td class="wrap">{{ r.name }}</td><td>{{ r.status }}</td>
+                    <td class="r">{{ fmt.num(r.spark_stages, 0) }}</td><td class="r">{{ fmt.num(r.stage_run_min, 2) }}</td>
+                    <td class="r">{{ fmt.num(r.input_gib, 3) }}</td><td class="r">{{ fmt.num(r.input_rows, 0) }}</td>
+                    <td class="r">{{ fmt.num(r.output_rows, 0) }}</td><td class="r">{{ fmt.num(r.shuffle_gib, 3) }}</td>
+                    <td class="r">{{ fmt.num(r.spill_gib, 3) }}</td><td class="r">{{ fmt.num(r.peak_exec_mem_mib, 0) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </app-card>
+
+      @if (selectedStage()) {
+        <app-card heading="Stage detail" [sub]="stage()?.name ?? ''" [q]="[sparkDetail, sparkHistory]">
+          <button card-tools type="button" class="btn btn-ghost" (click)="selectedStage.set(null)">Close</button>
+          @if (stage(); as s) {
+            <p class="stage-name">{{ s.name }} <span class="tag">{{ s.status }}</span></p>
+            <div class="tile-row tile-row-sm">
+              <div class="tile"><span class="tile-label">Executor run</span><span class="tile-value">{{ fmt.minutes(s.stage_run_min) }}</span></div>
+              <div class="tile"><span class="tile-label">Span (wall)</span><span class="tile-value">{{ fmt.minutes(s.spanMin) }}</span></div>
+              <div class="tile"><span class="tile-label">Spark stages / tasks</span><span class="tile-value">{{ fmt.num(s.spark_stages, 0) }}<small> / {{ fmt.num(s.num_tasks, 0) }}</small></span></div>
+              <div class="tile"><span class="tile-label">Peak exec memory</span><span class="tile-value">{{ fmt.num(s.peak_exec_mem_mib, 0) }}<small> MiB</small></span></div>
+              <div class="tile"><span class="tile-label">vs. this stage's runs</span>
+                <span class="tile-value" [title]="'Share of the ' + (historyStats()?.n ?? 0) + ' runs in the window at or below this run'">{{ historyStats()?.rank == null ? fmt.BLANK : fmt.pct(historyStats()!.rank, 0) }}<small> percentile</small></span></div>
+            </div>
+
+            @if (s.split; as sp) {
+              <div class="split" role="img" [attr.aria-label]="'Executor time: CPU ' + fmt.pct(sp.cpu, 0) + ', GC ' + fmt.pct(sp.gc, 0) + ', other ' + fmt.pct(sp.other, 0)">
+                <span class="split-seg" [style.flex-grow]="sp.cpu" [style.background]="theme.tokens().series[0]"></span>
+                <span class="split-seg" [style.flex-grow]="sp.gc" [style.background]="theme.tokens().series[3]"></span>
+                <span class="split-seg" [style.flex-grow]="sp.other" [style.background]="theme.tokens().neutral"></span>
+              </div>
+              <div class="legend-inline split-legend">
+                <span><i class="key" [style.background]="theme.tokens().series[0]"></i>CPU {{ fmt.minutes(s.cpu_min) }} ({{ fmt.pct(sp.cpu, 0) }})</span>
+                <span><i class="key" [style.background]="theme.tokens().series[3]"></i>GC {{ fmt.minutes(s.gc_min) }} ({{ fmt.pct(sp.gc, 0) }})</span>
+                <span><i class="key" [style.background]="theme.tokens().neutral"></i>other: I/O, shuffle fetch, waits ({{ fmt.pct(sp.other, 0) }})</span>
+              </div>
+            }
+
+            <div class="table-wrap">
+              <table class="tbl">
+                <thead><tr><th></th><th class="r">GiB</th><th class="r">Rows</th></tr></thead>
+                <tbody>
+                  <tr><td>Input</td><td class="r">{{ fmt.num(s.input_gib, 3) }}</td><td class="r">{{ fmt.num(s.input_rows, 0) }}</td></tr>
+                  <tr><td>Output</td><td class="r">{{ fmt.num(s.output_gib, 3) }}</td><td class="r">{{ fmt.num(s.output_rows, 0) }}</td></tr>
+                  <tr><td>Shuffle read</td><td class="r">{{ fmt.num(s.shuffle_read_gib, 3) }}</td><td class="r">{{ fmt.BLANK }}</td></tr>
+                  <tr><td>Shuffle write</td><td class="r">{{ fmt.num(s.shuffle_write_gib, 3) }}</td><td class="r">{{ fmt.BLANK }}</td></tr>
+                  <tr><td>Spill (memory)</td><td class="r">{{ fmt.num(s.spill_mem_gib, 3) }}</td><td class="r">{{ fmt.BLANK }}</td></tr>
+                  <tr><td>Spill (disk)</td><td class="r">{{ fmt.num(s.spill_disk_gib, 3) }}</td><td class="r">{{ fmt.BLANK }}</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 class="sub-heading">This stage across runs</h3>
+            @if (historyOptions()) {
+              <div echarts class="chart h-280" [options]="historyOptions()!" [theme]="theme.echartsTheme()" (chartClick)="onHistoryClick($any($event))"></div>
+              <p class="chart-note">
+                Executor run minutes of «{{ s.name }}» in {{ selectedActivity() }}, one point per chain run in the window ({{ historyStats()?.n }} runs),
+                this chain marked. Dashed: median {{ fmt.minutes(historyStats()?.median) }} and p90 {{ fmt.minutes(historyStats()?.p90) }}. Click a point to open that chain.
+              </p>
+            } @else if (sparkHistory.result()) {
+              <p class="chart-note">No earlier runs of this stage in the window.</p>
+            }
+          }
+        </app-card>
+      }
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <app-card heading="Session queue and run time by stage" sub="Livy minutes summed over the window" [q]="stageQueue">
+      <div echarts class="chart h-280" [options]="stageQueueOptions()!" [theme]="theme.echartsTheme()"></div>
+    </app-card>
+    <app-card heading="Executor busy time by activity" sub="fact_spark_executor, minutes summed over the window" [q]="executorBusy">
+      <div echarts class="chart h-280" [options]="executorOptions()!" [theme]="theme.echartsTheme()"></div>
+    </app-card>
+  </section>
+
+  <app-card heading="Execution time per day by stage" sub="Exec min summed per start date" [q]="execTrend">
+    <div echarts class="chart h-300" [options]="execTrendOptions()!" [theme]="theme.echartsTheme()"></div>
+  </app-card>
+
+  <app-card heading="Stage runs per day" [sub]="stageTable.rows().length + ' rows, slowest p90 first'" [q]="stageTable">
+    <div class="table-wrap table-tall">
+      <table class="tbl">
+        <thead>
+          <tr><th>Start date</th><th>Tenant / env</th><th>Stage</th><th class="r">Runs</th><th class="r">Median min</th><th class="r">p90 min</th><th class="r">Queued min</th><th class="r">Retries</th></tr>
+        </thead>
+        <tbody>
+          @for (r of stageTable.rows(); track $index) {
+            <tr>
+              <td>{{ fmt.dateOnly(r.start_date) }}</td><td>{{ r.env_key }}</td>
+              <td><i class="key" [style.background]="stageDot(r.stage)"></i>{{ r.stage }}</td>
+              <td class="r">{{ fmt.num(r.act_runs, 0) }}</td><td class="r">{{ fmt.num(r.stage_median_min, 1) }}</td>
+              <td class="r">{{ fmt.num(r.stage_p90_min, 1) }}</td>
+              <td class="r" [title]="r.session_queued_min == null ? fmt.BLANK_TITLE : ''">{{ fmt.num(r.session_queued_min, 1) }}</td>
+              <td class="r">{{ fmt.num(r.retries, 0) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </app-card>
+</div>

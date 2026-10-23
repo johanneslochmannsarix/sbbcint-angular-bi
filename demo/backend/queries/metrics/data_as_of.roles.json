@@ -1,0 +1,12 @@
+{
+  "model": "platform_metrics",
+  "replaces": "the collector freshness cards (Last collected / Hours since collected / Collector errors)",
+  "view": "(header stamp, all pages) - also served by /api/health",
+  "grain": "1 row",
+  "params": {},
+  "columns": {
+    "last_collected": "date",
+    "hours_since_collected": "measure",
+    "collector_errors": "measure"
+  }
+}

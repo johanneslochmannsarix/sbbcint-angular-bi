@@ -1,0 +1,41 @@
+{
+  "model": "platform_metrics",
+  "replaces": "tableEx 651206cea4e047763b6e (start_date, env_key, stage + Act runs, Stage median/p90 min, Session queued min, Retries)",
+  "view": "Run anatomy (ADR-055)",
+  "grain": "start_date x env_key x stage",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": true,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": false,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 30,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "start_date": "date",
+    "env_key": "id",
+    "stage": "code",
+    "act_runs": "measure",
+    "stage_median_min": "measure",
+    "stage_p90_min": "measure",
+    "session_queued_min": "measure",
+    "retries": "measure"
+  }
+}

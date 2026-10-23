@@ -1,0 +1,41 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page 1 matrix Haupt-Personaltyp level (under Mandant > Depot)",
+  "view": "4 Personaltypen",
+  "grain": "dim_scope Mandant x Haupt-Personaltyp",
+  "params": {
+    "dates": {
+      "type": "date_window",
+      "default_days": 10,
+      "anchor": "from_today",
+      "max_days": 400
+    },
+    "mandant": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "depot": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "zwingend": {
+      "type": "enum",
+      "values": [
+        "alle",
+        "zwingend",
+        "nicht"
+      ]
+    }
+  },
+  "columns": {
+    "tenant_name": "label_org",
+    "haupttyp_name": "label_org",
+    "ungeplant": "measure",
+    "ungeplant_zwingend": "measure",
+    "schichten": "measure",
+    "mandanten_des_typs": "measure"
+  }
+}

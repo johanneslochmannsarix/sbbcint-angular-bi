@@ -1,0 +1,12 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "header data-as-of, default window",
+  "grain": "one row",
+  "columns": {
+    "neuester_stand": "date",
+    "erster_plantag": "date",
+    "letzter_plantag": "date"
+  }
+}

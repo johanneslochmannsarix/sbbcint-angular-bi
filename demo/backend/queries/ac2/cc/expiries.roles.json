@@ -1,0 +1,33 @@
+{
+  "model": "import",
+  "tenant": "CARGOCONTROL",
+  "replaces": "«Qualifikationsmatrix» with the slicers qualification + tenant, read along Gültig bis (Anzeige); no report visual lists expiries by day",
+  "view": "2 calendar day list (click a day)",
+  "grain": "one row per fact row whose valid_to falls in [date_from, date_to]",
+  "params": {
+    "dates": {
+      "type": "date_window",
+      "anchor": "from_today",
+      "default_days": 365
+    },
+    "qualification": {
+      "type": "sk",
+      "required": false,
+      "filter_column": "'dim_qualification'[qualification_sk]"
+    },
+    "org": {
+      "type": "sk",
+      "required": false,
+      "filter_column": "'dim_tenant'[tenant_sk]"
+    }
+  },
+  "columns": {
+    "person_sk": "label_person",
+    "person_name": "label_person",
+    "tenant_name": "label_org",
+    "qualification_name": "label_qualification",
+    "status_code": "code",
+    "valid_to": "date"
+  },
+  "person_key": "person_sk"
+}

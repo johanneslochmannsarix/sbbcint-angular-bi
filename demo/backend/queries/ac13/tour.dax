@@ -1,0 +1,42 @@
+-- View 6 tour drill: ONE tour (tour_cd_sk, required) with Plandauer and each deducted part, so Arbeitszeit v1 is
+-- computed visibly (Plandauer − Pause − Arbeitszeitunterbrechung − unbezahlte Unterbrechung − Dienstfahrt), next to
+-- angerechnete Zeit and the flags. The model has no element table: there is no element Gantt (README Q2).
+DEFINE
+    VAR _t = {{tour}}
+EVALUATE
+SELECTCOLUMNS (
+    CALCULATETABLE ( fact_tour_cd, TREATAS ( { _t }, fact_tour_cd[tour_cd_sk] ) ),
+    "tour", fact_tour_cd[tour_cd_sk],
+    "person", IF ( fact_tour_cd[ist_offen], BLANK (), fact_tour_cd[pseudonym_nachbereitung_cd_sk] ),
+    "kennung", IF ( fact_tour_cd[ist_offen], BLANK (), RELATED ( dim_pseudonym_nachbereitung_cd[pseudonym] ) ),
+    "tourennummer", fact_tour_cd[tourennummer],
+    "tour_standort", fact_tour_cd[tour_standort],
+    "tour_firma", fact_tour_cd[tour_firma],
+    "personaltyp", fact_tour_cd[personaltyp],
+    "haupttyp", fact_tour_cd[personaltyp_haupttyp],
+    "datum", fact_tour_cd[datum],
+    "plan_beginn", fact_tour_cd[plan_beginn],
+    "plan_ende", fact_tour_cd[plan_ende],
+    "plandauer_min", fact_tour_cd[plandauer_min],
+    "pause_min", fact_tour_cd[pause_min],
+    "azu_min", fact_tour_cd[arbeitszeitunterbrechung_min],
+    "unbezahlt_min", fact_tour_cd[unbezahlte_unterbrechung_min],
+    "dienstfahrt_min", fact_tour_cd[dienstfahrt_min],
+    "arbeitszeit_min", fact_tour_cd[arbeitszeit_min],
+    "angerechnet_min", fact_tour_cd[angerechnete_zeit_min],
+    "ge12", IF ( fact_tour_cd[schwellwert_12h], 1, 0 ),
+    "ge14", IF ( fact_tour_cd[schwellwert_14h], 1, 0 ),
+    "start", fact_tour_cd[startbetriebsstelle],
+    "ziel", fact_tour_cd[zielbetriebsstelle],
+    "offen", IF ( fact_tour_cd[ist_offen], 1, 0 ),
+    "verkauft", IF ( fact_tour_cd[ist_verkaufte_tour], 1, 0 ),
+    "dienstleister", fact_tour_cd[dienstleister],
+    "schulung", IF ( fact_tour_cd[ist_schulung], 1, 0 ),
+    "schulung_elemente", fact_tour_cd[schulung_elemente],
+    "rolle", fact_tour_cd[uebernachtung_rolle],
+    "ort", fact_tour_cd[uebernachtung_ort],
+    "partner_beginn", fact_tour_cd[partnertour_beginn],
+    "partner_tourennummer", fact_tour_cd[partnertour_tourennummer],
+    "am_folgetag", IF ( fact_tour_cd[partnertour_am_folgetag], 1, 0 ),
+    "kommunikationsstand", fact_tour_cd[kommunikationsstand]
+)

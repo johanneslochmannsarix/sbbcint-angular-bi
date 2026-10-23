@@ -1,0 +1,27 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «AZ je Tour», table filtered to one Kennung (the report's person field is dim_pseudonym[pseudonym] only)",
+  "view": "1 calendar row drill (one person's tours in the month)",
+  "grain": "one row per staffed tour of one person and month",
+  "params": {
+    "month": { "type": "month" },
+    "person": { "type": "pseudonym", "required": true, "filter_column": "'fact_tour_cd'[pseudonym_nachbereitung_cd_sk]" }
+  },
+  "columns": {
+    "tour": "id",
+    "person": "label_person",
+    "tourennummer": "label_freetext",
+    "tour_standort": "label_org",
+    "personaltyp": "label_org",
+    "datum": "date",
+    "plan_beginn": "date",
+    "plan_ende": "date",
+    "arbeitszeit_min": "measure",
+    "angerechnet_min": "measure",
+    "start": "label_location",
+    "ziel": "label_location",
+    "rolle": "code"
+  },
+  "person_key": "person"
+}

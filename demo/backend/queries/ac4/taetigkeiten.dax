@@ -1,0 +1,46 @@
+-- Views 1 (side panel) and 2: one row per Tätigkeit × Fahren (ja/nein) - the report's bar «Tätigkeiten nach
+-- Plandauer · Farbe = Fahren» and table «Alle Tätigkeiten» (page Tätigkeiten & Personaltypen) with their
+-- measures. Elements without a Tätigkeit come back as one row with a blank worker_activity_sk.
+-- Not filtered by Tätigkeit (this is the list the Tätigkeit filter is picked from).
+DEFINE
+    VAR _m = {{month}}
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fMonat = FILTER ( ALL ( fico_disposition[Planmonat] ), ISBLANK ( _m ) || fico_disposition[Planmonat] = FORMAT ( _m, "yyyy-MM" ) )
+    VAR _fFirma = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _firma ) || fico_disposition[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_disposition[depot_sk] ), ISBLANK ( _st ) || fico_disposition[depot_sk] = _st )
+    VAR _fPtyp = FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), ISBLANK ( _pt ) || fico_disposition[Personaltyp Tour] = _ptName )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fico_disposition[Taetigkeit], fico_disposition[worker_activity_sk], fico_disposition[Fahren (ja/nein)],
+        _fMonat, _fFirma, _fStandort, _fPtyp,
+        "tourelemente", [Anzahl Tourelemente (Disposition)],
+        "plandauer_h", [Plandauer Tourelemente (Disposition) [h]]],
+        "anteil_auswahl", [Anteil an Auswahl (Disposition) [%]]],
+        "elemente_mit_ist", [Elemente mit Ist (Disposition)],
+        "elemente_vergangen", [Vergangene Elemente (Disposition)]
+    ),
+    "taetigkeit", fico_disposition[Taetigkeit],
+    "worker_activity_sk", fico_disposition[worker_activity_sk],
+    "fahren", fico_disposition[Fahren (ja/nein)],
+    "tourelemente", [tourelemente],
+    "plandauer_h", [plandauer_h],
+    "anteil_auswahl", [anteil_auswahl],
+    "elemente_mit_ist", [elemente_mit_ist],
+    "elemente_vergangen", [elemente_vergangen]
+)

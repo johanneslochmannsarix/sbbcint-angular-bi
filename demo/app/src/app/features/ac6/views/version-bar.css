@@ -1,0 +1,24 @@
+/* Moved out of ac6.css 2026-10-22 (component style budget 4 kB per stylesheet). ViewEncapsulation.None like the
+   page: these rules stay global, and the component renders on every AC-6 page, so nothing changes visually. */
+/* ---------------------------------------------------------------- version bar: a timetable header row */
+.ac6-vbar { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 0; background: var(--surface);
+  border-top: 3px solid var(--ink); border-bottom: 1px solid var(--rule-strong); }
+.ac6-vpick { padding: 10px 16px 12px 12px; border-right: 1px solid var(--rule-strong); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ac6-vlabel { font-family: var(--ac6-cond); font-size: 13px; color: var(--muted); }
+.ac6-vselect { width: 100%; font-family: var(--ac6-cond); font-size: 15px; font-weight: 600; color: var(--ink); }
+.ac6-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ac6-chip { font-size: 11.5px; line-height: 1.3; padding: 2px 7px; border-radius: 3px; border: 1px solid var(--rule-strong); color: var(--ink-2); }
+.ac6-chip-ok { border-color: currentColor; color: var(--ac6-ink-on-ok); }
+.ac6-chip-open { border-style: dashed; }
+.ac6-chip-warn { border-color: var(--warning); color: var(--ink); }
+.ac6-tiles { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); min-width: 0; }
+.ac6-tile { border-right: 1px solid var(--rule); padding: 8px 10px 4px; min-width: 0; display: flex; flex-direction: column; }
+.ac6-tile:last-child { border-right: 0; }
+.ac6-tile.is-focus { box-shadow: inset 0 -3px 0 var(--ink); }
+.ac6-tile-hit { all: unset; display: flex; flex-direction: column; gap: 2px; cursor: default; min-width: 0; }
+.ac6-tile-hit:not([disabled]) { cursor: pointer; }
+.ac6-tile-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ac6-tile-label { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac6-tile-value { font-family: var(--ac6-num); font-size: 22px; line-height: 1.15; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ac6-spark { height: 46px; margin-top: 4px; }
+

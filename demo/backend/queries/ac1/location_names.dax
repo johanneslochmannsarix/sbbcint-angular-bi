@@ -1,0 +1,7 @@
+-- Location names the plan references (start or end), with row counts: the allowlist for /api/ac1/locations,
+-- which joins them BY NAME to Bronze coordinates (Gold drops the location id).
+EVALUATE
+VAR s = SELECTCOLUMNS ( SUMMARIZECOLUMNS ( 'fact_person_tour_day'[start_location], "n", COUNTROWS ( 'fact_person_tour_day' ) ), "location", 'fact_person_tour_day'[start_location], "n", [n] )
+VAR e = SELECTCOLUMNS ( SUMMARIZECOLUMNS ( 'fact_person_tour_day'[end_location], "n", COUNTROWS ( 'fact_person_tour_day' ) ), "location", 'fact_person_tour_day'[end_location], "n", [n] )
+RETURN
+    GROUPBY ( UNION ( s, e ), [location], "rows", SUMX ( CURRENTGROUP (), [n] ) )

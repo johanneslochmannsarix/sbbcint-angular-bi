@@ -1,0 +1,6 @@
+EVALUATE
+SUMMARIZECOLUMNS (
+    'dim_person'[person_sk],
+    'dim_person'[person_name],
+    "pairs", COUNTROWS ( 'fact_person_qualification_latest' )
+)

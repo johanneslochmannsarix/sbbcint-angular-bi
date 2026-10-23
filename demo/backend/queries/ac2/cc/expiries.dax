@@ -1,0 +1,18 @@
+EVALUATE
+CALCULATETABLE (
+    SELECTCOLUMNS (
+        FILTER (
+            'fact_person_qualification_latest',
+            'fact_person_qualification_latest'[valid_to] >= {{date_from}}
+                && 'fact_person_qualification_latest'[valid_to] <= {{date_to}}
+        ),
+        "person_sk", 'fact_person_qualification_latest'[person_sk],
+        "person_name", RELATED ( 'dim_person'[person_name] ),
+        "tenant_name", RELATED ( 'dim_tenant'[tenant_name] ),
+        "qualification_name", RELATED ( 'dim_qualification'[qualification_name] ),
+        "status_code", 'fact_person_qualification_latest'[status_code],
+        "valid_to", 'fact_person_qualification_latest'[valid_to]
+    ),
+    {{qualification_filter}},
+    {{org_filter}}
+)

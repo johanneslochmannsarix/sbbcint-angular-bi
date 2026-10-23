@@ -1,0 +1,14 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "the slicers Zeitraum / Monat / Standort / Personaltyp (Haupttyp) of «Nachbereitung CD» and the Konto legend",
+  "view": "month picker, Standort / Haupttyp filters, category legend",
+  "grain": "one row per filter value (kind monat / standort / haupttyp / konto)",
+  "columns": {
+    "kind": "code",
+    "rang": "id",
+    "label": "label_org",
+    "parent": "label_org",
+    "touren": "measure"
+  }
+}

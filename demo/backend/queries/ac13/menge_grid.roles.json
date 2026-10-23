@@ -1,0 +1,23 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Menge», tables «Rohdaten» (Touren with Kennung, Abwesenheiten family rows with Kennung) as a person × day calendar (A4)",
+  "view": "1 Menge calendar (hero): painted cells only - tour / Ruhetag / Urlaub (Q1 ruling a)",
+  "grain": "one row per pseudonym × day with a staffed tour or a family absence, one month",
+  "params": {
+    "month": { "type": "month" },
+    "standort": { "type": "int", "min": 1, "max": 100 },
+    "haupttyp": { "type": "int", "min": 1, "max": 50 }
+  },
+  "columns": {
+    "person": "label_person",
+    "kennung": { "role": "label_person", "person": "person" },
+    "heimatstandort": "label_org",
+    "datum": "date",
+    "touren": "measure",
+    "uebernachtung": "measure",
+    "ruhe": "measure",
+    "urlaub": "measure"
+  },
+  "person_key": "person"
+}

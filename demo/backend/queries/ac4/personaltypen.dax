@@ -1,0 +1,30 @@
+-- View 2: one row per Personaltyp Tour × Personaltyp Person × its source (Stammdaten / abgeleitet /
+-- abgeleitet, mehrdeutig, F5) × Person Zuordnung × Fahren - the report's bars «Plandauer je Personaltyp der
+-- Tour» and «Person Zuordnung der Tourelemente» with their measures. Personaltyp Person is a worker TYPE,
+-- not a person. Not filtered by Personaltyp (this is the list it is picked from).
+DEFINE
+    VAR _m = {{month}}
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _ta = {{taet}}
+    VAR _fMonat = FILTER ( ALL ( fico_disposition[Planmonat] ), ISBLANK ( _m ) || fico_disposition[Planmonat] = FORMAT ( _m, "yyyy-MM" ) )
+    VAR _fFirma = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _firma ) || fico_disposition[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_disposition[depot_sk] ), ISBLANK ( _st ) || fico_disposition[depot_sk] = _st )
+    VAR _fTaet = FILTER ( ALL ( fico_disposition[worker_activity_sk] ), ISBLANK ( _ta ) || fico_disposition[worker_activity_sk] = _ta )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fico_disposition[Personaltyp Tour], fico_disposition[Personaltyp Person], fico_disposition[Personaltyp Person Quelle],
+        fico_disposition[Person Zuordnung], fico_disposition[Fahren (ja/nein)],
+        _fMonat, _fFirma, _fStandort, _fTaet,
+        "tourelemente", [Anzahl Tourelemente (Disposition)],
+        "plandauer_h", [Plandauer Tourelemente (Disposition) [h]]]
+    ),
+    "personaltyp_tour", fico_disposition[Personaltyp Tour],
+    "personaltyp_person", fico_disposition[Personaltyp Person],
+    "quelle", fico_disposition[Personaltyp Person Quelle],
+    "person_zuordnung", fico_disposition[Person Zuordnung],
+    "fahren", fico_disposition[Fahren (ja/nein)],
+    "tourelemente", [tourelemente],
+    "plandauer_h", [plandauer_h]
+)

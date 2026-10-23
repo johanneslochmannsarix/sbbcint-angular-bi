@@ -1,0 +1,18 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: tableEx 651206cea4e047763b6e (start_date, env_key, stage + Act runs, Stage median/p90 min, Session queued min, Retries)
+-- grain: start_date x env_key x stage
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_stage_run'[start_date],
+    'fact_stage_run'[env_key],
+    'fact_stage_run'[stage],
+    {{env_filter}},
+    {{tenant_filter}},
+    FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+    "act_runs", [Act runs],
+    "stage_median_min", [Stage median min],
+    "stage_p90_min", [Stage p90 min],
+    "session_queued_min", [Session queued min],
+    "retries", [Retries]
+)
+ORDER BY [stage_p90_min] DESC

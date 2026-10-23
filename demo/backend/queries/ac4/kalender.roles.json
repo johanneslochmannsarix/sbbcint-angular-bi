@@ -1,0 +1,19 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing directly (the report shows months only); same measures as «Plandauer je Planmonat»",
+  "view": "3 Plan vs JUP: calendar heatmap + disposition weekday profile",
+  "grain": "one row per Tour Plandatum",
+  "params": {
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 },
+    "taet": { "type": "sk" }
+  },
+  "columns": {
+    "tag": "date",
+    "touren": "measure",
+    "plandauer_h": "measure",
+    "fahren_h": "measure"
+  }
+}

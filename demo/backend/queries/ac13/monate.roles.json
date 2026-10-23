@@ -1,0 +1,31 @@
+{
+  "model": "nachbereitung_cd",
+  "tenant": "CARGOCONTROL",
+  "replaces": "the KPI rows of the three pages (Anzahl Touren, Personen, Arbeitszeit v1, Angerechnete Zeit, ≥ 12 h / ≥ 14 h, verkaufte, Schulungen, Abwesenheitstage, übrige, ohne Eintrag, Übernachtungen), per month",
+  "view": "0 KPI band + sparklines, 5 rule panel totals, 7 fill strip",
+  "grain": "one row per month (up to the last tour month)",
+  "params": {
+    "standort": { "type": "int", "min": 1, "max": 100 },
+    "haupttyp": { "type": "int", "min": 1, "max": 50 }
+  },
+  "columns": {
+    "monat": "code",
+    "touren": "measure",
+    "besetzt": "measure",
+    "offen": "measure",
+    "personen": "measure",
+    "az_h": "measure",
+    "plan_h": "measure",
+    "anger_h": "measure",
+    "angerechnet_touren": "measure",
+    "ge12": "measure",
+    "ge14": "measure",
+    "ue_touren": "measure",
+    "paare": "measure",
+    "verkauft": "measure",
+    "schulungen": "measure",
+    "familie": "measure",
+    "uebrige": "measure",
+    "ohne_eintrag": "measure"
+  }
+}

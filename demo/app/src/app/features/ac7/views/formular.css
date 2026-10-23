@@ -1,0 +1,41 @@
+/* AC-7 Formular (view 8): the sheet is paper (fixed light ink in both themes, like the printed PDF) and the
+ * print stylesheet: A4 landscape, only the sheet. Loaded with the Formular component only. */
+.ac7-form-tools { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.ac7-form-tools p { margin: 0; }
+.ac7-sheet { background: #fff; color: #15212b; border: 1px solid var(--rule-strong); border-radius: 2px; padding: 22px 26px 18px; font-family: var(--ac7-serif); }
+.ac7-sheet-head { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; border-bottom: 2px solid #15212b; padding-bottom: 10px; }
+.ac7-sheet h1 { font-family: var(--ac7-serif-head); font-size: 22px; font-weight: 600; }
+.ac7-sheet-sub { margin: 2px 0 0; font-size: 12.5px; color: #4a5866; }
+.ac7-sheet-fields { margin: 0; display: grid; gap: 4px; min-width: 330px; font-size: 12.5px; }
+.ac7-sheet-fields div { display: grid; grid-template-columns: 12em 1fr; gap: 8px; border-bottom: 1px solid #c3ccd3; padding-bottom: 2px; }
+.ac7-sheet-fields dt { color: #4a5866; }
+.ac7-sheet-fields dd { margin: 0; }
+.ac7-sheet .ac7-offen { background: #f6f8fa; border-color: #9aa6b0; color: #4a5866; font-family: var(--font-ui); }
+.ac7-sheet-pop { margin: 10px 0; font-size: 12.5px; max-width: 120ch; }
+.ac7-sheet-tbl { width: 100%; border-collapse: collapse; font-size: 12px; font-family: var(--font-ui); }
+.ac7-sheet-tbl th { text-align: left; vertical-align: bottom; font-weight: 600; color: #4a5866; border-bottom: 1px solid #15212b; padding: 4px 6px; font-size: 11.5px; }
+.ac7-sheet-tbl th small { display: block; font-weight: 400; color: #6f7b86; }
+.ac7-sheet-tbl td { padding: 4px 6px; border-bottom: 1px solid #d8dfe5; vertical-align: top; font-variant-numeric: tabular-nums; }
+.ac7-sheet-tbl .r { text-align: right; }
+.ac7-sheet-tbl tr.is-aktiv td { background: #f3f6f9; }
+.ac7-sheet-stints span { display: block; white-space: nowrap; }
+.ac7-sheet-status { white-space: nowrap; }
+.ac7-sheet-name { color: #15212b; font-size: 12px; font-family: var(--font-ui); }
+.ac7-sheet-foot { margin-top: 10px; font-size: 11px; color: #4a5866; }
+.ac7-sheet-foot p { margin: 0 0 3px; max-width: 150ch; }
+
+@page { size: A4 landscape; margin: 10mm; }
+@media print {
+  body:has(.ac7) { background: #fff; }
+  body:has(.ac7) .shell-head, body:has(.ac7) .shell-foot, body:has(.ac7) app-story-panel,
+  .ac7 .ac7-band, .ac7 .ac7-foot, .ac7 .ac7-form-tools, .ac7 .scrim, .ac7 .ac7-drawer { display: none !important; }
+  body:has(.ac7) .shell-main { padding: 0; max-width: none; }
+  .ac7-sheet { border: 0; padding: 0; }
+  .ac7-sheet-tbl tr { break-inside: avoid; }
+  .ac7-sheet-tbl thead { display: table-header-group; }
+  .ac7-sheet-name { all: unset; }
+  .ac7:not(.ac7-is-form) .page > * { display: none !important; }
+  .ac7:not(.ac7-is-form) .page::before { content: "Zum Drucken die Ansicht «Formular» wählen."; }
+}
+@media (max-width: 1000px) { .ac7-sheet-head { flex-direction: column; } .ac7-sheet { overflow-x: auto; } }
+@media (max-width: 640px) { .ac7-sheet-fields { min-width: 0; } }

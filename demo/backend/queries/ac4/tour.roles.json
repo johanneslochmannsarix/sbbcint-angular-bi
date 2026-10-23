@@ -1,0 +1,37 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (the report stops at the tour row of the drillthrough)",
+  "view": "6 Tour drill-down: Gantt of one tour's elements",
+  "grain": "one row per tour element",
+  "params": {
+    "tour": { "type": "sk", "required": true }
+  },
+  "columns": {
+    "element_id": "id",
+    "element_nr": "measure",
+    "taetigkeit": "label_org",
+    "fahren": "code",
+    "element_planbeginn": "date",
+    "element_planende": "date",
+    "element_istbeginn": "date",
+    "element_istende": "date",
+    "plandauer_min": "measure",
+    "istdauer_min": "measure",
+    "startbahnhof": "label_location",
+    "zielbahnhof": "label_location",
+    "person_zuordnung": "code",
+    "tour": "label_freetext",
+    "tourstandort": "label_org",
+    "firma": "label_org",
+    "personaltyp_tour": "label_org",
+    "planmonat": "code",
+    "tour_planbeginn": "date",
+    "tour_planende": "date",
+    "tour_istbeginn": "date",
+    "tour_istende": "date",
+    "abdeckung": "code",
+    "anger_min": "measure"
+  },
+  "note": "Tour = shift name typed in SaxMS, may carry a name: masked as free text; no person column"
+}

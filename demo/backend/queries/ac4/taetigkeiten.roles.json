@@ -1,0 +1,23 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "bar «Tätigkeiten nach Plandauer» (Übersicht), bar + table «Alle Tätigkeiten» (Tätigkeiten & Personaltypen)",
+  "view": "1 side panel, 2 Tätigkeiten",
+  "grain": "one row per Tätigkeit × Fahren (ja/nein)",
+  "params": {
+    "month": { "type": "month" },
+    "firma": { "type": "enum", "values": ["SBB Cargo Deutschland", "SBB Cargo International EVU Schweiz", "SBB Cargo Italia", "SBB Cargo France", "SBB Cargo Nederland"] },
+    "standort": { "type": "sk" },
+    "ptyp": { "type": "int", "min": 1, "max": 500 }
+  },
+  "columns": {
+    "taetigkeit": "label_org",
+    "worker_activity_sk": "id",
+    "fahren": "code",
+    "tourelemente": "measure",
+    "plandauer_h": "measure",
+    "anteil_auswahl": "measure",
+    "elemente_mit_ist": "measure",
+    "elemente_vergangen": "measure"
+  }
+}

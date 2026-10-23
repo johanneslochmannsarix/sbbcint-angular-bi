@@ -1,0 +1,44 @@
+-- View 7 (angerechnete Zeit): tours per Planmonat and 30-minute bucket of «Tour angerechnete Zeit (min)»
+-- (bucket b = [30 b, 30 b + 30) minutes; b = 48 collects everything from 24 h on). Taken once per tour (*),
+-- like angerechnet.dax. Tours without a value are not in any bucket - their count is angerechnet.dax's
+-- touren - touren_anger, shown as the fill.
+DEFINE
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fFirma = FILTER ( ALL ( fico_disposition[Firma] ), ISBLANK ( _firma ) || fico_disposition[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_disposition[depot_sk] ), ISBLANK ( _st ) || fico_disposition[depot_sk] = _st )
+    VAR _fPtyp = FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), ISBLANK ( _pt ) || fico_disposition[Personaltyp Tour] = _ptName )
+    VAR _tours =
+        CALCULATETABLE (
+            ADDCOLUMNS (
+                SUMMARIZE ( fico_disposition, fico_disposition[Planmonat], fico_disposition[tour_id] ),
+                "@a", CALCULATE ( MAX ( fico_disposition[Tour angerechnete Zeit (min)] ) )
+            ),
+            _fFirma, _fStandort, _fPtyp
+        )
+EVALUATE
+SELECTCOLUMNS (
+    GROUPBY (
+        ADDCOLUMNS ( FILTER ( _tours, NOT ISBLANK ( [@a] ) ), "@b", MIN ( INT ( [@a] / 30 ), 48 ) ),
+        fico_disposition[Planmonat], [@b],
+        "@n", SUMX ( CURRENTGROUP (), 1 )
+    ),
+    "planmonat", fico_disposition[Planmonat],
+    "bucket", [@b],
+    "touren", [@n]
+)
+ORDER BY [planmonat], [bucket]

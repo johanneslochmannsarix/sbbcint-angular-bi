@@ -1,0 +1,21 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page «Planung (JUP)»: slicers Tourstandort / Personaltyp and the version table, as one drill",
+  "view": "2 Firma -> Tourstandort -> Personaltyp -> Tätigkeit sunburst / ranked bar list",
+  "grain": "one row per Firma x Tourstandort x Personaltyp x Tätigkeit x Fahren of one version",
+  "params": {
+    "version": { "type": "int", "min": 1, "max": 60, "required": true },
+    "tag": { "type": "int", "min": 0, "max": 7 }
+  },
+  "columns": {
+    "firma": "label_org",
+    "tourstandort": "label_org",
+    "personaltyp": "label_org",
+    "taetigkeit": "label_technical",
+    "fahren": "code",
+    "dauer_h": "measure",
+    "tourelemente": "measure",
+    "touren": "measure"
+  }
+}

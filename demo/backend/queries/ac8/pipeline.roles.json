@@ -1,0 +1,25 @@
+{
+  "model": "leitstelle_olten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing (we deliver no report on sm_leitstelle_olten)",
+  "view": "3 communication sankey (brushable from 5)",
+  "grain": "quelle x kommunikationsstand / dienstplan_quelle x Rückmeldung x newest-version-differs",
+  "params": {
+    "dates": { "type": "date_window", "default_days": 56, "anchor": "from_today", "max_days": 400 },
+    "worker": { "type": "enum", "values": ["alle", "disponent", "andere"] },
+    "brush_from": { "type": "date" },
+    "brush_to": { "type": "date" },
+    "lead_min": { "type": "int", "min": -100000, "max": 100000 },
+    "lead_max": { "type": "int", "min": -100000, "max": 100000 }
+  },
+  "columns": {
+    "quelle": "code",
+    "stand": "code",
+    "rueckmeldung_status": "code",
+    "rueckmeldung_label": "code",
+    "weicht_ab": "code",
+    "n": "measure",
+    "ohne_person": "measure"
+  },
+  "person_aggregate": true
+}

@@ -1,0 +1,15 @@
+{
+  "model": "import",
+  "tenant": "CARGOCONTROL",
+  "replaces": "row headers dim_person[person_name] of «Qualifikationsmatrix» and «Wer hat eine Qualifikation noch nicht?»; slicers dim_person[person_name], dim_tenant[tenant_name]",
+  "view": "1 heatmap rows, 4 treemap org level, 5 histogram population",
+  "grain": "one row per person x org unit (dim_tenant) present in the fact; each person has exactly one org (probe 2026-10-20)",
+  "columns": {
+    "person_sk": "label_person",
+    "person_name": "label_person",
+    "tenant_sk": "id",
+    "tenant_name": "label_org",
+    "pairs": "measure"
+  },
+  "person_key": "person_sk"
+}

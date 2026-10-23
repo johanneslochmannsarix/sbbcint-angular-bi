@@ -1,0 +1,19 @@
+-- Plan tours of both audiences in a calendar window (dim_date, never the month parsed from the order name, PLT-5): one row per person x day x
+-- tour x plan window x order x activity group. Hours per day are clipped and merged in the browser.
+EVALUATE
+VAR _people =
+    -- the blank member of VALUES would match fact rows without a person (shift not in dim_person): excluded
+    FILTER ( DISTINCT ( UNION ( VALUES ( 'dim_person_ausbilder'[person_sk] ), VALUES ( 'dim_person_auszubildende'[person_sk] ) ) ), NOT ISBLANK ( [person_sk] ) )
+RETURN
+    SUMMARIZECOLUMNS (
+        'fact_person_tour_day'[person_sk],
+        'dim_date'[date],
+        'fact_person_tour_day'[tourbezeichnung],
+        'fact_person_tour_day'[start_time],
+        'fact_person_tour_day'[end_time],
+        'fact_person_tour_day'[dor_name],
+        'dim_workeractivity'[activity_group],
+        FILTER ( ALL ( 'dim_date'[date] ), 'dim_date'[date] >= {{date_from}} && 'dim_date'[date] <= {{date_to}} ),
+        TREATAS ( _people, 'fact_person_tour_day'[person_sk] ),
+        "n", [Tour-Tage]
+    )

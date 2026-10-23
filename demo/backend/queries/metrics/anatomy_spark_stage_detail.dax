@@ -1,0 +1,33 @@
+-- page: Run anatomy (ADR-055)
+-- replaces: (new) Spark-stage detail + stage Gantt of one chain; no report visual
+-- grain: activity_name x Spark stage name x status (fact_spark_stage is one rollup row per
+-- spark_app_id x name x status; first_submission / last_completion span every stage of that name)
+-- Model measures where they exist; the CPU / GC / byte splits have none, so they are SUMs of the
+-- collector's own rollup columns (no logic of ours), and the span is MIN/MAX of its timestamps.
+-- executor_cpu_time_ms holds Spark's executorCpuTime, which is NANOSECONDS despite the column name (run time and GC are ms):
+-- https://spark.apache.org/docs/latest/monitoring.html#executor-task-metrics, read 2026-10-22.
+-- fact_spark_stage[description] stays out: the core treats it as free text (label_freetext, masked).
+EVALUATE
+SUMMARIZECOLUMNS (
+    'fact_spark_stage'[activity_name],
+    'fact_spark_stage'[name],
+    'fact_spark_stage'[status],
+    TREATAS ( { {{chain_id}} }, 'fact_spark_stage'[run_id] ),
+    "spark_stages", [Spark stages],
+    "stage_run_min", [Stage run min],
+    "num_tasks", SUM ( 'fact_spark_stage'[num_tasks] ),
+    "cpu_min", DIVIDE ( SUM ( 'fact_spark_stage'[executor_cpu_time_ms] ), 60000000000.0 ),
+    "gc_min", DIVIDE ( SUM ( 'fact_spark_stage'[jvm_gc_time_ms] ), 60000.0 ),
+    "input_gib", [Input GiB],
+    "input_rows", [Input rows],
+    "output_gib", DIVIDE ( SUM ( 'fact_spark_stage'[output_bytes] ), 1024.0 ^ 3 ),
+    "output_rows", [Output rows],
+    "shuffle_read_gib", DIVIDE ( SUM ( 'fact_spark_stage'[shuffle_read_bytes] ), 1024.0 ^ 3 ),
+    "shuffle_write_gib", DIVIDE ( SUM ( 'fact_spark_stage'[shuffle_write_bytes] ), 1024.0 ^ 3 ),
+    "spill_mem_gib", DIVIDE ( SUM ( 'fact_spark_stage'[memory_bytes_spilled] ), 1024.0 ^ 3 ),
+    "spill_disk_gib", DIVIDE ( SUM ( 'fact_spark_stage'[disk_bytes_spilled] ), 1024.0 ^ 3 ),
+    "peak_exec_mem_mib", [Peak exec mem MiB],
+    "first_submission", MIN ( 'fact_spark_stage'[first_submission] ),
+    "last_completion", MAX ( 'fact_spark_stage'[last_completion] )
+)
+ORDER BY [stage_run_min] DESC

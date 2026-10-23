@@ -1,0 +1,16 @@
+-- Both audiences of the Plantafel with their tour-day count. The person dims' relationships to the fact are
+-- inactive, so the count goes through TREATAS on the fact's person_sk (same population as the RDL pickers).
+EVALUATE
+VAR _a =
+    SELECTCOLUMNS ( 'dim_person_ausbilder',
+        "person_sk", 'dim_person_ausbilder'[person_sk], "person_name", 'dim_person_ausbilder'[person_name],
+        "audience", "ausbilder" )
+VAR _t =
+    SELECTCOLUMNS ( 'dim_person_auszubildende',
+        "person_sk", 'dim_person_auszubildende'[person_sk], "person_name", 'dim_person_auszubildende'[person_name],
+        "audience", "auszubildende" )
+RETURN
+    ADDCOLUMNS (
+        UNION ( _a, _t ),
+        "tour_days", CALCULATE ( COUNTROWS ( 'fact_person_tour_day' ), TREATAS ( { [person_sk] }, 'fact_person_tour_day'[person_sk] ) )
+    )

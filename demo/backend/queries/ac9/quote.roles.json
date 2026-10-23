@@ -1,0 +1,24 @@
+{
+  "model": "rechnungslegung",
+  "tenant": "RTS",
+  "replaces": "line «IST-Quote je Planmonat und Geschäftsart», KPI cards and matrix «Auftrag × Planmonat» (p2 Rückmeldequote)",
+  "view": "4 Rückmeldequote, 0 quote sparkline",
+  "grain": "one row per plan month x Geschäftsart plus one month total row (ga_total)",
+  "params": {
+    "ga": { "type": "enum", "values": ["AUE", "DL"] },
+    "kat": { "type": "enum", "values": ["int", "nat", "res", "ll", "ohne"] },
+    "auftrag": { "type": "int", "min": 1, "max": 5000 }
+  },
+  "columns": {
+    "plan_monat": "code",
+    "geschaeftsart": "code",
+    "ga_total": "code",
+    "touren": "measure",
+    "abgeschlossen": "measure",
+    "mit_ist": "measure",
+    "fehlt": "measure",
+    "quote": "measure",
+    "auftrag_echo": "label_freetext"
+  },
+  "note": "per DOI only (D6); the AÜ quote is shown neutrally (finding parked by Johannes 2026-10-08)"
+}

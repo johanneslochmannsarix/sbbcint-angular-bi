@@ -1,0 +1,56 @@
+<header class="shell-head">
+  <div class="shell-bar">
+    <a class="brand" routerLink="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Demo</span>
+    </a>
+    <nav class="tabs" aria-label="Showcases">
+      <a routerLink="/ac1" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-1 Plantafel</a>
+      <a routerLink="/ac2" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-2 Qualifikationen</a>
+      <a routerLink="/ac8" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-8 Leitstand Olten</a>
+      <a routerLink="/ac4" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-4 FiCo Produktivität</a>
+      <a routerLink="/ac10" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-10 Offene Schichten</a>
+      <a routerLink="/ac6" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-6 JUP Planung</a>
+      <a routerLink="/ac7" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-7 Verleihliste</a>
+      <a routerLink="/ac9" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-9 Rechnungslegung</a>
+      <a routerLink="/ac13" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-13 Nachbereitung CD</a>
+      <a routerLink="/metrics" routerLinkActive="is-active" ariaCurrentWhenActive="page">Plattform-Metriken</a>
+    </nav>
+    <div class="slot-main">
+      @if (slot.main(); as t) {
+        <ng-container [ngTemplateOutlet]="t" />
+      }
+    </div>
+    @if (api.mode(); as mode) {
+      <span class="mode" [class.mode-real]="mode === 'real'"
+        [title]="mode === 'masked' ? 'Personen erscheinen als Pseudonym P-xxxxxx (zufälliger Schlüssel je Backend-Start).' : 'Klarnamen: Backend mit run.ps1 -Real gestartet. Nicht teilen.'">
+        {{ mode === 'masked' ? 'Pseudonymisiert' : 'Klarnamen' }}
+      </span>
+    }
+    <button type="button" class="btn btn-ghost theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Darstellung: ' + theme.pref() + '. Umschalten.'">
+      <span class="theme-glyph" [class.is-dark]="theme.mode() === 'dark'" aria-hidden="true"></span>
+      {{ theme.pref() === 'system' ? 'System' : theme.pref() === 'dark' ? 'Dunkel' : 'Hell' }}
+    </button>
+  </div>
+  @if (slot.sub(); as t) {
+    <div class="slot-sub">
+      <ng-container [ngTemplateOutlet]="t" />
+    </div>
+  }
+</header>
+
+<main class="shell-main">
+  <router-outlet />
+</main>
+
+<app-story-panel />
+
+<footer class="shell-foot">
+  <span>Fabric-Abfragen dieses Tabs: <strong>{{ api.fabricCalls() }}</strong> von {{ api.requests() }} Anfragen (Rest aus dem 10-Minuten-Cache des Backends)</span>
+  @if (health(); as h) {
+    <span>Backend: {{ h.calls_last_minute }} in der letzten Minute (Spitze {{ h.calls_peak_per_minute }}, Grenze {{ h.limit_per_minute }}), {{ h.calls_total }} seit Start</span>
+  } @else if (healthDown()) {
+    <span>Backend nicht erreichbar (/api/health).</span>
+  }
+  <span>Lokal, nur lesend. Nicht teilen.</span>
+</footer>

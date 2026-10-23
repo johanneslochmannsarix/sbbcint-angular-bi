@@ -1,0 +1,39 @@
+/*
+ * AC-9 Rechnungslegung RT&S. Global (ViewEncapsulation.None) but every selector is ac9-prefixed or under .ac9.
+ * Character: the month's statement of account. Sitka (Windows' optical-size serif) asks the questions and
+ * answers in sentences; Segoe UI Variable Display carries every figure; totals are ink, deductions recede, plan is
+ * an outline; rules are footnotes. Component-level styles live in the views (budget: 4 kB per file).
+ */
+.ac9 {
+  --ac9-serif: "Sitka Text", "Sitka Small", Cambria, Georgia, serif;
+  --ac9-head: "Sitka Heading", "Sitka Subheading", Cambria, Georgia, serif;
+  --ac9-num: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+}
+.ac9-title { font-family: var(--ac9-head); font-size: 17px; color: var(--ink); }
+
+.ac9-lede { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 54ch); gap: 8px 32px; align-items: end; padding: 2px 2px 0; }
+.ac9-h1 { font: 400 33px/1.12 var(--ac9-head); margin: 0; color: var(--ink); }
+.ac9-dek { margin: 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+
+.ac9 .card-head h2 { font: 400 19px/1.25 var(--ac9-head); color: var(--ink); }
+.ac9-answer { font: 400 15px/1.5 var(--ac9-serif); color: var(--ink); margin: 2px 0 10px; max-width: 80ch; }
+.ac9-answer:empty { display: none; }
+.ac9-order { font: 600 18px/1.2 var(--ac9-num); margin: 0; color: var(--ink); }
+
+.ac9-rule { display: block; margin: 10px 0 0; padding: 8px 0 0; border-top: 1px solid var(--rule); }
+.ac9-rule p { margin: 0 0 3px; font-size: 12px; line-height: 1.45; color: var(--ink-2); max-width: 110ch; }
+.ac9-fn { font: 600 10px var(--ac9-num); color: var(--muted); margin: 0 3px 0 1px; }
+
+.ac9-row { display: grid; gap: 16px; align-items: start; }
+.ac9-row-2 { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+.ac9-crumbs { gap: 8px; }
+.ac9-gap { flex: 1; }
+.ac9-warn { display: flex; gap: 8px; align-items: center; padding: 8px 12px; border: 1px solid var(--rule-strong); border-left: 3px solid var(--serious); border-radius: var(--r-card); background: var(--surface); font-size: 13px; }
+
+.ac9-foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 10px 32px; padding: 14px 16px; border-top: 2px solid var(--ink); font-size: 12px; color: var(--ink-2); }
+.ac9-foot h2 { font: 400 15px var(--ac9-head); margin: 0 0 4px; color: var(--ink); }
+.ac9-foot ol { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+.ac9-foot p { margin: 0 0 4px; }
+
+@media (max-width: 1100px) { .ac9-row-2, .ac9-lede, .ac9-foot { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .ac9-h1 { font-size: 25px; } }

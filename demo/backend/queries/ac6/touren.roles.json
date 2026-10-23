@@ -1,0 +1,25 @@
+{
+  "model": "fico",
+  "tenant": "CARGOCONTROL",
+  "replaces": "the tour rows behind the version table of page «Planung (JUP)» (the report shows no tour list)",
+  "view": "6 tour drill: tour list of one Tourstandort",
+  "grain": "one row per tour of one version and Tourstandort",
+  "params": {
+    "version": { "type": "int", "min": 1, "max": 60, "required": true },
+    "standort": { "type": "int", "min": 1, "max": 200, "required": true },
+    "ptyp": { "type": "int", "min": 1, "max": 300 },
+    "taet": { "type": "int", "min": 1, "max": 400 },
+    "tag": { "type": "int", "min": 0, "max": 7 }
+  },
+  "columns": {
+    "tour_id": "id",
+    "tour": "label_freetext",
+    "personaltyp": "label_org",
+    "tag": "measure",
+    "start_ms": "measure",
+    "ende_ms": "measure",
+    "elemente": "measure",
+    "dauer_h": "measure",
+    "fahren_h": "measure"
+  }
+}

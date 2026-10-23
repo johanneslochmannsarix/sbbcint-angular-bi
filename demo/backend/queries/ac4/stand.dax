@@ -1,0 +1,14 @@
+-- Header / start tile: the planned window, the newest element Ist that is not in the future, and row
+-- counts of the three tables. sm_fico has no load timestamp of its own; the newest Ist report is the
+-- closest «data as of» the model carries.
+EVALUATE
+ROW (
+    "erster_plantag", MIN ( fico_disposition[Tour Plandatum] ),
+    "letzter_plantag", MAX ( fico_disposition[Tour Plandatum] ),
+    "juengstes_ist", CALCULATE ( MAX ( fico_disposition[Element Istende] ), KEEPFILTERS ( fico_disposition[Element Istende] <= NOW () ) ),
+    "touren", [Anzahl Touren (Disposition)],
+    "tourelemente", [Anzahl Tourelemente (Disposition)],
+    "schichten_kommunikation", [Anzahl Schichten (Kommunikation)],
+    "touren_planung", [Anzahl Touren (Planung)],
+    "jup_versionen", DISTINCTCOUNT ( fico_planung[JUP Version] )
+)

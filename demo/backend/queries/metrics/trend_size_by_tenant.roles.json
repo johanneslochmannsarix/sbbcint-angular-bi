@@ -1,0 +1,36 @@
+{
+  "model": "platform_metrics",
+  "replaces": "lineChart 024f795f6659d8a3dd04 (batch_date x Size per Batch (GiB), series tenant)",
+  "view": "Trend by tenant / env / batch",
+  "grain": "batch_date x tenant",
+  "params": {
+    "env": {
+      "type": "enum",
+      "required": false,
+      "values": [
+        "PROD",
+        "QA"
+      ],
+      "filter_column": "'dim_env'[env]"
+    },
+    "tenant": {
+      "type": "enum",
+      "required": false,
+      "values": [
+        "RTS",
+        "CARGOCONTROL"
+      ],
+      "filter_column": "'dim_env'[tenant]"
+    },
+    "dates": {
+      "type": "date_window",
+      "default_days": 90,
+      "anchor": "to_today"
+    }
+  },
+  "columns": {
+    "batch_date": "date",
+    "tenant": "code",
+    "size_per_batch_gib": "measure"
+  }
+}

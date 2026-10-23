@@ -1,0 +1,40 @@
+-- View 5 sankey + month bars: [Anzahl Schichten (Kommunikation)] per Planmonat × Verlauf × Akzeptanzart ×
+-- Kommunikationsstand, plus Σ Versionen of those shifts. Every group is a disjoint set of shifts, so the app
+-- may add groups up for a link width. A version is not a change (ADR-054): «Verlauf» is the Gold label
+-- built from content differences, not from the version count.
+DEFINE
+    VAR _firma = {{firma}}
+    VAR _st = {{standort}}
+    VAR _pt = {{ptyp}}
+    VAR _stName = CALCULATE ( MAX ( fico_disposition[Tourstandort] ), REMOVEFILTERS (), fico_disposition[depot_sk] = _st )
+    VAR _ptName =
+        MAXX (
+            FILTER (
+                ADDCOLUMNS (
+                    ALL ( fico_disposition[Personaltyp Tour] ),
+                    "@rang",
+                        VAR v = fico_disposition[Personaltyp Tour]
+                        RETURN COUNTROWS ( FILTER ( ALL ( fico_disposition[Personaltyp Tour] ), fico_disposition[Personaltyp Tour] <= v ) )
+                ),
+                [@rang] = _pt
+            ),
+            fico_disposition[Personaltyp Tour]
+        )
+    VAR _fFirma = FILTER ( ALL ( fico_kommunikation[Firma] ), ISBLANK ( _firma ) || fico_kommunikation[Firma] = _firma )
+    VAR _fStandort = FILTER ( ALL ( fico_kommunikation[Tourstandort] ), ISBLANK ( _st ) || fico_kommunikation[Tourstandort] = _stName )
+    VAR _fPtyp = FILTER ( ALL ( fico_kommunikation[Personaltyp Tour] ), ISBLANK ( _pt ) || fico_kommunikation[Personaltyp Tour] = _ptName )
+EVALUATE
+SELECTCOLUMNS (
+    SUMMARIZECOLUMNS (
+        fico_kommunikation[Planmonat], fico_kommunikation[Verlauf], fico_kommunikation[Akzeptanzart], fico_kommunikation[Kommunikationsstand],
+        _fFirma, _fStandort, _fPtyp,
+        "schichten", [Anzahl Schichten (Kommunikation)],
+        "versionen", SUM ( fico_kommunikation[Versionen] )
+    ),
+    "planmonat", fico_kommunikation[Planmonat],
+    "verlauf", fico_kommunikation[Verlauf],
+    "akzeptanzart", fico_kommunikation[Akzeptanzart],
+    "kommunikationsstand", fico_kommunikation[Kommunikationsstand],
+    "schichten", [schichten],
+    "versionen", [versionen]
+)

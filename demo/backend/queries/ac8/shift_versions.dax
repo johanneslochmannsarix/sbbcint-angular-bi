@@ -1,0 +1,35 @@
+-- Version timeline of one shift (view 7): every version with its person (a reassignment shows as another
+-- pseudonym), the pointer (fact_shift current_snapshot_sk = the communicated version, ADR-049) and the
+-- version the duty plan shows (fact_dienstplan shift_snapshot_sk, rule v3), plus the current plan.
+-- A deleted shift has no fact_shift row: no pointer, no current plan.
+EVALUATE
+VAR _s = {{shift}}
+VAR _ptr = LOOKUPVALUE ( 'fact_shift'[current_snapshot_sk], 'fact_shift'[shift_sk], _s )
+VAR _dp = LOOKUPVALUE ( 'fact_dienstplan'[shift_snapshot_sk], 'fact_dienstplan'[shift_sk], _s )
+VAR _dpq = LOOKUPVALUE ( 'fact_dienstplan'[dienstplan_quelle], 'fact_dienstplan'[shift_sk], _s )
+VAR _ps = LOOKUPVALUE ( 'fact_shift'[planned_start], 'fact_shift'[shift_sk], _s )
+VAR _pe = LOOKUPVALUE ( 'fact_shift'[planned_end], 'fact_shift'[shift_sk], _s )
+VAR _pp = LOOKUPVALUE ( 'fact_shift'[person_sk], 'fact_shift'[shift_sk], _s )
+VAR _ks = LOOKUPVALUE ( 'fact_shift'[kommunikationsstand], 'fact_shift'[shift_sk], _s )
+RETURN
+    SELECTCOLUMNS (
+        FILTER ( 'fact_shift_snapshot', 'fact_shift_snapshot'[shift_sk] = _s ),
+        "shift_snapshot_sk", 'fact_shift_snapshot'[shift_snapshot_sk],
+        "person_sk", 'fact_shift_snapshot'[person_sk],
+        "version_nr", 'fact_shift_snapshot'[version_nr],
+        "created_ts", 'fact_shift_snapshot'[created_ts],
+        "snapshot_start", 'fact_shift_snapshot'[snapshot_start],
+        "snapshot_end", 'fact_shift_snapshot'[snapshot_end],
+        "rueckmeldung_status", 'fact_shift_snapshot'[rueckmeldung_status],
+        "rueckmeldung_status_label", 'fact_shift_snapshot'[rueckmeldung_status_label],
+        "snapshot_type_code", 'fact_shift_snapshot'[snapshot_type_code],
+        "ist_aktueller_stand", 'fact_shift_snapshot'[ist_aktueller_stand],
+        "schicht_im_plan", 'fact_shift_snapshot'[schicht_im_plan],
+        "ist_pointer", NOT ISBLANK ( _ptr ) && 'fact_shift_snapshot'[shift_snapshot_sk] = _ptr,
+        "ist_dienstplan", NOT ISBLANK ( _dp ) && 'fact_shift_snapshot'[shift_snapshot_sk] = _dp,
+        "dienstplan_quelle", _dpq,
+        "kommunikationsstand", _ks,
+        "plan_start", _ps,
+        "plan_ende", _pe,
+        "plan_person_sk", _pp
+    )

@@ -1,0 +1,55 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "nothing directly: the report has no today / tomorrow / next-7-days figure (page 1 KPI cards count the slicer window)",
+  "view": "0 «Jetzt» band",
+  "grain": "one row",
+  "params": {
+    "heute": {
+      "type": "date",
+      "default": "today"
+    },
+    "mandant": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "depot": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "haupttyp": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "zwingend": {
+      "type": "enum",
+      "values": [
+        "alle",
+        "zwingend",
+        "nicht"
+      ]
+    },
+    "kategorie": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    }
+  },
+  "columns": {
+    "heute": "date",
+    "heute_ungeplant": "measure",
+    "heute_zwingend": "measure",
+    "heute_schichten": "measure",
+    "morgen_ungeplant": "measure",
+    "morgen_zwingend": "measure",
+    "morgen_schichten": "measure",
+    "woche_ungeplant": "measure",
+    "woche_zwingend": "measure",
+    "woche_schichten": "measure",
+    "heute_elemente": "measure",
+    "woche_elemente": "measure"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "model": "offene_schichten",
+  "tenant": "CARGOCONTROL",
+  "replaces": "page 1 KPI cards (Ungeplante Schichten, Schichten insgesamt, Besetzungsquote) and page 2 KPI cards (offene Schichtelemente, vergangen, ab heute)",
+  "view": "0 window tile, 5 totals, filter-label check",
+  "grain": "one row for the window",
+  "params": {
+    "dates": {
+      "type": "date_window",
+      "default_days": 10,
+      "anchor": "from_today",
+      "max_days": 400
+    },
+    "mandant": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "depot": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "haupttyp": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    },
+    "zwingend": {
+      "type": "enum",
+      "values": [
+        "alle",
+        "zwingend",
+        "nicht"
+      ]
+    },
+    "kategorie": {
+      "type": "int",
+      "min": 1,
+      "max": 500
+    }
+  },
+  "columns": {
+    "ungeplant": "measure",
+    "ungeplant_zwingend": "measure",
+    "schichten": "measure",
+    "besetzungsquote": "measure",
+    "elemente_offen": "measure",
+    "elemente_vergangen": "measure",
+    "elemente_zukuenftig": "measure",
+    "mandant_gewaehlt": "code",
+    "depot_gewaehlt": "code",
+    "haupttyp_gewaehlt": "code",
+    "kategorie_gewaehlt": "code"
+  },
+  "note": "*_gewaehlt = the labels the ordinals resolved to (org / category labels, role code because they are echo values for a consistency check)"
+}

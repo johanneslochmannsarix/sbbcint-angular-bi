@@ -1,0 +1,22 @@
+-- Lead-time scatter (view 5): one row per version (fact_shift_snapshot) of the window's shifts.
+-- vorlauf_h = snapshot_start - created_ts in hours (negative: the version was created after its start).
+-- No person column: the scatter needs none.
+EVALUATE
+VAR _from = {{date_from}}
+VAR _to = {{date_to}}
+RETURN
+    SELECTCOLUMNS (
+        FILTER (
+            'fact_shift_snapshot',
+            'fact_shift_snapshot'[snapshot_date] >= _from && 'fact_shift_snapshot'[snapshot_date] <= _to
+        ),
+        "shift_snapshot_sk", 'fact_shift_snapshot'[shift_snapshot_sk],
+        "shift_sk", 'fact_shift_snapshot'[shift_sk],
+        "created_ts", 'fact_shift_snapshot'[created_ts],
+        "snapshot_start", 'fact_shift_snapshot'[snapshot_start],
+        "version_nr", 'fact_shift_snapshot'[version_nr],
+        "rueckmeldung_status", 'fact_shift_snapshot'[rueckmeldung_status],
+        "ist_aktueller_stand", 'fact_shift_snapshot'[ist_aktueller_stand],
+        "schicht_im_plan", 'fact_shift_snapshot'[schicht_im_plan],
+        "vorlauf_h", ( 'fact_shift_snapshot'[snapshot_start] - 'fact_shift_snapshot'[created_ts] ) * 24
+    )

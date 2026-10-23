@@ -1,0 +1,25 @@
+{
+  "model": "import",
+  "tenant": "RTS",
+  "replaces": "CellText of Plantafel Ausbilder Tagesraster (HH:mm-HH:mm, tour, von -> nach, kommentar) and the day rows of Plantafel Auszubildende (tour, Zugnummer, start/end, locations, Tätigkeit label_de)",
+  "view": "2 day Gantt, 3 trainee day plan, 5 map",
+  "grain": "one row per person x tour x plan start/end x locations x kommentar x order x activity on that day",
+  "params": {
+    "day": { "type": "date", "required": true }
+  },
+  "columns": {
+    "person_sk": "label_person",
+    "tourbezeichnung": "code",
+    "zugnummer": "code",
+    "start_time": "date",
+    "end_time": "date",
+    "start_location": "label_location",
+    "end_location": "label_location",
+    "kommentar": "label_freetext",
+    "dor_name": "label_org",
+    "activity_group": "code",
+    "label_de": "code",
+    "n": "measure"
+  },
+  "person_key": "person_sk"
+}

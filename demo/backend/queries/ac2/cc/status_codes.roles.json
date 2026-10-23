@@ -1,0 +1,12 @@
+{
+  "model": "import",
+  "tenant": "CARGOCONTROL",
+  "replaces": "slicer dim_status_code[label_de] (both pages)",
+  "view": "legend + labels of 1, 4, 6",
+  "grain": "one row per status code",
+  "columns": {
+    "status_code": "code",
+    "label_de": "code",
+    "sort_order": "code"
+  }
+}

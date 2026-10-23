@@ -1,0 +1,33 @@
+-- View 4 Personaltypen: open shifts per dim_scope Mandant x Haupt-Personaltyp in the window, with the number
+-- of Mandanten that carry the Haupttyp in dim_scope (R6: a Haupttyp may span Mandanten, a Depot may not).
+-- mandanten_des_typs ignores every filter but the Haupttyp itself (ALLEXCEPT), so it stays a property of the
+-- type, not of the current selection.
+-- Filters (README "Filters and params"): mandant / depot / haupttyp / kategorie are ORDINALS into the
+-- model's sorted value lists (same rule as scope.dax), zwingend = alle | zwingend | nicht. Absent = no filter.
+-- The zwingend part uses KEEPFILTERS so it intersects with the zwingend filter instead of overriding it.
+EVALUATE
+VAR _fD = FILTER ( ALL ( 'dim_date'[datum] ), 'dim_date'[datum] >= {{date_from}} && 'dim_date'[datum] <= {{date_to}} )
+VAR _mix = {{mandant}}
+VAR _fM =
+    FILTER ( ALL ( 'dim_scope'[tenant_name] ),
+        ISBLANK ( _mix ) || ( NOT ISBLANK ( 'dim_scope'[tenant_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[tenant_name] ), NOT ISBLANK ( 'dim_scope'[tenant_name] ) && 'dim_scope'[tenant_name] < EARLIER ( 'dim_scope'[tenant_name] ) ) ) = _mix ) )
+VAR _dix = {{depot}}
+VAR _fDep =
+    FILTER ( ALL ( 'dim_scope'[depot_name] ),
+        ISBLANK ( _dix ) || ( NOT ISBLANK ( 'dim_scope'[depot_name] )
+            && 1 + COUNTROWS ( FILTER ( ALL ( 'dim_scope'[depot_name] ), NOT ISBLANK ( 'dim_scope'[depot_name] ) && 'dim_scope'[depot_name] < EARLIER ( 'dim_scope'[depot_name] ) ) ) = _dix ) )
+VAR _z = {{zwingend}}
+VAR _fZ =
+    FILTER ( ALL ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] ),
+        ISBLANK ( _z ) || _z = "alle"
+            || ( _z = "zwingend" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () )
+            || ( _z = "nicht" && 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = FALSE () ) )
+RETURN
+    SUMMARIZECOLUMNS ( 'dim_scope'[tenant_name], 'dim_scope'[haupttyp_name], _fD, _fM, _fDep, _fZ,
+        "ungeplant", [Anzahl ungeplante Schichten],
+        "ungeplant_zwingend", CALCULATE ( [Anzahl ungeplante Schichten], KEEPFILTERS ( 'fact_shift_besetzung'[is_zwingend_zu_besetzen] = TRUE () ) ),
+        "schichten", [Anzahl Schichten],
+        "mandanten_des_typs", CALCULATE ( DISTINCTCOUNT ( 'dim_scope'[tenant_name] ), ALLEXCEPT ( 'dim_scope', 'dim_scope'[haupttyp_name] ) )
+    )
+ORDER BY 'dim_scope'[haupttyp_name], 'dim_scope'[tenant_name]
