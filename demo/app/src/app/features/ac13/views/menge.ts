@@ -87,7 +87,7 @@ interface Person { key: string; person: MaskedPerson | null; heimat: string; cel
 export class MengeView {
   protected readonly store = inject(Ac13Store);
   protected readonly theme = inject(ThemeService);
-  protected readonly c = computed(() => ac13Colors(this.theme.mode()));
+  protected readonly c = computed(() => ac13Colors(this.theme.tokens()));
   protected readonly n = (v: number | null) => num(v);
   protected readonly d = (v: string) => dateOnly(v);
   protected readonly t = (v: string | null) => (v ? timeLocal(localMs(v)!) : '–');

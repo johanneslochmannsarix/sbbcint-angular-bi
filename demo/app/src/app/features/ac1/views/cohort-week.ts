@@ -6,6 +6,7 @@ import { ThemeService } from '../../../core/theme';
 import { ChartCard } from '../../../shared/chart-card';
 import { ttHead, ttRow } from '../../../shared/chart-opts';
 import { ChartResize } from '../../../shared/chart-resize';
+import { UiButton, UiSelect, UiSelectOption } from '../../../shared/ui';
 import { OTHER_TOURS, inkOn, tourKeyOf, tourPaint, tourPalette } from '../data/colors';
 import { cohortOf, summariseDays } from '../data/model';
 import { Ac1Store, label } from '../data/store';
@@ -20,21 +21,17 @@ const WD = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
  */
 @Component({
   selector: 'ac1-cohort-week',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSelect, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Kohorte, Woche" [sub]="sub()" [q]="store.weekTours"
       [forceEmpty]="!!store.weekTours.result() && trainees().length === 0"
       emptyNote="In dieser Woche hat diese Kohorte keinen Plan.">
       <div card-tools class="cw-tools">
-        <select class="select" aria-label="Kohorte" [value]="store.cohort() ?? ''" (change)="store.cohort.set($any($event.target).value)">
-          @for (c of store.cohorts(); track c.name) {
-            <option [value]="c.name">{{ c.name }} ({{ c.size }})</option>
-          }
-        </select>
-        <button type="button" class="btn btn-ghost" (click)="shift(-7)" aria-label="Vorherige Woche">‹</button>
+        <ui-select ariaLabel="Kohorte" [options]="cohortOptions()" [value]="store.cohort() ?? ''" (valueChange)="store.cohort.set($event)" />
+        <ui-button kind="ghost" (click)="shift(-7)" label="Vorherige Woche">‹</ui-button>
         <span class="cw-week">{{ weekText() }}</span>
-        <button type="button" class="btn btn-ghost" (click)="shift(7)" aria-label="Nächste Woche">›</button>
+        <ui-button kind="ghost" (click)="shift(7)" label="Nächste Woche">›</ui-button>
       </div>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()" [theme]="theme.echartsTheme()" (chartClick)="pick($any($event))"></div>
       <div class="legend-inline cw-legend">
@@ -54,6 +51,7 @@ const WD = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 export class CohortWeekView {
   protected readonly store = inject(Ac1Store);
   protected readonly theme = inject(ThemeService);
+  protected readonly cohortOptions = computed<UiSelectOption[]>(() => this.store.cohorts().map((c) => ({ value: c.name, label: `${c.name} (${c.size})` })));
 
   private readonly cohortRows = computed(() => {
     const c = this.store.cohort();

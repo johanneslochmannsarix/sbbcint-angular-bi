@@ -7,6 +7,7 @@ import { FONT_NUM } from '../../../core/tokens';
 import { ChartCard } from '../../../shared/chart-card';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { MergeOptions } from '../../../shared/merge-options';
+import { UiOption, UiSelect, UiSelectOption, UiSeg } from '../../../shared/ui';
 import { averagePerOccurrence, plannedOccupancy, sollOccupancy, weekdayCounts } from '../data/coverage';
 import { DECAL, ac8Colors } from '../data/palette';
 import { Ac8Store } from '../data/store';
@@ -25,20 +26,13 @@ const EPS = 0.05;
  */
 @Component({
   selector: 'ac8-schichtuhr',
-  imports: [NgxEchartsDirective, MergeOptions, ChartCard],
+  imports: [NgxEchartsDirective, MergeOptions, ChartCard, UiSelect, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Schichtuhr: SOLL gegen besetzte Schichten" [sub]="sub()" [q]="[store.soll, store.shifts, store.plannings]">
       <div card-tools class="ac8-tools">
-        <select class="select" aria-label="SOLL-Planung" (change)="store.planningPick.set($any($event.target).value)">
-          @for (p of plannings(); track p.shift_planning_sk) {
-            <option [value]="p.shift_planning_sk" [selected]="p.shift_planning_sk === store.planning()">{{ p.planning_name }}</option>
-          }
-        </select>
-        <div class="seg seg-sm" role="group" aria-label="Darstellung">
-          <button type="button" [attr.aria-pressed]="shape() === 'uhr'" (click)="shape.set('uhr')">Uhr</button>
-          <button type="button" [attr.aria-pressed]="shape() === 'band'" (click)="shape.set('band')">Band</button>
-        </div>
+        <ui-select ariaLabel="SOLL-Planung" [options]="planningOptions()" [value]="store.planning() ?? ''" (valueChange)="store.planningPick.set($event)" />
+        <ui-seg size="sm" ariaLabel="Darstellung" [options]="shapeOptions" [value]="shape()" (valueChange)="shape.set($event)" />
       </div>
       <div echarts class="chart ac8-uhr" [style.height.px]="height()" [options]="blank" [mergeOptions]="options()" [theme]="theme.echartsTheme()"></div>
       <div class="legend-inline ac8-legend">
@@ -54,6 +48,10 @@ export class Schichtuhr {
   protected readonly store = inject(Ac8Store);
   protected readonly theme = inject(ThemeService);
   protected readonly shape = signal<'uhr' | 'band'>('uhr');
+  protected readonly shapeOptions: UiOption<'uhr' | 'band'>[] = [
+    { value: 'uhr', label: 'Uhr' },
+    { value: 'band', label: 'Band' },
+  ];
   private readonly width = signal(1200);
   protected readonly colors = computed(() => ac8Colors(this.theme.tokens()));
 
@@ -73,6 +71,7 @@ export class Schichtuhr {
   protected readonly height = computed(() => (this.shape() === 'band' ? 250 : Math.round(26 + 2 * this.radius() + 42)));
 
   protected readonly plannings = computed(() => this.store.plannings.rows().filter((p) => (p.soll ?? 0) > 0));
+  protected readonly planningOptions = computed<UiSelectOption[]>(() => this.plannings().map((p) => ({ value: p.shift_planning_sk, label: p.planning_name ?? '' })));
   protected readonly planningName = computed(() => this.store.plannings.rows().find((p) => p.shift_planning_sk === this.store.planning())?.planning_name ?? '–');
   protected readonly planningNote = computed(() =>
     this.store.planningPick() ? 'SOLL-Planung von Hand gewählt.' : 'SOLL-Planung vorausgewählt nach Name («ab August»); das Modell kennt keine Gültigkeit der fünf Planungen.');

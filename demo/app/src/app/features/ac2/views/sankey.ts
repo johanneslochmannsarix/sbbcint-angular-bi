@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { UiSeg } from '../../../shared/ui';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsCoreOption } from 'echarts/core';
 import { DataStore, StatusByQualRow } from '../data/model';
@@ -22,14 +23,12 @@ const COLS: [keyof StatusByQualRow, StatusCode][] = [
  */
 @Component({
   selector: 'app-sankey',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Status je Qualifikation" [sub]="sub()" [q]="store.sbq">
-      <div card-tools class="seg seg-sm" role="group" aria-label="«Fehlt» einbeziehen">
-        <button type="button" [attr.aria-pressed]="!withMissing()" (click)="withMissing.set(false)">Erfasste</button>
-        <button type="button" [attr.aria-pressed]="withMissing()" (click)="withMissing.set(true)">mit «Fehlt»</button>
-      </div>
+      <ui-seg card-tools size="sm" ariaLabel="«Fehlt» einbeziehen" [value]="withMissing()" (valueChange)="withMissing.set($event)"
+        [options]="[{ value: false, label: 'Erfasste' }, { value: true, label: 'mit «Fehlt»' }]" />
       <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="click($any($event))"></div>
       <p class="chart-note">Zahlen aus dem Modell wie im Bericht (Übersicht), unabhängig von der Auswahl in der Matrix. Beschriftungen kleiner Knoten, die sich überlagern würden, stehen im Tooltip.
         @if (!withMissing() && unheld().length) { Ohne erfasste Zuordnung und deshalb nicht im Fluss: {{ unheld().join(', ') }}. }</p>

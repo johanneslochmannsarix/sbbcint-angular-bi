@@ -1,4 +1,4 @@
-import { Mode, TOKENS } from '../../../core/tokens';
+import { ChartTokens } from '../../../core/tokens';
 
 /**
  * AC-13 semantic colours, built from the shell's validated categorical slots (core/tokens.ts) - red is never a
@@ -22,8 +22,8 @@ export interface Ac13Colors {
   seq: readonly string[];
 }
 
-export function ac13Colors(mode: Mode): Ac13Colors {
-  const t = TOKENS[mode];
+/** `t` = ThemeService.tokens() (mode and style variant; the SBB trio is validated in core/tokens.ts terms too). */
+export function ac13Colors(t: ChartTokens): Ac13Colors {
   return {
     tour: t.series[0],
     ruhe: t.series[2],

@@ -1,14 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { SbbLoadingIndicator } from '@sbb-esta/angular/loading-indicator';
+import { StyleService } from '../core/style';
+import { UiButton } from './ui/button';
 import { LoadState } from '../core/query';
 
 /**
  * A titled panel around one chart or table. The projected body is always in the DOM (echarts needs a
  * sized element); loading / error / empty are an overlay on top of it. While a new request loads, the
  * previous render stays visible, dimmed: no skeleton flash on refetch. Empty means "no rows under this
- * filter", not "no data".
+ * filter", not "no data". In the SBB style variant (core/style.ts) the spinner is sbb-loading-indicator
+ * (loading-indicator.md, mode small, aria-label) and the retry button an SBB button (shared/ui).
  */
 @Component({
   selector: 'app-card',
+  imports: [SbbLoadingIndicator, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'card', '[class.is-stale]': 'stale()', '[attr.aria-busy]': 'loading()' },
   template: `
@@ -33,10 +38,15 @@ import { LoadState } from '../core/query';
           @if (e.retryAfterS) {
             <p class="state-msg">Das Abfragelimit dieses Backends ist erreicht. In {{ e.retryAfterS }} s erneut versuchen.</p>
           }
-          <button type="button" class="btn" (click)="retryAll()">Erneut versuchen</button>
+          <ui-button (click)="retryAll()">Erneut versuchen</ui-button>
         </div>
       } @else if (firstLoad()) {
-        <div class="state state-loading"><span class="spinner" aria-hidden="true"></span>Lädt</div>
+        <div class="state state-loading">
+          @if (sbb()) {
+            @defer (on immediate) { <sbb-loading-indicator mode="small" aria-label="Lädt" /> }
+          } @else {
+            <span class="spinner" aria-hidden="true"></span>
+          }Lädt</div>
       } @else if (idle()) {
         <div class="state state-empty"><p>{{ idleText() }}</p></div>
       } @else if (empty()) {
@@ -54,6 +64,8 @@ import { LoadState } from '../core/query';
   `,
 })
 export class ChartCard {
+  private readonly style = inject(StyleService);
+  protected readonly sbb = computed(() => this.style.variant() === 'sbb');
   readonly heading = input.required<string>();
   readonly sub = input<string>('');
   /** One or more queries this panel depends on; the panel is empty only if the primary (first) is. */

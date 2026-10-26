@@ -23,6 +23,7 @@ import { STAGE_ORDER, stageColor, stageRank, shortId } from '../data/palette';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { barStyle, grid, legendTop, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiButton, UiTable } from '../../../shared/ui';
 
 interface GanttRow extends AnatomyGantt {
   s: number;
@@ -38,7 +39,7 @@ const DAY = (iso: string | null) => (iso ? Date.parse(`${iso.slice(0, 10)}T00:00
 
 @Component({
   selector: 'app-anatomy',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiButton, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './anatomy.html',
 })

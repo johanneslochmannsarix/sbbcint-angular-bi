@@ -55,7 +55,7 @@ import {
 } from 'echarts/components';
 import { LabelLayout, UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
-import { ChartTokens, ECHARTS_THEME, FONT_UI, TOKENS } from './tokens';
+import { ChartTokens, ECHARTS_THEMES, FONT_UI, SBB_TOKENS, TOKENS } from './tokens';
 
 echarts.use([
   BarChart,
@@ -98,25 +98,25 @@ echarts.use([
   CanvasRenderer,
 ]);
 
-function theme(t: ChartTokens): object {
+function theme(t: ChartTokens, font: string, filler: string): object {
   const axis = {
     axisLine: { lineStyle: { color: t.axis } },
     axisTick: { show: false },
-    axisLabel: { color: t.muted, fontFamily: FONT_UI },
+    axisLabel: { color: t.muted, fontFamily: font },
     splitLine: { lineStyle: { color: t.grid, type: 'solid', width: 1 } },
     nameTextStyle: { color: t.muted },
   };
   return {
     color: t.series,
     backgroundColor: 'transparent',
-    textStyle: { color: t.ink2, fontFamily: FONT_UI },
+    textStyle: { color: t.ink2, fontFamily: font },
     title: { textStyle: { color: t.ink }, subtextStyle: { color: t.muted } },
     legend: { textStyle: { color: t.ink2 }, inactiveColor: t.axis, pageTextStyle: { color: t.muted } },
     tooltip: {
       backgroundColor: t.tooltipBg,
       borderColor: t.tooltipBorder,
       borderWidth: 1,
-      textStyle: { color: t.ink, fontFamily: FONT_UI, fontSize: 12 },
+      textStyle: { color: t.ink, fontFamily: font, fontSize: 12 },
       extraCssText: 'box-shadow:none;border-radius:4px;',
     },
     categoryAxis: { ...axis, splitLine: { show: false } },
@@ -129,7 +129,7 @@ function theme(t: ChartTokens): object {
     dataZoom: {
       textStyle: { color: t.muted },
       borderColor: t.axis,
-      fillerColor: 'rgba(42,120,214,0.12)',
+      fillerColor: filler,
       handleStyle: { color: t.surface, borderColor: t.ink2 },
       moveHandleStyle: { color: t.axis },
       dataBackground: { lineStyle: { color: t.axis }, areaStyle: { color: t.grid } },
@@ -160,8 +160,23 @@ function theme(t: ChartTokens): object {
     graph: { lineStyle: { color: t.axis }, label: { color: t.ink2 } },
   };
 }
-echarts.registerTheme(ECHARTS_THEME.light, theme(TOKENS.light));
-echarts.registerTheme(ECHARTS_THEME.dark, theme(TOKENS.dark));
+const DEMO_FONT = '"Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif';
+echarts.registerTheme(ECHARTS_THEMES.demo.light, theme(TOKENS.light, DEMO_FONT, 'rgba(42,120,214,0.12)'));
+echarts.registerTheme(ECHARTS_THEMES.demo.dark, theme(TOKENS.dark, DEMO_FONT, 'rgba(42,120,214,0.12)'));
+
+/**
+ * The SBB style variant (core/style.ts, tokens.ts echartsTheme): same theme shape, SBB tokens, registered on first
+ * use as «sbb-<mode>-<rev>» with the chart font of that moment (FONT_UI, read from sbb.css once it has loaded).
+ */
+const sbbThemes = new Set<string>();
+function ensureSbbTheme(name: unknown): void {
+  if (typeof name !== 'string' || sbbThemes.has(name)) return;
+  const m = /^sbb-(light|dark)-\d+$/.exec(name);
+  if (!m) return;
+  const dark = m[1] === 'dark';
+  echarts.registerTheme(name, theme(dark ? SBB_TOKENS.dark : SBB_TOKENS.light, FONT_UI, dark ? 'rgba(22,130,208,0.16)' : 'rgba(0,121,199,0.12)'));
+  sbbThemes.add(name);
+}
 
 type InitArgs = Parameters<typeof echarts.init>;
 type Pending = { theme: InitArgs[1]; opts: InitArgs[2]; chart: Promise<echarts.ECharts> };
@@ -182,6 +197,7 @@ const pending = new WeakMap<HTMLElement, Pending>();
  *    but calls off() on the OLD, disposed one (createLazyEvent). off() on a disposed chart is a silent no-op here.
  */
 export function init(dom: HTMLElement, theme?: InitArgs[1], opts?: InitArgs[2]): echarts.ECharts | Promise<echarts.ECharts> {
+  ensureSbbTheme(theme);
   const existing = echarts.getInstanceByDom(dom);
   if (existing) return existing;
   const waiting = pending.get(dom);
@@ -226,6 +242,13 @@ function create(dom: HTMLElement, theme: InitArgs[1], opts: InitArgs[2]): echart
     return option == null ? undefined : setOption.call(this, option, ...rest);
   };
   return chart;
+}
+
+// Dev builds only: the style-variant parity check (demo/probes/style/parity.js) reads chart options through this;
+// it compares hashes, never prints values. Production builds (ngDevMode false) do not expose it.
+declare const ngDevMode: unknown;
+if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+  (globalThis as Record<string, unknown>)['__demoEcharts'] = { getInstanceByDom: echarts.getInstanceByDom };
 }
 
 export const connect = echarts.connect;

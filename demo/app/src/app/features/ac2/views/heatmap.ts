@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
+import { UiButton, UiOption, UiSeg } from '../../../shared/ui';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { ECharts, EChartsCoreOption } from 'echarts/core';
 import { DataStore, Person, label } from '../data/model';
@@ -26,18 +27,15 @@ type Sort = 'gaps_desc' | 'gaps_asc';
  */
 @Component({
   selector: 'app-heatmap',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wer hat welche Qualifikation" [sub]="sub()" [q]="store.modelQueries" [forceEmpty]="!!store.model() && !store.model()!.persons.length">
       <div card-tools class="tools">
-        <div class="seg seg-sm" role="group" aria-label="Sortierung der Zeilen">
-          <button type="button" [attr.aria-pressed]="sort() === 'gaps_desc'" (click)="sort.set('gaps_desc')">Meiste Lücken oben</button>
-          <button type="button" [attr.aria-pressed]="sort() === 'gaps_asc'" (click)="sort.set('gaps_asc')">Wenigste oben</button>
-        </div>
-        <button type="button" class="btn" [class.is-on]="brushing()" (click)="startBrush()" title="Ziehen Sie über die Zeilen, um eine Gruppe von Personen auszuwählen">Zeilen auswählen</button>
+        <ui-seg size="sm" ariaLabel="Sortierung der Zeilen" [value]="sort()" (valueChange)="sort.set($event)" [options]="sortOptions" />
+        <ui-button [on]="brushing()" (click)="startBrush()" tip="Ziehen Sie über die Zeilen, um eine Gruppe von Personen auszuwählen">Zeilen auswählen</ui-button>
         @if (sel.active()) {
-          <button type="button" class="btn btn-ghost" (click)="clearBrush()">Auswahl aufheben</button>
+          <ui-button kind="ghost" (click)="clearBrush()">Auswahl aufheben</ui-button>
         }
       </div>
       <div class="legend-row" role="group" aria-label="Status ein- und ausblenden">
@@ -63,7 +61,8 @@ type Sort = 'gaps_desc' | 'gaps_asc';
   `,
   styles: [`
     .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .btn.is-on { border-color: var(--accent); background: var(--accent-wash); }
+    /* the button renders inside ui-button (shared/ui), outside this component's style scope */
+    :host ::ng-deep .btn.is-on { border-color: var(--accent); background: var(--accent-wash); }
     .legend-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 2px 0 8px; }
     .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); background: var(--surface); border-radius: 999px; padding: 2px 10px; font-size: 12.5px; cursor: pointer; color: var(--ink); }
     .chip[aria-pressed="false"] { color: var(--muted); text-decoration: line-through; }
@@ -88,6 +87,10 @@ export class HeatmapView {
   protected readonly model = this.store.model;
 
   protected readonly sort = signal<Sort>('gaps_asc');
+  protected readonly sortOptions: UiOption<Sort>[] = [
+    { value: 'gaps_desc', label: 'Meiste Lücken oben' },
+    { value: 'gaps_asc', label: 'Wenigste oben' },
+  ];
   protected readonly hidden = signal<ReadonlySet<StatusCode>>(new Set());
   protected readonly brushing = signal(false);
   private main: ECharts | null = null;

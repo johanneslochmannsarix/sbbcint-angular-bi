@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ViewEncapsulation, computed, inject } from '@angular/core';
 import { StoryService } from '../../story/story';
-import { ENVS } from '../../core/api';
+import { ENVS, Env } from '../../core/api';
 import { HeaderSlot } from '../../core/header-slot';
 import { dateOnly, dateTimeLU, localMs } from '../../core/format';
+import { UiButton, UiOption, UiSelect, UiSelectOption, UiSeg } from '../../shared/ui';
 import { Ac4Store, monthLabel } from './data/store';
 import { AenderungenView } from './views/aenderungen';
 import { AngerechnetView } from './views/angerechnet';
@@ -23,7 +24,7 @@ import { TourDrillView } from './views/tour-drill';
  */
 @Component({
   selector: 'app-ac4-page',
-  imports: [HeaderSlot, KpiBand, OverviewView, TaetigkeitenView, TourDrillView, PersonaltypenView, PlanJupView, PlanIstView, AenderungenView, AngerechnetView],
+  imports: [HeaderSlot, UiSeg, UiSelect, UiButton, KpiBand, OverviewView, TaetigkeitenView, TourDrillView, PersonaltypenView, PlanJupView, PlanIstView, AenderungenView, AngerechnetView],
   providers: [Ac4Store],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -33,18 +34,8 @@ import { TourDrillView } from './views/tour-drill';
     <ng-template appHeader>
       <div class="slot-row">
         <span class="slot-title ac4-title">FiCo Produktivität</span>
-        <div class="seg" role="group" aria-label="Umgebung">
-          @for (e of envs; track e) {
-            <button type="button" [attr.aria-pressed]="store.env() === e" (click)="store.setEnv(e)">{{ e }}</button>
-          }
-        </div>
-        <div class="seg seg-sm" role="group" aria-label="Planmonat">
-          <button type="button" [attr.aria-pressed]="!store.month()" (click)="store.pickMonth(null)">alle</button>
-          @for (m of store.monthsAll(); track m) {
-            <button type="button" [attr.aria-pressed]="store.month() === m" (click)="store.pickMonth(m)"
-                    [title]="store.incomplete(m) ?? ''" [class.ac4-inc]="!!store.incomplete(m)">{{ label(m) }}</button>
-          }
-        </div>
+        <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="store.setEnv($event)" />
+        <ui-seg size="sm" ariaLabel="Planmonat" [options]="monthOptions()" [value]="store.month()" (valueChange)="store.pickMonth($event)" />
         <div class="asof" title="sm_fico hat keinen eigenen Datenstand: jüngste rückgemeldete Ist-Zeit eines Tourelements und das Planfenster">
           <span class="asof-label">Stand</span>
           <span class="asof-value">{{ asOf() }}</span>
@@ -54,7 +45,7 @@ import { TourDrillView } from './views/tour-drill';
 
     <ng-template appHeader="sub">
       <nav class="sel-bar ac4-crumbs" aria-label="Drill-Pfad">
-        <button type="button" class="btn btn-ghost ac4-back" (click)="store.back()" [disabled]="!canBack()" aria-label="Eine Ebene zurück">‹ Zurück</button>
+        <ui-button kind="ghost" extraClass="ac4-back" (click)="store.back()" [disabled]="!canBack()" label="Eine Ebene zurück">‹ Zurück</ui-button>
         <button type="button" class="linkish" (click)="store.pickFirma(null); store.pickStandort(null)">Alle Firmen</button>
         @if (store.firma(); as f) {
           <span aria-hidden="true">›</span>
@@ -70,16 +61,10 @@ import { TourDrillView } from './views/tour-drill';
         }
         <span class="ac4-crumb-gap"></span>
         <label class="ac4-field">Personaltyp Tour
-          <select class="select" [value]="store.ptyp() ?? ''" (change)="setPtyp($any($event.target).value)">
-            <option value="">alle</option>
-            @for (p of store.ptyps(); track p.key) { <option [value]="p.rang">{{ p.label }}</option> }
-          </select>
+          <ui-select [options]="ptypOptions()" [value]="ptypValue()" (valueChange)="setPtyp($event)" />
         </label>
         <label class="ac4-field">Tätigkeit
-          <select class="select" [value]="store.taet() ?? ''" (change)="setTaet($any($event.target).value)">
-            <option value="">alle</option>
-            @for (t of store.taets(); track t.key) { <option [value]="t.key">{{ t.label }}</option> }
-          </select>
+          <ui-select [options]="taetOptions()" [value]="store.taet() ?? ''" (valueChange)="setTaet($event)" />
         </label>
         @if (store.firma() || store.standort() || store.ptyp() != null || store.taet() || store.tour()) {
           <button type="button" class="linkish" (click)="store.clearAll()">Alles aufheben</button>
@@ -111,8 +96,21 @@ import { TourDrillView } from './views/tour-drill';
 })
 export class Ac4Page {
   protected readonly store = inject(Ac4Store);
-  protected readonly envs = ENVS;
-  protected readonly label = (m: string) => monthLabel(m);
+  protected readonly envOptions: UiOption<Env>[] = ENVS.map((e) => ({ value: e, label: e }));
+  /** «alle» + the plan months; an incomplete month carries its reason as title and the ac4-inc mark */
+  protected readonly monthOptions = computed<UiOption<string | null>[]>(() => [
+    { value: null, label: 'alle' },
+    ...this.store.monthsAll().map((m) => ({ value: m, label: monthLabel(m), title: this.store.incomplete(m) ?? '', cls: this.store.incomplete(m) ? 'ac4-inc' : undefined })),
+  ]);
+  protected readonly ptypOptions = computed<UiSelectOption[]>(() => [
+    { value: '', label: 'alle' },
+    ...this.store.ptyps().map((p) => ({ value: String(p.rang), label: p.label ?? '' })),
+  ]);
+  protected readonly ptypValue = computed(() => String(this.store.ptyp() ?? ''));
+  protected readonly taetOptions = computed<UiSelectOption[]>(() => [
+    { value: '', label: 'alle' },
+    ...this.store.taets().map((t) => ({ value: t.key, label: t.label ?? '' })),
+  ]);
 
   protected readonly asOf = computed(() => {
     const s = this.store.stand.rows()[0];

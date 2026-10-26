@@ -9,6 +9,7 @@ import { ChartCard } from '../../../shared/chart-card';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { PseudonymChip } from '../../../shared/pseudonym-chip';
 import { QualLink } from '../../../shared/qual-link';
+import { UiButton } from '../../../shared/ui';
 import { ac8Colors } from '../data/palette';
 import { Ac8Store } from '../data/store';
 
@@ -21,14 +22,14 @@ import { Ac8Store } from '../data/store';
  */
 @Component({
   selector: 'ac8-version-timeline',
-  imports: [NgxEchartsDirective, ChartCard, PseudonymChip, QualLink],
+  imports: [NgxEchartsDirective, ChartCard, PseudonymChip, QualLink, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { id: 'ac8-versionen' },
   template: `
     <app-card heading="Versionsverlauf einer Schicht" [sub]="sub()" [q]="store.shiftVersions" idleText="Noch keine Schicht gewählt.">
       <div card-tools class="ac8-tools">
         @if (planPerson(); as p) { <span class="muted">jetzt eingeteilt</span> <app-pseudonym [person]="p" /> <app-qual-link [person]="p.key" tenant="CARGOCONTROL" [env]="store.env()" /> }
-        @if (store.shift()) { <button type="button" class="btn btn-ghost" (click)="store.shift.set(null)">Schicht mit den meisten Versionen</button> }
+        @if (store.shift()) { <ui-button kind="ghost" (click)="store.shift.set(null)">Schicht mit den meisten Versionen</ui-button> }
       </div>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()"></div>
       <p class="chart-note">{{ note() }}</p>

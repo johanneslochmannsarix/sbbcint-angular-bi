@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ViewEncapsulation, computed, effect, inject } from '@angular/core';
 import { HeaderSlot } from '../../core/header-slot';
+import { Env } from '../../core/api';
+import { UiButton, UiOption, UiSelect, UiSelectOption, UiSeg } from '../../shared/ui';
 import { StoryService } from '../../story/story';
 import { BLANK, dateTimeLU, localMs, num, utcMs } from '../../core/format';
 import { Ac9Store, monthLabel } from './data/store';
 import { RULES } from './data/rules';
-import { KATS, KatCode } from './data/types';
+import { GaCode, KATS, KatCode } from './data/types';
 import { AuftragDrill } from './views/auftrag-drill';
 import { Beleg } from './views/beleg';
 import { IstPlan } from './views/ist-plan';
@@ -26,7 +28,7 @@ import { Trend } from './views/trend';
  */
 @Component({
   selector: 'app-ac9-page',
-  imports: [HeaderSlot, MonthBar, Beleg, Portfolio, Trend, Quote, IstPlan, Schwellen, AuftragDrill, TourDrill, PersonDrill],
+  imports: [HeaderSlot, UiSeg, UiButton, UiSelect, MonthBar, Beleg, Portfolio, Trend, Quote, IstPlan, Schwellen, AuftragDrill, TourDrill, PersonDrill],
   providers: [Ac9Store],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -36,11 +38,7 @@ import { Trend } from './views/trend';
     <ng-template appHeader>
       <div class="slot-row">
         <span class="slot-title ac9-title">Rechnungslegung RT&amp;S</span>
-        <div class="seg" role="group" aria-label="Umgebung">
-          @for (e of store.envs; track e) {
-            <button type="button" [attr.aria-pressed]="store.env() === e" (click)="store.setEnv(e)">{{ e }}</button>
-          }
-        </div>
+        <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="store.setEnv($event)" />
         <div class="asof" title="Gold-Schreibzeit der Tourtabelle (UTC) und jüngstes zurückgemeldetes IST-Ende">
           <span class="asof-label">Stand</span>
           <span class="asof-value">{{ asOf() }}</span>
@@ -50,7 +48,7 @@ import { Trend } from './views/trend';
 
     <ng-template appHeader="sub">
       <nav class="sel-bar ac9-crumbs" aria-label="Drill-Pfad und Filter">
-        <button type="button" class="btn btn-ghost" (click)="store.back()" [disabled]="!store.auftrag() && !store.tour() && !store.person()" aria-label="Eine Ebene zurück">‹ Zurück</button>
+        <ui-button kind="ghost" (click)="store.back()" [disabled]="!store.auftrag() && !store.tour() && !store.person()" label="Eine Ebene zurück">‹ Zurück</ui-button>
         <button type="button" class="linkish" (click)="store.openAuftrag(null)">Alle Aufträge</button>
         @if (store.auftrag()) {
           <span aria-hidden="true">›</span>
@@ -64,17 +62,10 @@ import { Trend } from './views/trend';
           <span aria-hidden="true">›</span><span>{{ p }}</span>
         }
         <span class="ac9-gap"></span>
-        <div class="seg seg-sm" role="group" aria-label="Geschäftsart">
-          <button type="button" [attr.aria-pressed]="!store.ga()" (click)="store.setGa(null)">AÜ und DL</button>
-          <button type="button" [attr.aria-pressed]="store.ga() === 'AUE'" (click)="store.setGa('AUE')">AÜ</button>
-          <button type="button" [attr.aria-pressed]="store.ga() === 'DL'" (click)="store.setGa('DL')">DL</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Geschäftsart" [options]="gaOptions" [value]="store.ga()" (valueChange)="store.setGa($event)" />
         <label class="field-custom field">
           <span class="field-label">Kategorie des Auftrags</span>
-          <select class="select" [value]="store.kat() ?? ''" (change)="setKat($any($event.target).value)">
-            <option value="">alle</option>
-            @for (k of kats; track k.code) { <option [value]="k.code">{{ k.label }}</option> }
-          </select>
+          <ui-select [options]="katOptions" [value]="store.kat() ?? ''" (valueChange)="setKat($event)" />
         </label>
         @if (store.ga() || store.kat() || store.auftrag()) {
           <button type="button" class="linkish" (click)="store.clearAll()">Alles aufheben</button>
@@ -125,6 +116,13 @@ export class Ac9Page {
   protected readonly store = inject(Ac9Store);
   protected readonly rules = RULES;
   protected readonly kats = KATS;
+  protected readonly envOptions: UiOption<Env>[] = this.store.envs.map((e) => ({ value: e, label: e }));
+  protected readonly gaOptions: UiOption<GaCode | null>[] = [
+    { value: null, label: 'AÜ und DL' },
+    { value: 'AUE', label: 'AÜ' },
+    { value: 'DL', label: 'DL' },
+  ];
+  protected readonly katOptions: UiSelectOption[] = [{ value: '', label: 'alle' }, ...KATS.map((k) => ({ value: k.code, label: k.label }))];
 
   protected readonly headline = computed(() => {
     const where = this.store.auftrag() ? (this.store.orderLabel() ?? 'Auftrag') : 'Alle Aufträge';

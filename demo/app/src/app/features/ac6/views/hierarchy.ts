@@ -11,6 +11,7 @@ import { MergeOptions } from '../../../shared/merge-options';
 import { ac6Colors, fahrenColor } from '../data/palette';
 import { Ac6Store } from '../data/store';
 import { HierRow } from '../data/types';
+import { UiOption, UiSeg } from '../../../shared/ui';
 
 type Lvl = 'firma' | 'ts' | 'pt' | 'taet';
 const NEXT: Record<Lvl, Lvl | null> = { firma: 'ts', ts: 'pt', pt: 'taet', taet: null };
@@ -36,15 +37,12 @@ interface Node {
  */
 @Component({
   selector: 'ac6-hierarchy',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wer trägt die Planung?" [q]="store.hier" emptyNote="Unter diesem Filter plant die Version nichts.">
       <div card-tools class="ac6-tools">
-        <div class="seg seg-sm" role="group" aria-label="Darstellung">
-          <button type="button" [attr.aria-pressed]="shape() === 'ring'" (click)="shape.set('ring')">Ringe</button>
-          <button type="button" [attr.aria-pressed]="shape() === 'rang'" (click)="shape.set('rang')">Rangliste</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Darstellung" [options]="shapeOptions" [value]="shape()" (valueChange)="shape.set($event)" />
       </div>
       <p class="ac6-answer">{{ answer() }}</p>
       <div echarts class="chart" [style.height.px]="height()" [options]="blank" [mergeOptions]="options()" [theme]="theme.echartsTheme()"
@@ -62,6 +60,10 @@ export class HierarchyView {
   protected readonly store = inject(Ac6Store);
   protected readonly theme = inject(ThemeService);
   protected readonly shape = signal<'ring' | 'rang'>('ring');
+  protected readonly shapeOptions: UiOption<'ring' | 'rang'>[] = [
+    { value: 'ring', label: 'Ringe' },
+    { value: 'rang', label: 'Rangliste' },
+  ];
   protected readonly blank: EChartsCoreOption = {};
   protected readonly colors = computed(() => ac6Colors(this.theme.mode()));
 

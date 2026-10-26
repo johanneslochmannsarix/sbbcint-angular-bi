@@ -11,6 +11,7 @@ import { ac6Colors, fahrenColor } from '../data/palette';
 import { Ac6Store } from '../data/store';
 import { TourRow } from '../data/types';
 import { clock, weekTime } from '../data/week';
+import { UiTable } from '../../../shared/ui';
 
 const H = 3_600_000;
 
@@ -25,7 +26,7 @@ const H = 3_600_000;
   selector: 'ac6-tour-drill',
   styleUrl: './tour-drill.css',
   encapsulation: ViewEncapsulation.None,
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [heading]="heading()" [q]="store.touren" idleText="Einen Tourstandort wählen (Raster, Ringe, Vergleich), dann eine Tour."
@@ -33,7 +34,7 @@ const H = 3_600_000;
       <p class="ac6-answer">{{ answer() }}</p>
       <div class="ac6-split ac6-split-drill">
         <div class="ac6-list" role="listbox" aria-label="Touren des Tourstandorts">
-          <table class="tbl ac6-tbl">
+          <table class="tbl ac6-tbl" uiTable>
             <thead><tr><th>Tour</th><th>Beginn</th><th>Ende</th><th class="num">Dauer</th><th class="num">Elemente</th><th class="num">Fahren</th></tr></thead>
             <tbody>
               @for (r of store.touren.rows(); track r.tour_id) {

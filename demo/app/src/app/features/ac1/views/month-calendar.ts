@@ -6,6 +6,7 @@ import { ThemeService } from '../../../core/theme';
 import { ChartCard } from '../../../shared/chart-card';
 import { esc, ttHead, ttRow } from '../../../shared/chart-opts';
 import { ChartResize } from '../../../shared/chart-resize';
+import { UiButton } from '../../../shared/ui';
 import { GROUP_ORDER, OTHER_TOURS, Paint, groupKey, groupLabel, groupPaint, tourKeyOf, tourPaint, tourPalette } from '../data/colors';
 import { AUDIENCE_LABEL, PeriodRow, summariseDays } from '../data/model';
 import { Ac1Store, label, nextMonth } from '../data/store';
@@ -22,16 +23,16 @@ const FULL_H = 12;
  */
 @Component({
   selector: 'ac1-month-calendar',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [heading]="heading()" [sub]="sub()" [q]="store.monthTours"
       [forceEmpty]="!!store.monthTours.result() && store.focusMonthRows().length === 0"
       [emptyNote]="'Für diese Person ist in diesem Kalendermonat nichts geplant.'">
       <div card-tools class="cal-tools">
-        <button type="button" class="btn btn-ghost" (click)="store.shiftMonth(-1)" aria-label="Vorheriger Monat">‹</button>
+        <ui-button kind="ghost" (click)="store.shiftMonth(-1)" label="Vorheriger Monat">‹</ui-button>
         <span class="cal-month">{{ monthText() }}</span>
-        <button type="button" class="btn btn-ghost" (click)="store.shiftMonth(1)" aria-label="Nächster Monat">›</button>
+        <ui-button kind="ghost" (click)="store.shiftMonth(1)" label="Nächster Monat">›</ui-button>
       </div>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()" [theme]="theme.echartsTheme()"
         (chartClick)="pick($any($event))"></div>

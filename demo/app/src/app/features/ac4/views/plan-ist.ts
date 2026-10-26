@@ -6,6 +6,7 @@ import { ThemeService } from '../../../core/theme';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiTable } from '../../../shared/ui';
 import { ac4Colors, fahrenColor } from '../data/palette';
 import { Ac4Store, monthLabel } from '../data/store';
 import { PlanIstRow } from '../data/types';
@@ -25,7 +26,7 @@ const signed = (v: number | null | undefined) => (v == null ? BLANK : `${v > 0 ?
  */
 @Component({
   selector: 'ac4-plan-ist',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wo weicht das Ist vom Plan ab, und wie oft wird es überhaupt erfasst?" [q]="[store.planIst, store.monate]"
@@ -46,13 +47,13 @@ const signed = (v: number | null | undefined) => (v == null ? BLANK : `${v > 0 ?
           <h3 class="ac4-h3">Ist-Erfassung je Planmonat (vergangene Elemente)</h3>
           <div echarts class="chart" style="height: 150px" [options]="strip()!" [theme]="theme.echartsTheme()"></div>
           <h3 class="ac4-h3">{{ brushTitle() }}</h3>
-          <table class="tbl ac4-tbl">
+          <table class="tbl ac4-tbl" uiTable>
             <thead><tr><th>Tätigkeit</th><th class="r">Elemente</th><th class="r">Median Beginn</th></tr></thead>
             <tbody>
               @for (r of byTaet(); track r.name) { <tr><td>{{ r.name }}</td><td class="r">{{ r.n }}</td><td class="r">{{ r.med }}</td></tr> }
             </tbody>
           </table>
-          <table class="tbl ac4-tbl">
+          <table class="tbl ac4-tbl" uiTable>
             <thead><tr><th>Tourstandort</th><th class="r">Elemente</th><th class="r">Median Beginn</th></tr></thead>
             <tbody>
               @for (r of byStandort(); track r.name) { <tr><td>{{ r.name }}</td><td class="r">{{ r.n }}</td><td class="r">{{ r.med }}</td></tr> }

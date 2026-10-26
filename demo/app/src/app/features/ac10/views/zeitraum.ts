@@ -7,6 +7,9 @@ import { addDays, dateShort, dayMs, isoDay, num, today } from '../../../core/for
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { Ac10Store, isoWeek } from '../data/store';
 import { ac10Colors } from '../data/palette';
+import { UiOption, UiSeg } from '../../../shared/ui';
+
+type Preset = 'standard' | 'woche' | 'naechste' | 'vier' | 'alles';
 
 const WD = new Intl.DateTimeFormat('de-CH', { weekday: 'short' });
 const LONG = new Intl.DateTimeFormat('de-CH', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -20,7 +23,7 @@ const LONG = new Intl.DateTimeFormat('de-CH', { weekday: 'short', day: '2-digit'
  */
 @Component({
   selector: 'ac10-zeitraum',
-  imports: [NgxEchartsDirective, ChartResize],
+  imports: [NgxEchartsDirective, ChartResize, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './zeitraum.css',
   host: { class: 'ac10-zeit', role: 'group', 'aria-label': 'Zeitraum' },
@@ -30,13 +33,7 @@ const LONG = new Intl.DateTimeFormat('de-CH', { weekday: 'short', day: '2-digit'
         <span class="ac10-zeit-dates">{{ rangeText() }}</span>
         <span class="ac10-zeit-meta">{{ metaText() }}</span>
       </div>
-      <div class="seg seg-sm" role="group" aria-label="Zeitraum-Vorlagen">
-        <button type="button" [attr.aria-pressed]="store.isDefaultWindow()" (click)="store.preset('standard')" title="Standard wie im Bericht: heute −3 bis +7 Tage, läuft jeden Tag mit">−3 … +7 Tage</button>
-        <button type="button" [attr.aria-pressed]="active() === 'woche'" (click)="store.preset('woche')">Diese Woche</button>
-        <button type="button" [attr.aria-pressed]="active() === 'naechste'" (click)="store.preset('naechste')">Nächste Woche</button>
-        <button type="button" [attr.aria-pressed]="active() === 'vier'" (click)="store.preset('vier')">4 Wochen</button>
-        <button type="button" [attr.aria-pressed]="active() === 'alles'" (click)="store.preset('alles')">Ganzes Fenster</button>
-      </div>
+      <ui-seg size="sm" ariaLabel="Zeitraum-Vorlagen" [options]="presetOptions" [value]="presetValue()" (valueChange)="store.preset($event)" />
     </div>
     <div echarts class="ac10-zeit-chart" [options]="options()!" [theme]="theme.echartsTheme()" (chartInit)="chart.set($event)"
          role="img" [attr.aria-label]="'Ungeplante Schichten je Tag im aufbereiteten Fenster; gewählt ' + rangeText()"></div>
@@ -47,6 +44,14 @@ export class ZeitraumView {
   protected readonly store = inject(Ac10Store);
   protected readonly theme = inject(ThemeService);
   protected readonly chart = signal<ECharts | null>(null);
+  protected readonly presetOptions: UiOption<Preset>[] = [
+    { value: 'standard', label: '−3 … +7 Tage', title: 'Standard wie im Bericht: heute −3 bis +7 Tage, läuft jeden Tag mit' },
+    { value: 'woche', label: 'Diese Woche' },
+    { value: 'naechste', label: 'Nächste Woche' },
+    { value: 'vier', label: '4 Wochen' },
+    { value: 'alles', label: 'Ganzes Fenster' },
+  ];
+  protected readonly presetValue = computed<Preset | null>(() => (this.store.isDefaultWindow() ? 'standard' : this.active()));
 
   protected readonly rangeText = computed(() => `${LONG.format(dayMs(this.store.from())!)} – ${LONG.format(dayMs(this.store.to())!)}`);
   protected readonly metaText = computed(() => {

@@ -10,13 +10,7 @@
     </div>
     <div class="field">
       <label class="field-label" for="regime">Regime</label>
-      <select id="regime" class="select" [value]="regime()" (change)="setRegime($any($event.target).value)">
-        <option value="current">Current regime</option>
-        <option value="all">All regimes</option>
-        @for (r of stageRegimes(); track r.regime_label) {
-          <option [value]="r.regime_label">{{ r.regime_label }} (from {{ fmt.dateOnly(r.regime_from) }}, n {{ r.regime_n }})</option>
-        }
-      </select>
+      <ui-select selectId="regime" [options]="regimeOptions()" [value]="regime()" (valueChange)="setRegime($event)" />
     </div>
   </section>
 
@@ -26,10 +20,8 @@
         [sub]="(stage() ?? '') + ', ' + regimeText() + '. Click a box for its control chart, an outlier for its run.' + (droppedForLog() ? ' ' + droppedForLog() + ' runs at 0 s are not drawn on the log scale.' : '')"
         [q]="box" [forceEmpty]="!!box.result() && box.rows().length > 0 && groups().length === 0"
         emptyNote="No runs for this stage in the chosen regime and window.">
-        <div card-tools class="seg seg-sm" role="group" aria-label="Axis scale">
-          <button type="button" [attr.aria-pressed]="logScale()" (click)="logScale.set(true)">Log</button>
-          <button type="button" [attr.aria-pressed]="!logScale()" (click)="logScale.set(false)">Linear</button>
-        </div>
+        <ui-seg card-tools size="sm" ariaLabel="Axis scale" [value]="logScale()" (valueChange)="logScale.set($event)"
+          [options]="[{ value: true, label: 'Log' }, { value: false, label: 'Linear' }]" />
         <div echarts class="chart" [style.height.px]="boxHeight()" [options]="boxOptions()!" [theme]="theme.echartsTheme()" (chartClick)="onBoxClick($any($event))"></div>
       </app-card>
 
@@ -40,7 +32,7 @@
               <h2>Outlier in {{ o.step }}: {{ fmt.num(o.value, 1) }} s</h2>
               <p class="card-sub">{{ o.runs.length }} run{{ o.runs.length === 1 ? '' : 's' }} with this exact value</p>
             </div>
-            <button type="button" class="btn btn-ghost" (click)="outlier.set(null)">Close</button>
+            <ui-button kind="ghost" (click)="outlier.set(null)">Close</ui-button>
           </header>
           <ul class="run-list">
             @for (r of o.runs; track $index) {
@@ -75,7 +67,7 @@
 
       <app-card heading="Regimes" [sub]="regimes.rows().length + ' regimes, newest first'" [q]="regimes">
         <div class="table-wrap">
-          <table class="tbl">
+          <table class="tbl" uiTable>
             <thead><tr><th>Stage</th><th>Regime</th><th>From</th><th>Change</th><th class="r">n</th></tr></thead>
             <tbody>
               @for (r of regimes.rows(); track $index) {
@@ -93,7 +85,7 @@
 
   <app-card heading="Step statistics" [sub]="table.rows().length + ' steps, model measures for the current regime. Click a row to select the step.'" [q]="table">
     <div class="table-wrap table-tall">
-      <table class="tbl tbl-click">
+      <table class="tbl tbl-click" uiTable>
         <thead>
           <tr><th>Stage</th><th>Step</th><th>Regime</th><th class="r">n</th><th class="r">Median s</th><th class="r">p90 s</th><th class="r">Std s</th><th class="r">CV</th><th class="r">Slope s/d</th><th class="r">Outliers</th></tr>
         </thead>

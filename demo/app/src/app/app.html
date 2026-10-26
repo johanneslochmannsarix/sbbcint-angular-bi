@@ -1,43 +1,44 @@
-<header class="shell-head">
-  <div class="shell-bar">
-    <a class="brand" routerLink="/">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <span>Demo</span>
-    </a>
-    <nav class="tabs" aria-label="Showcases">
-      <a routerLink="/ac1" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-1 Plantafel</a>
-      <a routerLink="/ac2" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-2 Qualifikationen</a>
-      <a routerLink="/ac8" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-8 Leitstand Olten</a>
-      <a routerLink="/ac4" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-4 FiCo Produktivität</a>
-      <a routerLink="/ac10" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-10 Offene Schichten</a>
-      <a routerLink="/ac6" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-6 JUP Planung</a>
-      <a routerLink="/ac7" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-7 Verleihliste</a>
-      <a routerLink="/ac9" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-9 Rechnungslegung</a>
-      <a routerLink="/ac13" routerLinkActive="is-active" ariaCurrentWhenActive="page">AC-13 Nachbereitung CD</a>
-      <a routerLink="/metrics" routerLinkActive="is-active" ariaCurrentWhenActive="page">Plattform-Metriken</a>
-    </nav>
-    <div class="slot-main">
-      @if (slot.main(); as t) {
-        <ng-container [ngTemplateOutlet]="t" />
-      }
-    </div>
-    @if (api.mode(); as mode) {
-      <span class="mode" [class.mode-real]="mode === 'real'"
-        [title]="mode === 'masked' ? 'Personen erscheinen als Pseudonym P-xxxxxx (zufälliger Schlüssel je Backend-Start).' : 'Klarnamen: Backend mit run.ps1 -Real gestartet. Nicht teilen.'">
-        {{ mode === 'masked' ? 'Pseudonymisiert' : 'Klarnamen' }}
-      </span>
-    }
-    <button type="button" class="btn btn-ghost theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Darstellung: ' + theme.pref() + '. Umschalten.'">
-      <span class="theme-glyph" [class.is-dark]="theme.mode() === 'dark'" aria-hidden="true"></span>
-      {{ theme.pref() === 'system' ? 'System' : theme.pref() === 'dark' ? 'Dunkel' : 'Hell' }}
-    </button>
-  </div>
-  @if (slot.sub(); as t) {
-    <div class="slot-sub">
-      <ng-container [ngTemplateOutlet]="t" />
-    </div>
+@if (style.variant() === 'sbb') {
+  <!-- the SBB style variant's shell (core/style.ts); deferred, so the demo variant never loads SBB code -->
+  @defer (on immediate) {
+    <app-sbb-header />
   }
-</header>
+} @else {
+  <header class="shell-head">
+    <div class="shell-bar">
+      <a class="brand" routerLink="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Demo</span>
+      </a>
+      <nav class="tabs" aria-label="Showcases">
+        @for (s of showcases; track s.path) {
+          <a [routerLink]="s.path" routerLinkActive="is-active" ariaCurrentWhenActive="page">{{ s.label }}</a>
+        }
+      </nav>
+      <div class="slot-main">
+        @if (slot.main(); as t) {
+          <ng-container [ngTemplateOutlet]="t" />
+        }
+      </div>
+      @if (api.mode(); as mode) {
+        <span class="mode" [class.mode-real]="mode === 'real'"
+          [title]="mode === 'masked' ? 'Personen erscheinen als Pseudonym P-xxxxxx (zufälliger Schlüssel je Backend-Start).' : 'Klarnamen: Backend mit run.ps1 -Real gestartet. Nicht teilen.'">
+          {{ mode === 'masked' ? 'Pseudonymisiert' : 'Klarnamen' }}
+        </span>
+      }
+      <button type="button" class="btn btn-ghost theme-btn" (click)="style.toggle()" aria-label="Stil: Demo. Umschalten auf SBB.">Stil: Demo</button>
+      <button type="button" class="btn btn-ghost theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Darstellung: ' + theme.pref() + '. Umschalten.'">
+        <span class="theme-glyph" [class.is-dark]="theme.mode() === 'dark'" aria-hidden="true"></span>
+        {{ theme.pref() === 'system' ? 'System' : theme.pref() === 'dark' ? 'Dunkel' : 'Hell' }}
+      </button>
+    </div>
+    @if (slot.sub(); as t) {
+      <div class="slot-sub">
+        <ng-container [ngTemplateOutlet]="t" />
+      </div>
+    }
+  </header>
+}
 
 <main class="shell-main">
   <router-outlet />

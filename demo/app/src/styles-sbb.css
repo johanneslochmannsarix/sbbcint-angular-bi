@@ -1,0 +1,90 @@
+/* The SBB style variant (core/style.ts): a lazy bundle (angular.json "bundleName": "sbb", "inject": false),
+   loaded only when html.sbb-lean is set and disabled again for the demo variant, so none of this reaches it.
+
+   SBB's typography.css sits in a cascade layer: its element defaults and its own component classes apply where
+   the demo's (unlayered) layout classes say nothing, and the demo's layout (cards, grids, tiles) keeps working.
+   SBB components' own styles (sbb-select, sbb-toggle, sbb-header-lean ...) are injected by Angular unlayered.
+   Fonts: typography.css loads SBBWeb from cdn.app.sbb.ch (not shipped in the npm package); offline the SBB stack
+   falls back to Helvetica Neue / Arial (Johannes 2026-10-24: no self-hosted SBB font). */
+@import '@sbb-esta/angular/typography.css' layer(sbb);
+
+/* ---------------------------------------------------------------- the demo's tokens, mapped to SBB lean */
+:root.sbb-lean.sbb-light {
+  color-scheme: light;
+  --plane: var(--sbb-color-milk);
+  --surface: var(--sbb-color-white);
+  --surface-2: var(--sbb-color-milk);
+  --ink: var(--sbb-color-black);
+  --ink-2: var(--sbb-color-iron);
+  --muted: var(--sbb-color-metal);
+  --rule: var(--sbb-color-cloud);
+  --rule-strong: var(--sbb-color-cement);
+  --accent: var(--sbb-color-red);
+  --accent-wash: rgba(0, 0, 0, 0.06);
+  --mark: rgba(0, 0, 0, 0.04);
+}
+:root.sbb-lean.sbb-dark {
+  color-scheme: dark;
+  --plane: var(--sbb-color-midnight);
+  --surface: var(--sbb-color-charcoal);
+  --surface-2: #1b1b1b;
+  --ink: var(--sbb-color-white);
+  --ink-2: var(--sbb-color-silver);
+  --muted: var(--sbb-color-storm);
+  --rule: #333333;
+  --rule-strong: var(--sbb-color-anthracite);
+  --accent: var(--sbb-color-call-to-action);
+  --accent-wash: rgba(255, 255, 255, 0.08);
+  --mark: rgba(255, 255, 255, 0.05);
+}
+:root.sbb-lean {
+  /* read by core/tokens.ts for the charts (canvas text needs the family names themselves) */
+  --ui-chart-font: var(--sbb-font-roman);
+  --critical: var(--sbb-color-error);
+  --font-ui: var(--sbb-font-roman);
+  --font-display: var(--sbb-font-roman);
+  --r-card: 4px;
+  --r-ctl: 2px;
+}
+:root.sbb-lean body {
+  background: var(--plane);
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
+:root.sbb-lean :is(h1, h2, h3) { font-family: var(--sbb-font-bold); font-weight: normal; }
+/* the showcases' own type tokens (features/<ac>/<ac>.css): serif heads and condensed numbers become SBBWeb */
+:root.sbb-lean :is(.ac4, .ac6, .ac7, .ac9, .ac13) {
+  --ac4-serif: var(--sbb-font-light);
+  --ac4-num: var(--sbb-font-roman);
+  --ac6-cond: var(--sbb-font-roman);
+  --ac6-num: var(--sbb-font-roman);
+  --ac7-serif: var(--sbb-font-light);
+  --ac7-serif-head: var(--sbb-font-bold);
+  --ac9-serif: var(--sbb-font-light);
+  --ac9-head: var(--sbb-font-bold);
+  --ac9-num: var(--sbb-font-roman);
+  --ac13-num: var(--sbb-font-roman);
+}
+
+/* ---------------------------------------------------------------- shell (app.html, sbb branch) */
+.sbb-shell-sub { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 8px 24px; background: var(--surface);
+  border-bottom: 1px solid var(--rule); }
+.sbb-shell-sub:empty { display: none; }
+.sbb-shell-sub .slot-main { margin-left: 0; padding-bottom: 0; }
+.sbb-shell-tools { display: flex; align-items: center; gap: 12px; }
+.sbb-shell-tools .mode { margin-bottom: 0; }
+/* sbb-header-lean is position: fixed with height --sbb-header-lean-height (its component styles); the padding keeps
+   the header slot bar below it, and the whole block sticks like the demo's header */
+.sbb-shell-sticky { position: sticky; top: 0; z-index: 10; padding-top: var(--sbb-header-lean-height); }
+.sbb-shell-tabs { background: var(--surface); padding: 0 24px; }
+
+/* ---------------------------------------------------------------- shared/ui in the sbb variant */
+.ui-sbb-field { min-width: 10rem; }
+.ui-sbb-field .sbb-form-field-wrapper { margin-bottom: 0; }
+.ui-sbb-toggle { width: fit-content; }
+.ui-sbb-toggle .sbb-toggle-option-button-label-wrapper { white-space: nowrap; }
+.ui-sbb-group { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+
+/* tables: the demo's .tbl layout stays; cells take SBB's .sbb-table look (typography.css, layer sbb) */
+:root.sbb-lean .tbl.sbb-table :is(th, td) { padding: revert-layer; border-bottom: revert-layer; color: revert-layer; }
+:root.sbb-lean .tbl.sbb-table th { background: var(--surface); font-weight: revert-layer; font-family: var(--sbb-font-bold); }

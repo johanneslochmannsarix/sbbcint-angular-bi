@@ -10,6 +10,7 @@ import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { ac6Colors } from '../data/palette';
 import { Ac6Store, HEAT_LABEL, HeatMeasure } from '../data/store';
 import { HeatRow } from '../data/types';
+import { UiOption, UiSeg } from '../../../shared/ui';
 
 const fmt = (m: HeatMeasure, v: number | null) => (m === 'dauer_h' || m === 'fahren_h' ? hours(v, 0) : num(v));
 
@@ -22,16 +23,12 @@ const fmt = (m: HeatMeasure, v: number | null) => (m === 'dauer_h' || m === 'fah
  */
 @Component({
   selector: 'ac6-heatmap',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wo und an welchem Tag plant die Version ihre Stunden?" [q]="store.heat" emptyNote="Unter diesem Filter plant die Version keinen Tourstandort.">
       <div card-tools class="ac6-tools">
-        <div class="seg seg-sm" role="group" aria-label="Messgrösse">
-          @for (m of measures; track m) {
-            <button type="button" [attr.aria-pressed]="store.heatMeasure() === m" (click)="store.heatMeasure.set(m)" [title]="label[m]">{{ short[m] }}</button>
-          }
-        </div>
+        <ui-seg size="sm" ariaLabel="Messgrösse" [options]="measureOptions" [value]="store.heatMeasure()" (valueChange)="store.heatMeasure.set($event)" />
       </div>
       <p class="ac6-answer">{{ answer() }}</p>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="click($any($event))"
@@ -46,6 +43,7 @@ export class HeatmapView {
   protected readonly measures: HeatMeasure[] = ['dauer_h', 'touren', 'tourelemente', 'fahren_h'];
   protected readonly label = HEAT_LABEL;
   protected readonly short: Record<HeatMeasure, string> = { dauer_h: 'Dauer', touren: 'Touren', tourelemente: 'Elemente', fahren_h: 'Fahren' };
+  protected readonly measureOptions: UiOption<HeatMeasure>[] = this.measures.map((m) => ({ value: m, label: this.short[m], title: this.label[m] }));
 
   /** row order: Firma by total, then Tourstandort by total, both by the shown measure (layout only) */
   private readonly layout = computed(() => {

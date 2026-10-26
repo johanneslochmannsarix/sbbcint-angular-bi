@@ -10,6 +10,7 @@ import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { HATCH, HATCH_DARK, ac6Colors } from '../data/palette';
 import { Ac6Store, DECODED } from '../data/store';
 import { DiffRow } from '../data/types';
+import { UiOption, UiSeg, UiSelect, UiSelectOption } from '../../../shared/ui';
 
 type Kind = DiffRow['kind'];
 const KIND_LABEL: Record<Kind, string> = { standort: 'Tourstandort', ptyp: 'Personaltyp', taet: 'Tätigkeit', tag: 'Wochentag' };
@@ -27,17 +28,13 @@ const signedH = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${num(Math.
   selector: 'ac6-diff',
   styleUrl: './diff.css',
   encapsulation: ViewEncapsulation.None,
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg, UiSelect],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Was ändert sich zwischen zwei Versionen?" [q]="store.diff" idleText="Keine andere Version plant einen Tourstandort dieser Version."
               emptyNote="Unter diesem Filter planen beide Versionen nichts.">
       <div card-tools class="ac6-tools">
-        <div class="seg seg-sm" role="group" aria-label="Gliederung">
-          @for (k of kinds; track k) {
-            <button type="button" [attr.aria-pressed]="kind() === k" (click)="kind.set(k)">{{ kindLabel[k] }}</button>
-          }
-        </div>
+        <ui-seg size="sm" ariaLabel="Gliederung" [options]="kindOptions" [value]="kind()" (valueChange)="kind.set($event)" />
       </div>
       <div class="ac6-pair">
         <div class="ac6-pair-side">
@@ -47,11 +44,7 @@ const signedH = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${num(Math.
         </div>
         <div class="ac6-pair-side">
           <span class="ac6-pair-tag">B</span>
-          <select class="select ac6-pair-select" (change)="store.comparePick.set(+$any($event.target).value)" aria-label="Version B">
-            @for (x of store.comparable(); track x.v.rang) {
-              <option [value]="x.v.rang" [selected]="x.v.rang === store.compare()">{{ x.v.label }} · {{ x.shared }} gemeinsame Tourstandorte</option>
-            }
-          </select>
+          <ui-select extraClass="ac6-pair-select" [options]="compareOptions()" [value]="compareValue()" (valueChange)="store.comparePick.set(+$event)" ariaLabel="Version B" />
           <span class="ac6-pair-note">{{ noteOf(store.compareName()) }}</span>
         </div>
       </div>
@@ -77,6 +70,10 @@ export class DiffView {
   protected readonly kinds: Kind[] = ['standort', 'ptyp', 'taet', 'tag'];
   protected readonly kindLabel = KIND_LABEL;
   protected readonly kind = signal<Kind>('standort');
+  protected readonly kindOptions: UiOption<Kind>[] = this.kinds.map((k) => ({ value: k, label: this.kindLabel[k] }));
+  protected readonly compareOptions = computed<UiSelectOption[]>(() =>
+    this.store.comparable().map((x) => ({ value: String(x.v.rang), label: `${x.v.label ?? ''} · ${x.shared} gemeinsame Tourstandorte` })));
+  protected readonly compareValue = computed(() => { const v = this.store.compare(); return v == null ? '' : String(v); });
   protected readonly colors = computed(() => ac6Colors(this.theme.mode()));
 
   protected noteOf(name: string | null): string {

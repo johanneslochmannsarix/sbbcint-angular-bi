@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewEncapsulation, computed, inject } from '@angular/core';
-import { ENVS } from '../../core/api';
+import { ENVS, Env } from '../../core/api';
 import { HeaderSlot } from '../../core/header-slot';
 import { StoryService } from '../../story/story';
 import { BLANK, dateLong, dateTimeLU, dayMs, num, utcMs } from '../../core/format';
+import { UiButton, UiOption, UiSeg, UiSelect, UiSelectOption } from '../../shared/ui';
 import { Ac10Store } from './data/store';
 import { ZWINGEND_LABEL, Zwingend } from './data/types';
 import { ElementeView } from './views/elemente';
@@ -22,7 +23,7 @@ import { ZeitraumView } from './views/zeitraum';
  */
 @Component({
   selector: 'app-ac10-page',
-  imports: [HeaderSlot, ZeitraumView, JetztView, HeatmapView, StrukturView, TagesdrillView, PersonaltypenView, ElementeView],
+  imports: [HeaderSlot, UiSeg, UiSelect, UiButton, ZeitraumView, JetztView, HeatmapView, StrukturView, TagesdrillView, PersonaltypenView, ElementeView],
   providers: [Ac10Store],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -32,16 +33,8 @@ import { ZeitraumView } from './views/zeitraum';
     <ng-template appHeader>
       <div class="slot-row">
         <span class="slot-title ac10-title">Offene Schichten</span>
-        <div class="seg" role="group" aria-label="Umgebung">
-          @for (e of envs; track e) {
-            <button type="button" [attr.aria-pressed]="store.env() === e" (click)="store.setEnv(e)">{{ e }}</button>
-          }
-        </div>
-        <div class="seg seg-sm" role="group" aria-label="Besetzungspflicht">
-          @for (z of zw; track z) {
-            <button type="button" [attr.aria-pressed]="store.zwingend() === z" (click)="store.setZwingend(z)">{{ zwLabel[z] }}</button>
-          }
-        </div>
+        <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="store.setEnv($event)" />
+        <ui-seg size="sm" ariaLabel="Besetzungspflicht" [options]="zwOptions" [value]="store.zwingend()" (valueChange)="store.setZwingend($event)" />
         <div class="asof" title="Zeitpunkt des Quellexports (agg_gold_build_info.datenstand_batch, UTC-Stempel der SaxMS-Lieferung)">
           <span class="asof-label">Stand</span>
           <span class="asof-value">{{ asOf() }}</span>
@@ -51,7 +44,7 @@ import { ZeitraumView } from './views/zeitraum';
 
     <ng-template appHeader="sub">
       <div class="sel-bar ac10-bar" role="navigation" aria-label="Auswahl">
-        <button type="button" class="btn btn-ghost ac10-back" (click)="store.back()" [disabled]="store.crumbs().length < 2" aria-label="Eine Ebene zurück">‹ Zurück</button>
+        <ui-button kind="ghost" extraClass="ac10-back" (click)="store.back()" [disabled]="store.crumbs().length < 2" label="Eine Ebene zurück">‹ Zurück</ui-button>
         <ol class="ac10-crumbs">
           @for (c of store.crumbs(); track c.level; let last = $last) {
             <li>
@@ -61,28 +54,16 @@ import { ZeitraumView } from './views/zeitraum';
           }
         </ol>
         <label class="ac10-pick">Mandant
-          <select class="select" (change)="store.pickMandant($any($event.target).value || null)">
-            <option value="">alle</option>
-            @for (m of mandanten(); track m.label) { <option [value]="m.label" [selected]="m.label === store.mandant()">{{ m.label }}</option> }
-          </select>
+          <ui-select [options]="mandantOptions()" [value]="store.mandant() ?? ''" (valueChange)="store.pickMandant($event || null)" />
         </label>
         <label class="ac10-pick">Depot
-          <select class="select" (change)="pickDepot($any($event.target).value)">
-            <option value="">alle</option>
-            @for (d of depots(); track d.value) { <option [value]="d.value" [selected]="d.value === depotValue()">{{ d.text }}</option> }
-          </select>
+          <ui-select [options]="depotOptions()" [value]="depotValue()" (valueChange)="pickDepot($event)" />
         </label>
         <label class="ac10-pick">Haupt-Personaltyp
-          <select class="select" (change)="store.setHaupttyp($any($event.target).value || null)">
-            <option value="">alle</option>
-            @for (h of haupttypen(); track h.label) { <option [value]="h.label" [selected]="h.label === store.haupttyp()">{{ h.text }}</option> }
-          </select>
+          <ui-select [options]="haupttypOptions()" [value]="store.haupttyp() ?? ''" (valueChange)="store.setHaupttyp($event || null)" />
         </label>
         <label class="ac10-pick">Kategorie (ohne Schicht)
-          <select class="select" (change)="store.setKategorie($any($event.target).value || null)">
-            <option value="">alle</option>
-            @for (k of kategorien(); track k) { <option [value]="k" [selected]="k === store.kategorie()">{{ k }}</option> }
-          </select>
+          <ui-select [options]="kategorieOptions()" [value]="store.kategorie() ?? ''" (valueChange)="store.setKategorie($event || null)" />
         </label>
         @if (filtered()) { <button type="button" class="linkish" (click)="store.resetAll()">Alles zurücksetzen</button> }
         @if (store.unknownLabels().length) {
@@ -134,6 +115,8 @@ export class Ac10Page {
   protected readonly envs = ENVS;
   protected readonly zw: Zwingend[] = ['alle', 'zwingend', 'nicht'];
   protected readonly zwLabel = ZWINGEND_LABEL;
+  protected readonly envOptions: UiOption<Env>[] = this.envs.map((e) => ({ value: e, label: e }));
+  protected readonly zwOptions: UiOption<Zwingend>[] = this.zw.map((z) => ({ value: z, label: this.zwLabel[z] }));
   protected readonly BLANK = BLANK;
   protected readonly num = num;
 
@@ -164,6 +147,10 @@ export class Ac10Page {
     return [...seen].sort((a, b) => a[0].localeCompare(b[0], 'de')).map(([label, n]) => ({ label, text: n > 1 ? `${label} (⇄ ${n} Mandanten)` : label }));
   });
   protected readonly kategorien = computed(() => this.store.scopeOf().kategorie.map((k) => k.label).sort((a, b) => a.localeCompare(b, 'de')));
+  protected readonly mandantOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' }, ...this.mandanten().map((m) => ({ value: m.label, label: m.label }))]);
+  protected readonly depotOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' }, ...this.depots().map((d) => ({ value: d.value, label: d.text }))]);
+  protected readonly haupttypOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' }, ...this.haupttypen().map((h) => ({ value: h.label, label: h.text }))]);
+  protected readonly kategorieOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' }, ...this.kategorien().map((k) => ({ value: k, label: k }))]);
   protected readonly filtered = computed(() => !!(this.store.mandant() || this.store.haupttyp() || this.store.kategorie() || this.store.tag() ||
     this.store.zwingend() !== 'alle' || !this.store.isDefaultWindow()));
 

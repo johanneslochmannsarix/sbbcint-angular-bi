@@ -6,6 +6,7 @@ import { ThemeService } from '../../../core/theme';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiButton, UiOption, UiSeg, UiTable } from '../../../shared/ui';
 import { ac4Colors, fahrenColor } from '../data/palette';
 import { Ac4Store, monthLabel } from '../data/store';
 import { TourRow } from '../data/types';
@@ -22,7 +23,7 @@ const PAGE = 150;
  */
 @Component({
   selector: 'ac4-tour-drill',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg, UiTable, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { id: 'ac4-tour' },
   styles: [`
@@ -31,7 +32,7 @@ const PAGE = 150;
     .ac4-tour-list { max-height: 560px; overflow: auto; }
     .ac4-tour-list .tbl td { padding: 4px 8px; }
     .ac4-mono { font-family: var(--ac4-num); color: var(--ink-2); }
-    .ac4-more { margin: 8px 0 0; }
+    :host ::ng-deep .ac4-more { margin: 8px 0 0; }
     .ac4-pill { font-size: 11.5px; padding: 0 6px; border-radius: 3px; border: 1px solid var(--rule-strong); color: var(--ink-2); white-space: nowrap; }
     .ac4-pill[data-a="alle Fahrelemente"], .ac4-pill[data-a="alle Elemente"] { border-color: #b5771c; color: var(--ink); }
     .ac4-key-band { background: transparent; border: 1px dashed #b5771c; box-sizing: border-box; }
@@ -49,14 +50,10 @@ const PAGE = 150;
       <section class="ac4-drill">
         <app-card [heading]="'Touren in ' + (store.standortName() ?? '') + ', ' + monthText()" [q]="store.touren"
           emptyNote="Keine Touren unter diesem Filter.">
-          <div card-tools class="seg seg-sm" role="group" aria-label="Ist-Abdeckung">
-            <button type="button" [attr.aria-pressed]="ist() === 'alle'" (click)="ist.set('alle')">alle</button>
-            <button type="button" [attr.aria-pressed]="ist() === 'mit'" (click)="ist.set('mit')">mit Ist</button>
-            <button type="button" [attr.aria-pressed]="ist() === 'ohne'" (click)="ist.set('ohne')">ohne Ist</button>
-          </div>
+          <ui-seg card-tools size="sm" ariaLabel="Ist-Abdeckung" [options]="istOptions" [value]="ist()" (valueChange)="ist.set($event)" />
           <p class="ac4-answer">{{ listAnswer() }}</p>
           <div class="table-wrap ac4-tour-list">
-            <table class="tbl tbl-click">
+            <table class="tbl tbl-click" uiTable>
               <thead><tr><th>Tour</th><th>Tag</th><th class="r">Elemente</th><th class="r">Plandauer</th><th>Ist</th><th class="r">angerechnet</th></tr></thead>
               <tbody>
                 @for (r of shown(); track r.tour_id) {
@@ -72,14 +69,14 @@ const PAGE = 150;
               </tbody>
             </table>
             @if (filtered().length > limit()) {
-              <button type="button" class="btn ac4-more" (click)="limit.set(limit() + 500)">weitere {{ filtered().length - limit() }} Touren zeigen</button>
+              <ui-button extraClass="ac4-more" (click)="limit.set(limit() + 500)">weitere {{ filtered().length - limit() }} Touren zeigen</ui-button>
             }
           </div>
         </app-card>
 
         <app-card [heading]="tourHeading()" [q]="store.tourQ" idleText="Eine Tour in der Liste anklicken.">
           <div card-tools>
-            <button type="button" class="btn btn-ghost" (click)="store.tour.set(null)" [disabled]="!store.tour()">Tour schliessen</button>
+            <ui-button kind="ghost" (click)="store.tour.set(null)" [disabled]="!store.tour()">Tour schliessen</ui-button>
           </div>
           @if (head(); as h) {
             <dl class="ac4-facts ac4-facts-tight">
@@ -109,6 +106,11 @@ export class TourDrillView {
   protected readonly theme = inject(ThemeService);
   protected readonly c = computed(() => ac4Colors(this.theme.mode()));
   protected readonly ist = signal<IstFilter>('alle');
+  protected readonly istOptions: UiOption<IstFilter>[] = [
+    { value: 'alle', label: 'alle' },
+    { value: 'mit', label: 'mit Ist' },
+    { value: 'ohne', label: 'ohne Ist' },
+  ];
   protected readonly limit = signal(PAGE);
 
   protected readonly monthText = computed(() => monthLabel(this.store.month()));

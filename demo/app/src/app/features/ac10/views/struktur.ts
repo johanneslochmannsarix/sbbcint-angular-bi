@@ -10,6 +10,7 @@ import { ariaDecal, esc, ttHead, ttRow } from '../../../shared/chart-opts';
 import { Ac10Store } from '../data/store';
 import { ac10Colors, landHue, landOfMandant } from '../data/palette';
 import { StrukturRow } from '../data/types';
+import { UiOption, UiSeg } from '../../../shared/ui';
 
 type Shape = 'struktur' | 'rangliste';
 
@@ -33,15 +34,12 @@ const ID_SEP = '\u001f';
  */
 @Component({
   selector: 'ac10-struktur',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wo ist es am schlimmsten?"
               [sub]="sub()" [q]="store.struktur">
-      <div card-tools class="seg seg-sm" role="group" aria-label="Darstellung">
-        <button type="button" [attr.aria-pressed]="shape() === 'struktur'" (click)="shape.set('struktur')">Struktur</button>
-        <button type="button" [attr.aria-pressed]="shape() === 'rangliste'" (click)="shape.set('rangliste')">Rangliste</button>
-      </div>
+      <ui-seg card-tools size="sm" ariaLabel="Darstellung" [options]="shapeOptions" [value]="shape()" (valueChange)="shape.set($event)" />
       <div echarts class="chart ac10-struktur-chart" [options]="{}" [mergeOptions]="options()" [theme]="theme.echartsTheme()"
            (chartClick)="click($any($event))" role="img" aria-label="Ungeplante Schichten je Mandant und Depot"></div>
       @if (mandanten().length) {
@@ -58,6 +56,10 @@ export class StrukturView {
   protected readonly store = inject(Ac10Store);
   protected readonly theme = inject(ThemeService);
   protected readonly shape = signal<Shape>('struktur');
+  protected readonly shapeOptions: UiOption<Shape>[] = [
+    { value: 'struktur', label: 'Struktur' },
+    { value: 'rangliste', label: 'Rangliste' },
+  ];
 
   private readonly depots = computed(() => this.store.struktur.rows().filter((r) => r.ebene === 'depot'));
   protected readonly mandanten = computed(() => {

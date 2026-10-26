@@ -5,6 +5,7 @@ import { ThemeService } from '../../../core/theme';
 import { addDays, dateShort, dayMs, isoDay, num } from '../../../core/format';
 import { ChartCard } from '../../../shared/chart-card';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiOption, UiSeg } from '../../../shared/ui';
 import { ac8Colors } from '../data/palette';
 import { Ac8Store } from '../data/store';
 
@@ -19,14 +20,11 @@ const RM_ORDER = ['automatisch akzeptiert', 'akzeptiert', 'versendet', 'abgelehn
  */
 @Component({
   selector: 'ac8-river',
-  imports: [NgxEchartsDirective, ChartCard],
+  imports: [NgxEchartsDirective, ChartCard, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Änderungsfluss" [sub]="sub()" [q]="store.river">
-      <div card-tools class="seg seg-sm" role="group" aria-label="Aufteilung">
-        <button type="button" [attr.aria-pressed]="store.riverSerie() === 'status'" (click)="store.riverSerie.set('status')">Rückmeldung</button>
-        <button type="button" [attr.aria-pressed]="store.riverSerie() === 'art'" (click)="store.riverSerie.set('art')">Erst / Änderung</button>
-      </div>
+      <ui-seg card-tools size="sm" ariaLabel="Aufteilung" [options]="serieOptions" [value]="store.riverSerie()" (valueChange)="store.riverSerie.set($event)" />
       <div echarts class="chart" style="height: 300px" [options]="options()!" [theme]="theme.echartsTheme()"></div>
       <p class="chart-note">Versionen der Schichten im Fenster, nach Tag ihrer Erstellung. Typ- und Kategoriecodes der Version sind nicht entschlüsselt (SAX-34) und bleiben weg.</p>
     </app-card>
@@ -35,6 +33,10 @@ const RM_ORDER = ['automatisch akzeptiert', 'akzeptiert', 'versendet', 'abgelehn
 export class RiverView {
   protected readonly store = inject(Ac8Store);
   protected readonly theme = inject(ThemeService);
+  protected readonly serieOptions: UiOption<'status' | 'art'>[] = [
+    { value: 'status', label: 'Rückmeldung' },
+    { value: 'art', label: 'Erst / Änderung' },
+  ];
 
   protected readonly sub = computed(() => {
     const rows = this.store.river.rows();

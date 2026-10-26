@@ -8,6 +8,7 @@ import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { PseudonymChip } from '../../../shared/pseudonym-chip';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiButton } from '../../../shared/ui';
 import { ac13Colors } from '../data/palette';
 import { Ac13Store } from '../data/store';
 import { UeRow } from '../data/types';
@@ -27,7 +28,7 @@ const t = (v: string | null) => (v ? timeLocal(localMs(v)!) : '–');
   selector: 'ac13-uebernachtung',
   styleUrl: './uebernachtung.css',
   encapsulation: ViewEncapsulation.None,
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, PseudonymChip],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, PseudonymChip, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wohin führen die Übernachtungstouren, und welche zwei Touren bilden ein Paar?" [q]="[store.kanten, store.ueTouren]"
@@ -73,7 +74,7 @@ const t = (v: string | null) => (v ? timeLocal(localMs(v)!) : '–');
               <span class="ac13-pair-role">{{ side.label }}</span>
               <span class="ac13-pair-line">{{ d(side.datum) }}, {{ side.zeit }}: {{ side.weg }}</span>
               <span class="ac13-pair-sub">{{ side.tour ?? '–' }}{{ side.note }}</span>
-              @if (side.sk) { <button type="button" class="btn btn-ghost" (click)="store.openTour(side.sk)">Tour öffnen</button> }
+              @if (side.sk) { <ui-button kind="ghost" (click)="store.openTour(side.sk)">Tour öffnen</ui-button> }
             </div>
           }
           <p class="ac13-pair-note">Übernachtungsort {{ pr.ort ?? '–' }}{{ pr.folgetag ? ', Folgetour am nächsten Kalendertag' : ', Folgetour am selben Tag' }}. Regel {{ store.stand.rows()[0]?.regel_paar ?? '' }}.</p>
@@ -150,7 +151,7 @@ export class UebernachtungView {
     const k = this.store.kanten.rows().filter((r) => r.start && r.ziel);
     if (!k.length) return null;
     const tk = this.theme.tokens();
-    const c = ac13Colors(this.theme.mode());
+    const c = ac13Colors(this.theme.tokens());
     const sel = this.store.edge();
     const deg = new Map<string, number>();
     for (const r of k) {

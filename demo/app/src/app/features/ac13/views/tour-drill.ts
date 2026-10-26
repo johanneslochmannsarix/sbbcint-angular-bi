@@ -71,7 +71,7 @@ export class TourDrillView {
     const r = this.row();
     if (!r) return null;
     const t = this.theme.tokens();
-    const c = ac13Colors(this.theme.mode());
+    const c = ac13Colors(this.theme.tokens());
     const plan = r.plandauer_min ?? 0;
     const parts: [string, number][] = [['Pause', r.pause_min ?? 0], ['Arbeitszeitunterbrechung', r.azu_min ?? 0],
       ['unbezahlte Unterbrechung', r.unbezahlt_min ?? 0], ['Dienstfahrt', r.dienstfahrt_min ?? 0]];

@@ -5,6 +5,7 @@ import { SelectionService } from '../data/selection';
 import { ThemeService } from '../data/theme';
 import { dateOnly, num } from '../../../core/format';
 import { STATUS_ORDER } from '../data/tokens';
+import { UiButton, UiTable } from '../../../shared/ui';
 
 /**
  * One person, all qualifications: the table twin of a heatmap row (replaces one row of «Qualifikationsmatrix»
@@ -12,6 +13,7 @@ import { STATUS_ORDER } from '../data/tokens';
  */
 @Component({
   selector: 'app-person-drawer',
+  imports: [UiButton, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'drawer', role: 'dialog', '[attr.aria-label]': '"Qualifikationen von " + title()', '(keydown.escape)': 'close()' },
   template: `
@@ -20,7 +22,7 @@ import { STATUS_ORDER } from '../data/tokens';
         <h2>{{ title() }}</h2>
         <p class="card-sub">{{ meta() }}</p>
       </div>
-      <button type="button" class="btn" (click)="close()" autofocus>Schliessen</button>
+      <ui-button (click)="close()" [autofocus]="true">Schliessen</ui-button>
     </header>
     @if (detail.error(); as e) {
       <!-- a cross-link whose pseudonym this backend cannot resolve (400) ends here, never in a failure -->
@@ -30,7 +32,7 @@ import { STATUS_ORDER } from '../data/tokens';
       <p class="muted drawer-pad"><span class="spinner"></span> Lädt</p>
     } @else {
       <div class="table-wrap drawer-body">
-        <table class="tbl">
+        <table class="tbl" uiTable>
           <thead><tr><th>Qualifikation</th><th>Status</th><th>Gültig von</th><th>Gültig bis</th></tr></thead>
           <tbody>
             @for (r of rows(); track $index) {

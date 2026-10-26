@@ -1,16 +1,8 @@
 <ng-template appHeader>
   <div class="slot-row">
     <span class="slot-title">Qualifikationen</span>
-    <div class="seg" role="group" aria-label="Mandant">
-      @for (t of tenants; track t) {
-        <button type="button" [attr.aria-pressed]="store.tenant() === t" (click)="setTenant(t)">{{ tenantLabel(t) }}</button>
-      }
-    </div>
-    <div class="seg" role="group" aria-label="Umgebung">
-      @for (e of envs; track e) {
-        <button type="button" [attr.aria-pressed]="store.env() === e" (click)="setEnv(e)">{{ e }}</button>
-      }
-    </div>
+    <ui-seg ariaLabel="Mandant" [options]="tenantOptions" [value]="store.tenant()" (valueChange)="setTenant($event)" />
+    <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="setEnv($event)" />
     <div class="asof" title="Datenstand des Modells (agg_pipeline_datenstand), wie im Bericht">
       <span class="asof-label">Datenstand</span>
       <span class="asof-value">{{ asOf() }}</span>

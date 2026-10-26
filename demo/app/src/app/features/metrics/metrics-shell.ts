@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ENVS, Env, TENANTS, TENANT_LABEL, Tenant } from '../../core/api';
 import { BLANK, dateTimeLU, isoToDisplay, num, utcMs } from '../../core/format';
 import { HeaderSlot } from '../../core/header-slot';
+import { UiButton, UiDate, UiOption, UiSeg, UiSelect, UiSelectOption } from '../../shared/ui';
 import { MAX_WINDOW_DAYS, MetricsFilters, WindowSel } from './data/filters';
 import { metricsQuery } from './data/query';
 import { DataAsOf } from './data/rows';
@@ -16,7 +17,7 @@ const PRESETS = [7, 30, 90, 180, 365] as const;
  */
 @Component({
   selector: 'app-metrics-shell',
-  imports: [HeaderSlot, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [HeaderSlot, RouterOutlet, RouterLink, RouterLinkActive, UiButton, UiDate, UiSeg, UiSelect],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   styleUrl: './metrics.css',
@@ -45,39 +46,23 @@ const PRESETS = [7, 30, 90, 180, 365] as const;
       <div class="filter-row" role="group" aria-label="Filters for every chart on this page">
         <div class="field">
           <span class="field-label" id="lbl-tenant">Tenant</span>
-          <div class="seg" role="group" aria-labelledby="lbl-tenant">
-            <button type="button" [attr.aria-pressed]="tenantPressed('ALL')" [disabled]="tenantDisabled('ALL')" (click)="f.setTenant('ALL')">All</button>
-            @for (t of tenants; track t) {
-              <button type="button" [attr.aria-pressed]="tenantPressed(t)" (click)="f.setTenant(t)">{{ tenantLabel[t] }}</button>
-            }
-          </div>
+          <ui-seg ariaLabelledby="lbl-tenant" [options]="tenantOptions()" [value]="tenantValue()" (valueChange)="f.setTenant($event)" />
         </div>
         <div class="field">
           <span class="field-label" id="lbl-env">Environment</span>
-          <div class="seg" role="group" aria-labelledby="lbl-env">
-            <button type="button" [attr.aria-pressed]="envPressed('ALL')" [disabled]="envDisabled('ALL')" (click)="f.setEnv('ALL')">All</button>
-            @for (e of envs; track e) {
-              <button type="button" [attr.aria-pressed]="envPressed(e)" (click)="f.setEnv(e)">{{ e }}</button>
-            }
-          </div>
+          <ui-seg ariaLabelledby="lbl-env" [options]="envOptions()" [value]="envValue()" (valueChange)="f.setEnv($event)" />
         </div>
         <div class="field">
           <label class="field-label" for="win">Window</label>
-          <select id="win" class="select" [value]="windowValue()" (change)="onWindow($any($event.target).value)">
-            <option value="default">Page default ({{ f.rules().defaultDays }} days)</option>
-            @for (d of presets; track d) {
-              <option [value]="d">Last {{ d }} days</option>
-            }
-            <option value="custom">Custom range</option>
-          </select>
+          <ui-select selectId="win" [options]="windowOptions()" [value]="windowValue()" (valueChange)="onWindow($event)" />
         </div>
         @if (windowValue() === 'custom') {
           <div class="field field-custom">
             <label class="field-label" for="from">From</label>
-            <input id="from" type="date" class="select" [value]="customFrom()" (input)="customFrom.set($any($event.target).value)" />
+            <ui-date inputId="from" [value]="customFrom()" (valueChange)="customFrom.set($event)" />
             <label class="field-label" for="to">to</label>
-            <input id="to" type="date" class="select" [value]="customTo()" (input)="customTo.set($any($event.target).value)" />
-            <button type="button" class="btn" (click)="applyCustom()">Apply</button>
+            <ui-date inputId="to" [value]="customTo()" (valueChange)="customTo.set($event)" />
+            <ui-button (click)="applyCustom()">Apply</ui-button>
             <span class="hint">At most {{ maxDays }} days; the backend rejects longer windows.</span>
           </div>
         }
@@ -92,9 +77,6 @@ const PRESETS = [7, 30, 90, 180, 365] as const;
 })
 export class MetricsShell {
   protected readonly f = inject(MetricsFilters);
-  protected readonly tenants = TENANTS;
-  protected readonly envs = ENVS;
-  protected readonly tenantLabel = TENANT_LABEL;
   protected readonly presets = PRESETS;
   protected readonly maxDays = MAX_WINDOW_DAYS;
   protected readonly isoToDisplay = isoToDisplay;
@@ -117,6 +99,21 @@ export class MetricsShell {
     const w = this.f.window();
     return w.kind === 'default' ? 'default' : w.kind === 'days' ? String(w.days) : 'custom';
   });
+  protected readonly tenantValue = computed<Tenant | 'ALL'>(() => this.f.tenant() ?? 'ALL');
+  protected readonly envValue = computed<Env | 'ALL'>(() => this.f.env() ?? 'ALL');
+  protected readonly tenantOptions = computed<UiOption<Tenant | 'ALL'>[]>(() => [
+    { value: 'ALL', label: 'All', disabled: this.tenantDisabled('ALL') },
+    ...TENANTS.map((t) => ({ value: t, label: TENANT_LABEL[t] })),
+  ]);
+  protected readonly envOptions = computed<UiOption<Env | 'ALL'>[]>(() => [
+    { value: 'ALL', label: 'All', disabled: this.envDisabled('ALL') },
+    ...ENVS.map((e) => ({ value: e, label: e })),
+  ]);
+  protected readonly windowOptions = computed<UiSelectOption[]>(() => [
+    { value: 'default', label: `Page default (${this.f.rules().defaultDays} days)` },
+    ...this.presets.map((d) => ({ value: String(d), label: `Last ${d} days` })),
+    { value: 'custom', label: 'Custom range' },
+  ]);
   protected readonly forcedNote = computed(() => {
     const r = this.f.rules();
     return !r.tenantAll || !r.envAll ? (r.why ?? '') : '';
@@ -137,12 +134,6 @@ export class MetricsShell {
   }
   protected envDisabled(e: Env | 'ALL'): boolean {
     return e === 'ALL' && !this.f.rules().envAll;
-  }
-  protected tenantPressed(t: Tenant | 'ALL'): boolean {
-    return t === 'ALL' ? this.f.tenant() === null : this.f.tenant() === t;
-  }
-  protected envPressed(e: Env | 'ALL'): boolean {
-    return e === 'ALL' ? this.f.env() === null : this.f.env() === e;
   }
 
   protected onWindow(value: string): void {

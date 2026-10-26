@@ -10,6 +10,7 @@ import { Ac7Store } from '../data/store';
 import { Ga, ListeRow } from '../data/types';
 import { ac7Colors } from '../data/palette';
 import { stintDays } from './timeline';
+import { UiOption, UiSeg } from '../../../shared/ui';
 
 type Measure = 'dauer' | 'luecke';
 interface Group { label: string; ga: Ga; older: boolean; pts: { v: number; person: string }[] }
@@ -35,16 +36,13 @@ function jitter(key: string): number {
  */
 @Component({
   selector: 'ac7-stints',
-  imports: [NgxEchartsDirective, ChartCard, ChartResize],
+  imports: [NgxEchartsDirective, ChartCard, ChartResize, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [heading]="measure() === 'dauer' ? 'Wie lange dauern die Einsätze?' : 'Wie dicht folgen die zwei Einsätze aufeinander?'"
               [sub]="measure() === 'dauer' ? 'Tage je Einsatz, Box = mittlere Hälfte, Strich = Median; jeder Punkt eine Person' : 'Tage zwischen Ende des vorletzten und Beginn des letzten Einsatzes; unter 0 = überlappend'"
               [q]="store.liste">
-      <div card-tools class="seg seg-sm" role="group" aria-label="Kennzahl">
-        <button type="button" [attr.aria-pressed]="measure() === 'dauer'" (click)="measure.set('dauer')">Dauer</button>
-        <button type="button" [attr.aria-pressed]="measure() === 'luecke'" (click)="measure.set('luecke')">Abstand</button>
-      </div>
+      <ui-seg card-tools size="sm" ariaLabel="Kennzahl" [options]="measureOptions" [value]="measure()" (valueChange)="measure.set($event)" />
       <div echarts class="chart h-320" [options]="options()!" [theme]="theme.echartsTheme()" (chartInit)="chart.set($event)"
            (chartClick)="click($event)" (chartMouseOver)="over($event)" (chartMouseOut)="store.hover.set(null)"></div>
     </app-card>
@@ -54,6 +52,10 @@ export class StintsView {
   protected readonly store = inject(Ac7Store);
   protected readonly theme = inject(ThemeService);
   protected readonly measure = signal<Measure>('dauer');
+  protected readonly measureOptions: UiOption<Measure>[] = [
+    { value: 'dauer', label: 'Dauer' },
+    { value: 'luecke', label: 'Abstand' },
+  ];
   protected readonly chart = signal<ECharts | null>(null);
 
   private readonly groups = computed<Group[]>(() => {

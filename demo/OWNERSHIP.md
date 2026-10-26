@@ -30,8 +30,9 @@ Static files of a feature (e.g. a GeoJSON basemap, after Johannes' download OK) 
 - `backend/app/core/**`, `backend/app/main.py`, `backend/app/showcases/__init__.py`, `backend/tests/core/**`,
   `backend/tests/support.py`, `backend/tests/__init__.py`, `backend/smoke.py`, `backend/pyproject.toml`,
   `backend/uv.lock`
-- `app/src/app/core/**`, `app/src/app/shared/**`, `app/src/app/app.*`, `app/src/app/start/**`,
-  `app/src/styles.css`, `app/src/index.html`,
+- `app/src/app/core/**` (incl. `core/style.ts`, the style variant), `app/src/app/shared/**` (incl.
+  `shared/ui/**`, the shared controls), `app/src/app/app.*`, `app/src/app/start/**`,
+  `app/src/styles.css`, `app/src/styles-sbb.css`, `app/src/index.html`,
   `app/src/main.ts`
 - `app/package.json`, `app/package-lock.json`, `app/angular.json`, `app/tsconfig*.json`,
   `app/proxy.4200.json`, `app/proxy.4201.json`, `app/proxy.4202.json`, `app/proxy.4203.json`
@@ -39,6 +40,15 @@ Static files of a feature (e.g. a GeoJSON basemap, after Johannes' download OK) 
 
 Never run `npm install` / `uv add` in a D1 session: everything is installed (D0). A missing package is a
 core request.
+
+## Controls: always shared/ui (style variant, 2026-10-25)
+
+The app has two style variants with identical content, switched at runtime (`core/style.ts`, header «Stil»,
+`?style=demo|sbb`): the demo's own look and the customer's (SBB lean, `@sbb-esta/angular`). Features therefore
+never write raw controls: segmented groups are `<ui-seg>`, dropdowns `<ui-select>`, buttons `<ui-button>`, date
+fields `<ui-date>`, data tables `<table class="tbl" uiTable>` (all from `shared/ui`). Each renders today's markup
+in the demo variant and the SBB component in the sbb variant. Chart colours come from `ThemeService.tokens()`
+(never a TOKENS constant by mode), so they follow the variant. Mapping, tokens and limits: `STYLE-VARIANT.md`.
 
 ## Core-request rule (PLAN §14.3)
 

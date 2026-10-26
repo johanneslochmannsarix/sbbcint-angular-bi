@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, ViewEncapsulation, computed, effect, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ENVS } from '../../core/api';
+import { ENVS, Env } from '../../core/api';
 import { HeaderSlot } from '../../core/header-slot';
 import { dateOnly, dateTimeLU, hours, localMs, num } from '../../core/format';
+import { UiButton, UiOption, UiSeg, UiSelect, UiSelectOption } from '../../shared/ui';
 import { Ac6Store, S1_NAME, S1_PERIOD } from './data/store';
 import { DAY_LONG } from './data/week';
 import { DiffView } from './views/diff';
@@ -23,7 +24,7 @@ import { WochenuhrView } from './views/wochenuhr';
  */
 @Component({
   selector: 'app-ac6-page',
-  imports: [HeaderSlot, VersionBar, WochenuhrView, HeatmapView, HierarchyView, DiffView, VergleichView, TourDrillView, KostenView],
+  imports: [HeaderSlot, UiSeg, UiSelect, UiButton, VersionBar, WochenuhrView, HeatmapView, HierarchyView, DiffView, VergleichView, TourDrillView, KostenView],
   providers: [Ac6Store],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -33,11 +34,7 @@ import { WochenuhrView } from './views/wochenuhr';
     <ng-template appHeader>
       <div class="slot-row">
         <span class="slot-title ac6-title">JUP Planung</span>
-        <div class="seg" role="group" aria-label="Umgebung">
-          @for (e of envs; track e) {
-            <button type="button" [attr.aria-pressed]="store.env() === e" (click)="store.setEnv(e)">{{ e }}</button>
-          }
-        </div>
+        <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="store.setEnv($event)" />
         <div class="asof" title="sm_fico hat keinen Ladezeitpunkt: jüngste rückgemeldete Ist-Zeit eines Tourelements (wie AC-4). Die JUP selbst hat kein Datum.">
           <span class="asof-label">Stand</span>
           <span class="asof-value">{{ asOf() }}</span>
@@ -47,7 +44,7 @@ import { WochenuhrView } from './views/wochenuhr';
 
     <ng-template appHeader="sub">
       <nav class="sel-bar ac6-crumbs" aria-label="Drill-Pfad">
-        <button type="button" class="btn btn-ghost ac6-back" (click)="store.back()" [disabled]="!store.canBack()" aria-label="Eine Ebene zurück">‹ Zurück</button>
+        <ui-button kind="ghost" extraClass="ac6-back" (click)="store.back()" [disabled]="!store.canBack()" label="Eine Ebene zurück">‹ Zurück</ui-button>
         <button type="button" class="linkish" (click)="store.pickFirma(null); store.pickStandort(null); store.pickPtyp(null); store.pickTaet(null)">{{ store.versionName() ?? 'Version' }}</button>
         @if (store.firmaName(); as f) {
           <span aria-hidden="true">›</span>
@@ -74,16 +71,10 @@ import { WochenuhrView } from './views/wochenuhr';
         }
         <span class="ac6-crumb-gap"></span>
         <label class="ac6-field">Personaltyp
-          <select class="select" (change)="store.pickPtyp(num($any($event.target).value))">
-            <option value="" [selected]="store.ptyp() == null">alle</option>
-            @for (p of store.ptyps(); track p.rang) { <option [value]="p.rang" [selected]="p.rang === store.ptyp()">{{ p.label }}</option> }
-          </select>
+          <ui-select [options]="ptypOptions()" [value]="ptypValue()" (valueChange)="store.pickPtyp(num($event))" />
         </label>
         <label class="ac6-field">Tätigkeit
-          <select class="select" (change)="store.pickTaet(num($any($event.target).value))">
-            <option value="" [selected]="store.taet() == null">alle</option>
-            @for (t of store.taets(); track t.rang) { <option [value]="t.rang" [selected]="t.rang === store.taet()">{{ t.label }}</option> }
-          </select>
+          <ui-select [options]="taetOptions()" [value]="taetValue()" (valueChange)="store.pickTaet(num($event))" />
         </label>
         @if (store.canBack()) {
           <button type="button" class="linkish" (click)="store.clearAll()">Alles aufheben</button>
@@ -121,6 +112,11 @@ export class Ac6Page {
   protected readonly s1 = S1_NAME;
   protected readonly period = S1_PERIOD;
   protected readonly num = (v: string) => (v === '' ? null : Number(v));
+  protected readonly envOptions: UiOption<Env>[] = this.envs.map((e) => ({ value: e, label: e }));
+  protected readonly ptypOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' }, ...this.store.ptyps().map((p) => ({ value: String(p.rang), label: p.label ?? '' }))]);
+  protected readonly taetOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' }, ...this.store.taets().map((t) => ({ value: String(t.rang), label: t.label ?? '' }))]);
+  protected readonly ptypValue = computed(() => { const v = this.store.ptyp(); return v == null ? '' : String(v); });
+  protected readonly taetValue = computed(() => { const v = this.store.taet(); return v == null ? '' : String(v); });
 
   constructor() {
     const route = inject(ActivatedRoute);

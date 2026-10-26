@@ -4,6 +4,7 @@ import { NgxEchartsDirective } from 'ngx-echarts';
 import { ThemeService } from '../../../core/theme';
 import { dateOnly, dateShort, dayMs, num, today } from '../../../core/format';
 import { ChartCard } from '../../../shared/chart-card';
+import { UiOption, UiSeg } from '../../../shared/ui';
 import { ChartResize } from '../../../shared/chart-resize';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { Ac7Store, Sort } from '../data/store';
@@ -61,18 +62,14 @@ function sortRows(rows: ListeRow[], sort: Sort): ListeRow[] {
  */
 @Component({
   selector: 'ac7-timeline',
-  imports: [NgxEchartsDirective, ChartCard, ChartResize],
+  imports: [NgxEchartsDirective, ChartCard, ChartResize, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Seit wann und wie lange ist wer verliehen?" [sub]="sub()" [q]="store.liste"
               emptyNote="Kein Eintrag unter diesem Filter. Einen Filter in der Leiste oben aufheben.">
       <div card-tools class="ac7-tools">
         <span class="ac7-tools-label" id="ac7-sort-l">Sortierung</span>
-        <div class="seg seg-sm" role="group" aria-labelledby="ac7-sort-l">
-          <button type="button" [attr.aria-pressed]="store.sort() === 'status'" (click)="store.setSort('status')">Status</button>
-          <button type="button" [attr.aria-pressed]="store.sort() === 'start'" (click)="store.setSort('start')">Beginn</button>
-          <button type="button" [attr.aria-pressed]="store.sort() === 'dauer'" (click)="store.setSort('dauer')">Dauer</button>
-        </div>
+        <ui-seg size="sm" ariaLabelledby="ac7-sort-l" [options]="sortOptions" [value]="store.sort()" (valueChange)="store.setSort($event)" />
       </div>
       <div echarts class="chart ac7-timeline" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()"
            (chartInit)="chart.set($event)" (chartClick)="click($event)" (chartMouseOver)="over($event)" (chartMouseOut)="store.hover.set(null)"></div>
@@ -92,6 +89,11 @@ function sortRows(rows: ListeRow[], sort: Sort): ListeRow[] {
 })
 export class TimelineView {
   protected readonly store = inject(Ac7Store);
+  protected readonly sortOptions: UiOption<Sort>[] = [
+    { value: 'status', label: 'Status' },
+    { value: 'start', label: 'Beginn' },
+    { value: 'dauer', label: 'Dauer' },
+  ];
   protected readonly theme = inject(ThemeService);
   protected readonly chart = signal<ECharts | null>(null);
   protected readonly c = computed(() => ac7Colors(this.theme.tokens()));

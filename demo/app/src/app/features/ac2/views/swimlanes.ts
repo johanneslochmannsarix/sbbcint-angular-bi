@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { UiButton } from '../../../shared/ui';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsCoreOption } from 'echarts/core';
 import { DataStore, Person, label } from '../data/model';
@@ -23,14 +24,14 @@ interface Bar { lane: number; from: number; to: number; status: StatusCode; open
  */
 @Component({
   selector: 'app-swimlanes',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [heading]="focusName() ? 'Gültigkeit: ' + focusName() : 'Gültigkeitsfenster je Qualifikation'" [sub]="sub()" [q]="store.modelQueries"
       [forceEmpty]="!!store.model() && bars().length === 0" emptyNote="Keine datierte Qualifikation unter diesem Filter.">
       <div card-tools class="tools">
         @if (focusName()) {
-          <button type="button" class="btn" (click)="sel.qualification.set(null)">Alle Qualifikationen</button>
+          <ui-button (click)="sel.qualification.set(null)">Alle Qualifikationen</ui-button>
         }
       </div>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="click($any($event))"></div>

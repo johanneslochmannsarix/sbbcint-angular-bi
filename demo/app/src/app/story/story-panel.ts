@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { UiButton } from '../shared/ui';
 import { StoryService } from './story';
 
 /**
@@ -7,6 +8,7 @@ import { StoryService } from './story';
  */
 @Component({
   selector: 'app-story-panel',
+  imports: [UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'story-panel',
@@ -33,10 +35,10 @@ import { StoryService } from './story';
         }
       </div>
       <div class="story-ctl">
-        <button type="button" class="btn" (click)="story.back()" [disabled]="story.index() === 0" aria-label="Zurück">‹ Zurück</button>
-        <button type="button" class="btn" (click)="story.togglePlay()" [attr.aria-pressed]="story.playing()">{{ story.playing() ? 'Pause' : 'Abspielen' }}</button>
-        <button type="button" class="btn" (click)="story.next()" [disabled]="story.index() === story.steps.length - 1" aria-label="Weiter">Weiter ›</button>
-        <button type="button" class="btn btn-ghost" (click)="story.stop()" aria-label="Story beenden">Beenden</button>
+        <ui-button (click)="story.back()" [disabled]="story.index() === 0" label="Zurück">‹ Zurück</ui-button>
+        <ui-button (click)="story.togglePlay()" [pressed]="story.playing()">{{ story.playing() ? 'Pause' : 'Abspielen' }}</ui-button>
+        <ui-button (click)="story.next()" [disabled]="story.index() === story.steps.length - 1" label="Weiter">Weiter ›</ui-button>
+        <ui-button kind="ghost" (click)="story.stop()" label="Story beenden">Beenden</ui-button>
       </div>
     }
   `,
@@ -55,7 +57,7 @@ import { StoryService } from './story';
     .story-error { color: var(--ink); }
     .story-ctl { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding: 8px 16px 12px; background: var(--surface);
       border: 1px solid var(--rule); border-top: 0; border-radius: 0 0 8px 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-    @media (max-width: 640px) { :host { left: 8px; bottom: 8px; width: calc(100vw - 16px); } .story-ctl { justify-content: stretch; } .story-ctl .btn { flex: 1; } }
+    @media (max-width: 640px) { :host { left: 8px; bottom: 8px; width: calc(100vw - 16px); } .story-ctl { justify-content: stretch; } .story-ctl ::ng-deep .btn { flex: 1; } }
   `],
 })
 export class StoryPanel {

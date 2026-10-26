@@ -7,6 +7,7 @@ import { BLANK, addDays, dateShort, dayMs, localMs, num, timeLocal, today } from
 import { FONT_NUM } from '../../../core/tokens';
 import { ChartCard } from '../../../shared/chart-card';
 import { ariaDecal, esc, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiOption, UiSeg } from '../../../shared/ui';
 import { DIENSTPLAN_QUELLEN, DienstplanRow } from '../data/types';
 import { DECAL, ac8Colors, quelleShort, standColor } from '../data/palette';
 import { Ac8Store } from '../data/store';
@@ -37,15 +38,12 @@ function deltas(r: DienstplanRow): Delta[] {
  */
 @Component({
   selector: 'ac8-dienstplan-diff',
-  imports: [NgxEchartsDirective, ChartCard],
+  imports: [NgxEchartsDirective, ChartCard, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Dienstplan: kommuniziert gegen aktueller Plan" [sub]="sub()" [q]="[store.dienstplan, store.persons]">
       <div card-tools class="ac8-tools">
-        <div class="seg seg-sm" role="group" aria-label="Zeilen">
-          <button type="button" [attr.aria-pressed]="rows() === 'abweichung'" (click)="rows.set('abweichung')">Nur Abweichungen</button>
-          <button type="button" [attr.aria-pressed]="rows() === 'alle'" (click)="rows.set('alle')">Alle Personen</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Zeilen" [options]="rowsOptions" [value]="rows()" (valueChange)="rows.set($event)" />
       </div>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="click($any($event))"></div>
       <div class="legend-inline ac8-legend">
@@ -62,6 +60,10 @@ export class DienstplanDiff {
   protected readonly store = inject(Ac8Store);
   protected readonly theme = inject(ThemeService);
   protected readonly rows = signal<'abweichung' | 'alle'>('abweichung');
+  protected readonly rowsOptions: UiOption<'abweichung' | 'alle'>[] = [
+    { value: 'abweichung', label: 'Nur Abweichungen' },
+    { value: 'alle', label: 'Alle Personen' },
+  ];
   protected readonly colors = computed(() => ac8Colors(this.theme.tokens()));
   protected readonly quellen = DIENSTPLAN_QUELLEN;
   protected quelleColor(q: string): string { return standColor(this.colors(), q); }

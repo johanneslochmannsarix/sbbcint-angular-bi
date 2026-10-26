@@ -11,6 +11,7 @@ import { stageColor, stageRank, shortId } from '../data/palette';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { barStyle, grid, legendTop, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiButton, UiSeg, UiSelect, UiSelectOption, UiTable } from '../../../shared/ui';
 
 /** Stages whose run_id is a notebook job id, not a chain run (collector STANDALONE_STAGES). */
 const STANDALONE = new Set(['maintenance', 'retention']);
@@ -27,7 +28,7 @@ function rgba(hex: string, a: number): string {
 
 @Component({
   selector: 'app-stability',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, RouterLink],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, RouterLink, UiButton, UiSeg, UiSelect, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stability.html',
 })
@@ -52,6 +53,11 @@ export class StabilityPage {
   });
   protected readonly regime = linkedSignal<string | null, RegimeSel>({ source: this.stage, computation: () => 'current' });
   protected readonly stageRegimes = computed(() => this.regimes.rows().filter((r) => r.stage === this.stage()));
+  protected readonly regimeOptions = computed<UiSelectOption[]>(() => [
+    { value: 'current', label: 'Current regime' },
+    { value: 'all', label: 'All regimes' },
+    ...this.stageRegimes().map((r) => ({ value: String(r.regime_label), label: `${r.regime_label ?? ''} (from ${this.fmt.dateOnly(r.regime_from)}, n ${r.regime_n ?? ''})` })),
+  ]);
 
   /** Steps of one stage span orders of magnitude; on a shared linear axis most boxes are hairlines. */
   protected readonly logScale = signal(true);

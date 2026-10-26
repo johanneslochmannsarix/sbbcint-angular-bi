@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, ViewEncapsulation, computed, effect, inject } from '@angular/core';
 import { HeaderSlot } from '../../core/header-slot';
+import { Env } from '../../core/api';
+import { UiButton, UiOption, UiSelect, UiSelectOption, UiSeg } from '../../shared/ui';
 import { dateLong, dayMs, localStamp, monthLong, num, utcMs, dateTimeLU } from '../../core/format';
 import { AC13_ENVS, Ac13Store } from './data/store';
 import { AzView } from './views/az';
@@ -23,7 +25,7 @@ const monthMs = (m: string) => new Date(Number(m.slice(0, 4)), Number(m.slice(5,
  */
 @Component({
   selector: 'app-ac13-page',
-  imports: [HeaderSlot, MonthBar, MengeView, AzView, FillView, UebernachtungView, HeatmapView, RegelnView, TourDrillView],
+  imports: [HeaderSlot, UiSeg, UiButton, UiSelect, MonthBar, MengeView, AzView, FillView, UebernachtungView, HeatmapView, RegelnView, TourDrillView],
   providers: [Ac13Store],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -33,12 +35,7 @@ const monthMs = (m: string) => new Date(Number(m.slice(0, 4)), Number(m.slice(5,
     <ng-template appHeader>
       <div class="slot-row">
         <span class="slot-title ac13-title">Nachbereitung SBB CD</span>
-        <div class="seg" role="group" aria-label="Umgebung">
-          @for (e of envs; track e) {
-            <button type="button" [attr.aria-pressed]="store.env() === e" (click)="store.env.set(e)">{{ e }}</button>
-          }
-          <button type="button" disabled title="Das Modell sm_nachbereitung_cd ist in CC PROD noch nicht vorhanden (geplant Do 22.10.).">PROD</button>
-        </div>
+        <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="store.env.set($event)" />
         <div class="asof" [title]="s()?.hinweis_datenstand ?? ''">
           <span class="asof-label">Stand</span>
           <span class="asof-value">{{ asOf() }}</span>
@@ -48,7 +45,7 @@ const monthMs = (m: string) => new Date(Number(m.slice(0, 4)), Number(m.slice(5,
 
     <ng-template appHeader="sub">
       <nav class="sel-bar ac13-crumbs" aria-label="Drill-Pfad">
-        <button type="button" class="btn btn-ghost" (click)="store.back()" [disabled]="!store.canBack()" aria-label="Eine Ebene zurück">‹ Zurück</button>
+        <ui-button kind="ghost" (click)="store.back()" [disabled]="!store.canBack()" label="Eine Ebene zurück">‹ Zurück</ui-button>
         <button type="button" class="linkish" (click)="store.pickStandort(null); store.pickHaupttyp(null); store.pickDay(null); store.pickPerson(null); store.pickEdge(null)">{{ monthName() }}</button>
         @if (store.standortName(); as st) {
           <span aria-hidden="true">›</span>
@@ -76,16 +73,10 @@ const monthMs = (m: string) => new Date(Number(m.slice(0, 4)), Number(m.slice(5,
         }
         <span class="ac13-crumb-gap"></span>
         <label class="ac13-field">Standort
-          <select class="select" (change)="store.pickStandort(num($any($event.target).value))">
-            <option value="" [selected]="store.standort() == null">alle</option>
-            @for (o of store.standorte(); track o.rang) { <option [value]="o.rang" [selected]="o.rang === store.standort()">{{ o.label }}</option> }
-          </select>
+          <ui-select [options]="standortOptions()" [value]="'' + (store.standort() ?? '')" (valueChange)="store.pickStandort(num($event))" />
         </label>
         <label class="ac13-field">Personaltyp (Tour)
-          <select class="select" (change)="store.pickHaupttyp(num($any($event.target).value))">
-            <option value="" [selected]="store.haupttyp() == null">alle</option>
-            @for (o of store.haupttypen(); track o.rang) { <option [value]="o.rang" [selected]="o.rang === store.haupttyp()">{{ o.label }}</option> }
-          </select>
+          <ui-select [options]="haupttypOptions()" [value]="'' + (store.haupttyp() ?? '')" (valueChange)="store.pickHaupttyp(num($event))" />
         </label>
         @if (store.canBack()) {
           <button type="button" class="linkish" (click)="store.clearAll()">Alles aufheben</button>
@@ -132,6 +123,18 @@ const monthMs = (m: string) => new Date(Number(m.slice(0, 4)), Number(m.slice(5,
 export class Ac13Page {
   protected readonly store = inject(Ac13Store);
   protected readonly envs = AC13_ENVS;
+  protected readonly envOptions: UiOption<Env>[] = [
+    ...AC13_ENVS.map((e) => ({ value: e, label: e })),
+    { value: 'PROD', label: 'PROD', disabled: true, title: 'Das Modell sm_nachbereitung_cd ist in CC PROD noch nicht vorhanden (geplant Do 22.10.).' },
+  ];
+  protected readonly standortOptions = computed<UiSelectOption[]>(() => [
+    { value: '', label: 'alle' },
+    ...this.store.standorte().map((o) => ({ value: String(o.rang), label: o.label ?? '' })),
+  ]);
+  protected readonly haupttypOptions = computed<UiSelectOption[]>(() => [
+    { value: '', label: 'alle' },
+    ...this.store.haupttypen().map((o) => ({ value: String(o.rang), label: o.label ?? '' })),
+  ]);
   protected readonly num = (v: string) => (v === '' ? null : Number(v));
   protected readonly s = computed(() => this.store.stand.rows()[0] ?? null);
 

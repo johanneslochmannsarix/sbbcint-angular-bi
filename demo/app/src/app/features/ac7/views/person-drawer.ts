@@ -3,6 +3,7 @@ import { ThemeService } from '../../../core/theme';
 import { BLANK, dateOnly, num } from '../../../core/format';
 import { PseudonymChip } from '../../../shared/pseudonym-chip';
 import { QualLink } from '../../../shared/qual-link';
+import { UiButton } from '../../../shared/ui';
 import { Ac7Store } from '../data/store';
 import { Ga } from '../data/types';
 import { GA_NAME, STATUS_GLYPH, ac7Colors } from '../data/palette';
@@ -16,7 +17,7 @@ import { activeByHiddenStint, stintDays } from './timeline';
  */
 @Component({
   selector: 'ac7-person-drawer',
-  imports: [PseudonymChip, QualLink],
+  imports: [PseudonymChip, QualLink, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   styleUrl: './person-drawer.css',
@@ -32,7 +33,7 @@ import { activeByHiddenStint, stintDays } from './timeline';
             <span class="ac7-ga"><i class="key" [style.background]="c().ga[r.geschaeftsart]"></i>{{ r.geschaeftsart }} · {{ gaName[r.geschaeftsart] }}</span>
           </p>
         </div>
-        <button type="button" class="btn btn-ghost" (click)="close()" aria-label="Schliessen" autofocus>×</button>
+        <ui-button kind="ghost" (click)="close()" label="Schliessen" [autofocus]="true">×</ui-button>
       </header>
       <div class="drawer-body drawer-pad">
         <section class="ac7-stint-list" aria-label="Die letzten zwei Einsatzzeiträume">
@@ -71,7 +72,7 @@ import { activeByHiddenStint, stintDays } from './timeline';
           <div><dt>Erster / letzter Einsatztag</dt><dd>{{ d(r.erster_einsatz_von) }} / {{ d(r.letzter_einsatz_bis) }}</dd></div>
         </dl>
         <div class="ac7-drawer-actions">
-          <button type="button" class="btn" (click)="store.setPerson(r.person_sk)">{{ store.person() === r.person_sk ? 'Personenfilter aufheben' : 'Nur diese Person zeigen' }}</button>
+          <ui-button (click)="store.setPerson(r.person_sk)">{{ store.person() === r.person_sk ? 'Personenfilter aufheben' : 'Nur diese Person zeigen' }}</ui-button>
           <app-qual-link [person]="r.person_sk" tenant="RTS" [env]="store.env()" text="Qualifikationen in AC-2 RT&amp;S ›" />
         </div>
         <p class="chart-note">Keine Verknüpfung zu CargoControl: es gibt keine gemeinsame Personen-ID der beiden Pools. Nur lesend; das
@@ -79,7 +80,7 @@ import { activeByHiddenStint, stintDays } from './timeline';
       </div>
     } @else {
       <header class="drawer-head"><h2>Person nicht in der Liste</h2>
-        <button type="button" class="btn btn-ghost" (click)="close()" aria-label="Schliessen">×</button></header>
+        <ui-button kind="ghost" (click)="close()" label="Schliessen">×</ui-button></header>
       <p class="drawer-pad muted">Unter dem aktuellen Filter oder nach einem Neustart des Backends (neue Pseudonyme) nicht gefunden.</p>
     }
   `,

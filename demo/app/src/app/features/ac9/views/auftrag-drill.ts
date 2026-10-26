@@ -7,6 +7,7 @@ import { BLANK, dateLong, dateOnly, dateTimeLU, dayMs, hours, isoDay, localMs, n
 import { ThemeService } from '../../../core/theme';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
+import { UiTable } from '../../../shared/ui';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { ac9Colors, gaColor } from '../data/palette';
 import { Ac9Store, monthLabel } from '../data/store';
@@ -27,7 +28,7 @@ interface Ac7Orders { rows: { auftrag_token: string | null }[] }
  */
 @Component({
   selector: 'ac9-auftrag-drill',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, RuleNote, RouterLink],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, RuleNote, RouterLink, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
     .od-head { display: flex; flex-wrap: wrap; gap: 6px 28px; align-items: baseline; margin: 0 0 8px; }
@@ -68,7 +69,7 @@ interface Ac7Orders { rows: { auftrag_token: string | null }[] }
           @if (day()) { <button type="button" class="linkish" (click)="day.set(null)">Tag aufheben</button> }
         </div>
         <div class="table-wrap table-tall">
-          <table class="tbl tbl-click">
+          <table class="tbl tbl-click" uiTable>
             <thead><tr>
               <th>Tour</th><th>IST-Beginn</th><th>IST-Ende</th><th class="r">brutto</th><th class="r">Pause</th><th class="r">abrechenbar</th>
               <th class="r">AZU</th><th class="r">Fahrten</th><th class="r">Plan (Kontext)</th><th>Status</th><th>Kategorie Tournummer</th>

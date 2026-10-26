@@ -8,6 +8,7 @@ import { ChartResize } from '../../../shared/chart-resize';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { HATCH, HATCH_DARK, KOSTEN_ORDER, ac6Colors } from '../data/palette';
 import { Ac6Store } from '../data/store';
+import { UiOption, UiSeg } from '../../../shared/ui';
 
 /**
  * View 7 - cost-allocation mix per version: share of the elements (or of the planned hours) per Kostenallokation
@@ -18,15 +19,12 @@ import { Ac6Store } from '../data/store';
  */
 @Component({
   selector: 'ac6-kosten',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wie sind die Elemente je Version abgerechnet?" [q]="store.kosten" emptyNote="Unter diesem Filter plant keine Version Elemente.">
       <div card-tools class="ac6-tools">
-        <div class="seg seg-sm" role="group" aria-label="Basis">
-          <button type="button" [attr.aria-pressed]="basis() === 'elemente'" (click)="basis.set('elemente')">Elemente</button>
-          <button type="button" [attr.aria-pressed]="basis() === 'dauer_h'" (click)="basis.set('dauer_h')">Stunden</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Basis" [options]="basisOptions" [value]="basis()" (valueChange)="basis.set($event)" />
       </div>
       <p class="ac6-answer">{{ answer() }}</p>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="click($any($event))"
@@ -42,6 +40,10 @@ export class KostenView {
   protected readonly store = inject(Ac6Store);
   protected readonly theme = inject(ThemeService);
   protected readonly basis = signal<'elemente' | 'dauer_h'>('elemente');
+  protected readonly basisOptions: UiOption<'elemente' | 'dauer_h'>[] = [
+    { value: 'elemente', label: 'Elemente' },
+    { value: 'dauer_h', label: 'Stunden' },
+  ];
 
   private readonly labels = computed(() => {
     const m = new Map<number, string>();

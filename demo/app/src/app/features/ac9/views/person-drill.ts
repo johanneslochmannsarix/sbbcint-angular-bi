@@ -6,6 +6,7 @@ import { hours, num } from '../../../core/format';
 import { ThemeService } from '../../../core/theme';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
+import { UiTable } from '../../../shared/ui';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { PseudonymChip } from '../../../shared/pseudonym-chip';
 import { ac9Colors, gaColor } from '../data/palette';
@@ -21,7 +22,7 @@ import { RuleNote } from './rule-note';
  */
 @Component({
   selector: 'ac9-person-drill',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, RuleNote, PseudonymChip, RouterLink],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, RuleNote, PseudonymChip, RouterLink, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wie viele Stunden hat diese Person abgerechnet?" [q]="store.personQ" sub="Person: Stunden je Monat und Auftrag">
@@ -35,7 +36,7 @@ import { RuleNote } from './rule-note';
       <div echarts class="chart" [style.height.px]="240" [options]="options() ?? {}" [theme]="theme.echartsTheme()"
            aria-label="Abrechenbare Stunden dieser Person je Monat, nach Auftrag gestapelt"></div>
       <div class="table-wrap">
-        <table class="tbl tbl-click">
+        <table class="tbl tbl-click" uiTable>
           <thead><tr><th>Monat</th><th>Auftrag</th><th>GA</th><th class="r">Touren</th><th class="r">Tourelemente</th><th class="r">brutto</th><th class="r">abrechenbar</th></tr></thead>
           <tbody>
             @for (r of rowsDesc(); track r.year_month + (r.dor_name ?? '')) {

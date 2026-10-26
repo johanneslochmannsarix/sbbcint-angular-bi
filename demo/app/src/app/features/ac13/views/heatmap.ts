@@ -9,8 +9,9 @@ import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { PseudonymChip } from '../../../shared/pseudonym-chip';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiOption, UiSeg } from '../../../shared/ui';
 import { ac13Colors } from '../data/palette';
-import { Ac13Store } from '../data/store';
+import { Ac13Store, HeatMeasure } from '../data/store';
 import { StandortTagRow, TourListRow } from '../data/types';
 
 /**
@@ -22,16 +23,13 @@ import { StandortTagRow, TourListRow } from '../data/types';
  */
 @Component({
   selector: 'ac13-heatmap',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, PseudonymChip],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, PseudonymChip, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="An welchem Tag trägt welcher Standort die Touren, und wo bleiben sie offen?" [q]="store.standortTage"
               emptyNote="Für diese Auswahl gibt es keine Tour im Monat.">
       <div card-tools class="ac13-tools">
-        <div class="seg seg-sm" role="group" aria-label="Messgrösse">
-          <button type="button" [attr.aria-pressed]="store.heatMeasure() === 'touren'" (click)="store.heatMeasure.set('touren')">Touren</button>
-          <button type="button" [attr.aria-pressed]="store.heatMeasure() === 'offen'" (click)="store.heatMeasure.set('offen')">Anteil offen</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Messgrösse" [options]="measureOptions" [value]="store.heatMeasure()" (valueChange)="store.heatMeasure.set($event)" />
       </div>
       <p class="ac13-answer">{{ answer() }}</p>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="click($any($event))"
@@ -70,6 +68,10 @@ import { StandortTagRow, TourListRow } from '../data/types';
 })
 export class HeatmapView {
   protected readonly store = inject(Ac13Store);
+  protected readonly measureOptions: UiOption<HeatMeasure>[] = [
+    { value: 'touren', label: 'Touren' },
+    { value: 'offen', label: 'Anteil offen' },
+  ];
   protected readonly theme = inject(ThemeService);
   protected readonly n = (v: number | null) => num(v);
   protected readonly m = (v: number | null) => minutes(v);
@@ -108,7 +110,7 @@ export class HeatmapView {
     const { rows, days, names } = this.layout();
     if (!rows.length) return null;
     const t = this.theme.tokens();
-    const c = ac13Colors(this.theme.mode());
+    const c = ac13Colors(this.theme.tokens());
     const share = this.store.heatMeasure() === 'offen';
     const val = (r: StandortTagRow) => (share ? (r.touren ? r.offen / r.touren : 0) : r.touren);
     const yNames = [...names].reverse();

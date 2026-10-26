@@ -7,6 +7,7 @@ import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { MergeOptions } from '../../../shared/merge-options';
+import { UiOption, UiSeg } from '../../../shared/ui';
 import { ac4Colors } from '../data/palette';
 import { Ac4Store, FOCUS_LABEL, Focus, monthLabel } from '../data/store';
 import { StandortRow } from '../data/types';
@@ -30,15 +31,12 @@ function focusText(v: number | null, f: Focus): string {
  */
 @Component({
   selector: 'ac4-overview',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Welche Tourstandorte tragen das Volumen?" [q]="store.standorte" emptyNote="Unter diesem Filter hat kein Tourstandort Touren.">
       <div card-tools class="ac4-tools">
-        <div class="seg seg-sm" role="group" aria-label="Darstellung">
-          <button type="button" [attr.aria-pressed]="shape() === 'treemap'" (click)="mode.set('treemap')">Fläche</button>
-          <button type="button" [attr.aria-pressed]="shape() === 'ranking'" (click)="mode.set('ranking')">Rangliste</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Darstellung" [options]="modeOptions" [value]="shape()" (valueChange)="mode.set($event)" />
       </div>
       <p class="ac4-answer">{{ answer() }}</p>
       <div echarts class="chart" [style.height.px]="height()" [options]="{}" [mergeOptions]="options()" [theme]="theme.echartsTheme()"
@@ -59,6 +57,10 @@ export class OverviewView {
   protected readonly store = inject(Ac4Store);
   protected readonly theme = inject(ThemeService);
   protected readonly mode = signal<'treemap' | 'ranking'>('treemap');
+  protected readonly modeOptions: UiOption<'treemap' | 'ranking'>[] = [
+    { value: 'treemap', label: 'Fläche' },
+    { value: 'ranking', label: 'Rangliste' },
+  ];
 
   /** a picked Tourstandort always shows the ranking (where it sits among the others) */
   protected readonly shape = computed(() => (this.store.standort() ? 'ranking' : this.mode()));

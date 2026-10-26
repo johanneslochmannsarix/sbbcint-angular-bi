@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { UiButton, UiSeg } from '../../../shared/ui';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsCoreOption } from 'echarts/core';
 import { DataStore, ExpiryRow } from '../data/model';
@@ -19,23 +20,20 @@ const DAY = 86_400_000;
  */
 @Component({
   selector: 'app-calendar',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wann laufen Qualifikationen ab" [sub]="sub()" [q]="store.modelQueries"
       [forceEmpty]="!!store.model() && total() === 0" [emptyNote]="'Keine Qualifikation läuft in den nächsten ' + months() + ' Monaten ab' + (sel.active() ? ' (in der Auswahl).' : '.')">
-      <div card-tools class="seg seg-sm" role="group" aria-label="Zeitraum">
-        @for (n of [3, 6, 12]; track n) {
-          <button type="button" [attr.aria-pressed]="months() === n" (click)="months.set(n)">{{ n }} Monate</button>
-        }
-      </div>
+      <ui-seg card-tools size="sm" ariaLabel="Zeitraum" [value]="months()" (valueChange)="months.set($event)"
+        [options]="[{ value: 3, label: '3 Monate' }, { value: 6, label: '6 Monate' }, { value: 12, label: '12 Monate' }]" />
       <div class="cal-layout">
         <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="pick($any($event))"></div>
         <aside class="day-panel" aria-live="polite">
           @if (day(); as d) {
             <header class="day-head">
               <h3>{{ dateLong(d) }}</h3>
-              <button type="button" class="btn btn-ghost" (click)="day.set(null)">Schliessen</button>
+              <ui-button kind="ghost" (click)="day.set(null)">Schliessen</ui-button>
             </header>
             @if (list.loading() && !list.result()) {
               <p class="muted"><span class="spinner"></span> Lädt</p>

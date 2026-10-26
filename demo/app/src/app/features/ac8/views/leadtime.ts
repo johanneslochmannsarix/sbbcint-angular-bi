@@ -5,6 +5,7 @@ import { ThemeService } from '../../../core/theme';
 import { dateShort, dayMs, isoDay, localMs, num } from '../../../core/format';
 import { ChartCard } from '../../../shared/chart-card';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiButton, UiOption, UiSeg } from '../../../shared/ui';
 import { ac8Colors } from '../data/palette';
 import { Ac8Store } from '../data/store';
 import { VersionRow } from '../data/types';
@@ -30,17 +31,13 @@ function quantile(sorted: number[], q: number): number | null {
  */
 @Component({
   selector: 'ac8-leadtime',
-  imports: [NgxEchartsDirective, ChartCard],
+  imports: [NgxEchartsDirective, ChartCard, UiSeg, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Vorlaufzeit der Versionen" [sub]="sub()" [q]="store.versions">
       <div card-tools class="ac8-tools">
-        <div class="seg seg-sm" role="group" aria-label="Darstellung">
-          <button type="button" [attr.aria-pressed]="layer() === 'beides'" (click)="layer.set('beides')">Punkte + Dichte</button>
-          <button type="button" [attr.aria-pressed]="layer() === 'punkte'" (click)="layer.set('punkte')">Punkte</button>
-          <button type="button" [attr.aria-pressed]="layer() === 'dichte'" (click)="layer.set('dichte')">Dichte</button>
-        </div>
-        @if (store.brush()) { <button type="button" class="btn" (click)="clearBrush()">Auswahl aufheben</button> }
+        <ui-seg size="sm" ariaLabel="Darstellung" [options]="layerOptions" [value]="layer()" (valueChange)="layer.set($event)" />
+        @if (store.brush()) { <ui-button (click)="clearBrush()">Auswahl aufheben</ui-button> }
       </div>
       <div echarts class="chart" style="height: 360px" [options]="options()!" [theme]="theme.echartsTheme()"
            (chartInit)="init($any($event))" (chartBrushEnd)="brushEnd($any($event))" (chartBrush)="brushCleared($any($event))" (chartClick)="click($any($event))"></div>
@@ -52,6 +49,11 @@ export class LeadtimeView {
   protected readonly store = inject(Ac8Store);
   protected readonly theme = inject(ThemeService);
   protected readonly layer = signal<'beides' | 'punkte' | 'dichte'>('beides');
+  protected readonly layerOptions: UiOption<'beides' | 'punkte' | 'dichte'>[] = [
+    { value: 'beides', label: 'Punkte + Dichte' },
+    { value: 'punkte', label: 'Punkte' },
+    { value: 'dichte', label: 'Dichte' },
+  ];
   private chart: { dispatchAction: (a: object) => void } | null = null;
 
   /** rows after focus / story filtering; index = position in the series data */

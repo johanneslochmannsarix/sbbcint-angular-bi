@@ -54,16 +54,18 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body {
+/* Element defaults of the demo variant only. In the SBB variant (html.sbb-lean, core/style.ts) SBB's
+   typography.css styles these elements and its components; :where() keeps the specificity unchanged. */
+:where(html:not(.sbb-lean)) body {
   margin: 0;
   background: var(--plane);
   color: var(--ink);
   font: 14px/1.45 var(--font-ui);
 }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; letter-spacing: 0; }
-button, input, select { font: inherit; color: inherit; }
-a { color: var(--accent); }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:where(html:not(.sbb-lean)) :is(button, input, select) { font: inherit; color: inherit; }
+:where(html:not(.sbb-lean)) a { color: var(--accent); }
+:where(html:not(.sbb-lean)) :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
 /* ---------------------------------------------------------------- shell */

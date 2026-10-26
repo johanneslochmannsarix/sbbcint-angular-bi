@@ -3,6 +3,7 @@ import type { EChartsCoreOption } from 'echarts/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import { ThemeService } from '../../../core/theme';
 import { FONT_NUM } from '../../../core/tokens';
+import { UiButton } from '../../../shared/ui';
 import { Ac8Store } from '../data/store';
 
 interface Chart { dispatchAction: (a: object) => void }
@@ -15,15 +16,15 @@ interface Chart { dispatchAction: (a: object) => void }
  */
 @Component({
   selector: 'ac8-story-bar',
-  imports: [NgxEchartsDirective],
+  imports: [NgxEchartsDirective, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'ac8-story', '[class.is-on]': 'store.storyWeek() !== null' },
   template: `
     <div class="ac8-story-head">
-      <button type="button" class="btn" (click)="toggle()" [attr.aria-pressed]="store.playing()">{{ store.playing() ? 'Anhalten' : 'Wochen abspielen' }}</button>
+      <ui-button (click)="toggle()" [pressed]="store.playing()">{{ store.playing() ? 'Anhalten' : 'Wochen abspielen' }}</ui-button>
       @if (store.storyWeek(); as w) {
         <span class="ac8-story-week">{{ w.label }}</span>
-        <button type="button" class="btn btn-ghost" (click)="stop()">Ganzes Fenster</button>
+        <ui-button kind="ghost" (click)="stop()">Ganzes Fenster</ui-button>
       } @else {
         <span class="muted">Woche anklicken oder abspielen: alle Ansichten folgen der Woche.</span>
       }

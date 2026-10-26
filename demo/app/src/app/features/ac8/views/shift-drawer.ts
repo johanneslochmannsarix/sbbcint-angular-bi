@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { BLANK, dateOnly, dayMs, localMs, num, timeLocal } from '../../../core/format';
 import { PseudonymChip } from '../../../shared/pseudonym-chip';
 import { QualLink } from '../../../shared/qual-link';
+import { UiTable } from '../../../shared/ui';
 import { quelleShort } from '../data/palette';
 import { Ac8Store } from '../data/store';
 
@@ -16,7 +17,7 @@ interface Line { sk: string; day: string; time: string; name: string; person: st
  */
 @Component({
   selector: 'ac8-shift-drawer',
-  imports: [PseudonymChip, QualLink],
+  imports: [PseudonymChip, QualLink, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'drawer', role: 'dialog', 'aria-modal': 'true', '[attr.aria-label]': 'flow()?.title' },
   template: `
@@ -28,7 +29,7 @@ interface Line { sk: string; day: string; time: string; name: string; person: st
       <button type="button" class="chip-x" (click)="store.flow.set(null)" aria-label="Liste schliessen">×</button>
     </header>
     <div class="drawer-body">
-      <table class="tbl tbl-click">
+      <table class="tbl tbl-click" uiTable>
         <thead><tr><th>Tag</th><th>Plan</th><th>Schicht</th><th>Person</th><th>Stand</th><th>Rückmeldung</th></tr></thead>
         <tbody>
           @for (l of shown(); track l.sk) {

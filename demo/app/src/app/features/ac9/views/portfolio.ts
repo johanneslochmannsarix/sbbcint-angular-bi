@@ -7,6 +7,7 @@ import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { ariaDecal, esc, ttHead, ttRow } from '../../../shared/chart-opts';
 import { MergeOptions } from '../../../shared/merge-options';
+import { UiOption, UiSeg } from '../../../shared/ui';
 import { NUM_FONT, ac9Colors, gaColor } from '../data/palette';
 import { Ac9Store } from '../data/store';
 import { AuftragRow, GA_CODE, GA_LABEL, katOf } from '../data/types';
@@ -24,15 +25,12 @@ const TOP = 22;
  */
 @Component({
   selector: 'ac9-portfolio',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions, RuleNote],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions, RuleNote, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Welche Aufträge tragen die abrechenbaren Stunden?" [q]="store.auftraege" emptyNote="In dieser Auswahl hat kein Auftrag eine zurückgemeldete Tour.">
       <div card-tools>
-        <div class="seg seg-sm" role="group" aria-label="Darstellung">
-          <button type="button" [attr.aria-pressed]="shape() === 'ring'" (click)="shape.set('ring')">Ringe</button>
-          <button type="button" [attr.aria-pressed]="shape() === 'rang'" (click)="shape.set('rang')">Rangliste und Konzentration</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Darstellung" [options]="shapeOptions" [value]="shape()" (valueChange)="shape.set($event)" />
       </div>
       <p class="ac9-answer">{{ answer() }}</p>
       <div echarts class="chart" [style.height.px]="470" [options]="blank" [mergeOptions]="options()" [replaceMerge]="replace" [theme]="theme.echartsTheme()"
@@ -47,6 +45,10 @@ export class Portfolio {
   protected readonly store = inject(Ac9Store);
   protected readonly theme = inject(ThemeService);
   protected readonly shape = signal<'ring' | 'rang'>('ring');
+  protected readonly shapeOptions: UiOption<'ring' | 'rang'>[] = [
+    { value: 'ring', label: 'Ringe' },
+    { value: 'rang', label: 'Rangliste und Konzentration' },
+  ];
   protected readonly blank: EChartsCoreOption = {};
   /** the ranking has two grids (bars + concentration): replace axes and grids too, or the rings keep them */
   protected readonly replace = ['series', 'xAxis', 'yAxis', 'grid', 'graphic'];

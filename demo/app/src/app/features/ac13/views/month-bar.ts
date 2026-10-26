@@ -88,7 +88,7 @@ export class MonthBar {
     const sel = this.store.month();
     const cur = this.store.monthRow();
     const t = this.theme.tokens();
-    const c = ac13Colors(this.theme.mode());
+    const c = ac13Colors(this.theme.tokens());
     const focus = this.store.focus();
     return TILES.map((d) => {
       const color = c[d.color];

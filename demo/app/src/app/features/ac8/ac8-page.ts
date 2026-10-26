@@ -4,6 +4,7 @@ import { HeaderSlot } from '../../core/header-slot';
 import { dateShort, dateTimeLU, dayMs, localMs } from '../../core/format';
 import { PseudonymChip } from '../../shared/pseudonym-chip';
 import { QualLink } from '../../shared/qual-link';
+import { UiOption, UiSeg } from '../../shared/ui';
 import { StoryService } from '../../story/story';
 import { Ac8Store, WORKER_LABEL, Worker } from './data/store';
 import { AbsenceCalendar } from './views/absence-calendar';
@@ -17,6 +18,8 @@ import { ShiftDrawer } from './views/shift-drawer';
 import { StoryBar } from './views/story-bar';
 import { VersionTimeline } from './views/version-timeline';
 
+type Span = '4+8' | '0+4' | 'plan';
+
 /**
  * AC-8 Leitstand Leitstelle Olten (PLAN §13, built in the demo app per §14). LOCAL ONLY, masked by default.
  * Every view answers a Leitstelle question (backend/queries/ac8/README.md); all share one selection
@@ -25,7 +28,7 @@ import { VersionTimeline } from './views/version-timeline';
  */
 @Component({
   selector: 'app-ac8-page',
-  imports: [HeaderSlot, PseudonymChip, QualLink, KpiStrip, StoryBar, Schichtuhr, PipelineView, RiverView, LeadtimeView, DienstplanDiff, VersionTimeline, AbsenceCalendar, ShiftDrawer],
+  imports: [HeaderSlot, PseudonymChip, QualLink, UiSeg, KpiStrip, StoryBar, Schichtuhr, PipelineView, RiverView, LeadtimeView, DienstplanDiff, VersionTimeline, AbsenceCalendar, ShiftDrawer],
   providers: [Ac8Store],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -35,21 +38,9 @@ import { VersionTimeline } from './views/version-timeline';
     <ng-template appHeader>
       <div class="slot-row">
         <span class="slot-title ac8-title">Leitstand Olten</span>
-        <div class="seg" role="group" aria-label="Umgebung">
-          @for (e of envs; track e) {
-            <button type="button" [attr.aria-pressed]="store.env() === e" (click)="setEnv(e)">{{ e }}</button>
-          }
-        </div>
-        <div class="seg seg-sm" role="group" aria-label="Zeitfenster">
-          <button type="button" [attr.aria-pressed]="span() === '4+8'" (click)="store.setWindowWeeks(4, 8)">−4 / +8 Wochen</button>
-          <button type="button" [attr.aria-pressed]="span() === '0+4'" (click)="store.setWindowWeeks(0, 4)">nächste 4 Wochen</button>
-          <button type="button" [attr.aria-pressed]="span() === 'plan'" (click)="store.setWholePlan()">ganzer Plan</button>
-        </div>
-        <div class="seg seg-sm" role="group" aria-label="Personaltyp">
-          @for (w of workers; track w) {
-            <button type="button" [attr.aria-pressed]="store.worker() === w" (click)="store.worker.set(w)">{{ workerLabel(w) }}</button>
-          }
-        </div>
+        <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="setEnv($event)" />
+        <ui-seg size="sm" ariaLabel="Zeitfenster" [options]="spanOptions" [value]="span()" (valueChange)="pickSpan($event)" />
+        <ui-seg size="sm" ariaLabel="Personaltyp" [options]="workerOptions" [value]="store.worker()" (valueChange)="store.worker.set($event)" />
         <div class="asof" title="Jüngste Version im Modell (fact_shift_snapshot created_ts); das Modell hat keinen eigenen Datenstand">
           <span class="asof-label">Stand</span>
           <span class="asof-value">{{ asOf() }}</span>
@@ -100,13 +91,17 @@ import { VersionTimeline } from './views/version-timeline';
 })
 export class Ac8Page {
   protected readonly store = inject(Ac8Store);
-  protected readonly envs = ENVS;
-  protected readonly workers: Worker[] = ['disponent', 'andere', 'alle'];
-  protected readonly workerLabel = (w: Worker) => WORKER_LABEL[w];
+  protected readonly envOptions: UiOption<Env>[] = ENVS.map((e) => ({ value: e, label: e }));
+  protected readonly spanOptions: UiOption<Span>[] = [
+    { value: '4+8', label: '−4 / +8 Wochen' },
+    { value: '0+4', label: 'nächste 4 Wochen' },
+    { value: 'plan', label: 'ganzer Plan' },
+  ];
+  protected readonly workerOptions: UiOption<Worker>[] = (['disponent', 'andere', 'alle'] as Worker[]).map((w) => ({ value: w, label: WORKER_LABEL[w] }));
   protected readonly short = (iso: string) => dateShort(dayMs(iso)!);
 
   protected readonly asOf = computed(() => dateTimeLU(localMs(this.store.stand.rows()[0]?.neuester_stand ?? null)));
-  protected readonly span = computed(() => {
+  protected readonly span = computed<Span>(() => {
     const days = (dayMs(this.store.to())! - dayMs(this.store.from())!) / 86_400_000;
     const s = this.store.stand.rows()[0];
     if (s?.erster_plantag && this.store.to() >= (s.letzter_plantag ?? '').slice(0, 10) && days > 100) return 'plan';
@@ -117,6 +112,12 @@ export class Ac8Page {
   constructor() {
     // shared story mode (D2): the story reads and sets this page's state while the page is shown
     inject(DestroyRef).onDestroy(inject(StoryService).register('ac8', this.store));
+  }
+
+  protected pickSpan(s: Span): void {
+    if (s === '4+8') this.store.setWindowWeeks(4, 8);
+    else if (s === '0+4') this.store.setWindowWeeks(0, 4);
+    else this.store.setWholePlan();
   }
 
   protected setEnv(e: Env): void {

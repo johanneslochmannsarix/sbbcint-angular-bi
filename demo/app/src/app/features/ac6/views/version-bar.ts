@@ -9,6 +9,7 @@ import { ac6Colors } from '../data/palette';
 import { Ac6Store, DECODED, HEAT_LABEL, HeatMeasure, S1_NAME } from '../data/store';
 import { KpiRow } from '../data/types';
 import { DAY_LONG } from '../data/week';
+import { UiSelect, UiSelectOption } from '../../../shared/ui';
 
 interface TileDef {
   key: keyof KpiRow;
@@ -39,17 +40,13 @@ const TILES: TileDef[] = [
   selector: 'ac6-version-bar',
   styleUrl: './version-bar.css',
   encapsulation: ViewEncapsulation.None,
-  imports: [NgxEchartsDirective, ChartGroup],
+  imports: [NgxEchartsDirective, ChartGroup, UiSelect],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'ac6-vbar' },
   template: `
     <div class="ac6-vpick">
       <label class="ac6-vlabel" for="ac6-version">JUP-Version</label>
-      <select id="ac6-version" class="select ac6-vselect" (change)="pick($any($event.target).value)">
-        @for (v of store.versions(); track v.rang) {
-          <option [value]="v.rang" [selected]="v.rang === store.version()">{{ v.label }} · {{ n(v.touren) }} Touren</option>
-        }
-      </select>
+      <ui-select selectId="ac6-version" extraClass="ac6-vselect" [options]="versionOptions()" [value]="versionValue()" (valueChange)="pick($event)" />
       <div class="ac6-chips">
         @if (decoded(); as d) {
           <span class="ac6-chip ac6-chip-ok" [title]="'Geklärt: ' + d">{{ d }}</span>
@@ -83,6 +80,9 @@ export class VersionBar {
   protected readonly store = inject(Ac6Store);
   protected readonly theme = inject(ThemeService);
   protected readonly n = (v: number | null) => num(v);
+  protected readonly versionOptions = computed<UiSelectOption[]>(() =>
+    this.store.versions().map((v) => ({ value: String(v.rang), label: `${v.label ?? ''} · ${this.n(v.touren)} Touren` })));
+  protected readonly versionValue = computed(() => { const v = this.store.version(); return v == null ? '' : String(v); });
 
   protected readonly decoded = computed(() => DECODED[this.store.versionName() ?? ''] ?? null);
 

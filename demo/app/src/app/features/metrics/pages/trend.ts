@@ -15,6 +15,7 @@ import { envColor, tenantColor, batchDate } from '../data/palette';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { barStyle, esc, grid, legendTop, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiButton, UiTable } from '../../../shared/ui';
 
 interface Range {
   from: string;
@@ -27,7 +28,7 @@ const TOP_N = 15;
 
 @Component({
   selector: 'app-trend',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiButton, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './trend.html',
 })

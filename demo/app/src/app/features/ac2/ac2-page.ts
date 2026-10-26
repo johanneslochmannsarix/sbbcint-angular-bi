@@ -4,6 +4,7 @@ import { isPseudonym } from '../../core/api';
 import { StoryService } from '../../story/story';
 import { HeaderSlot } from '../../core/header-slot';
 import { localStamp } from '../../core/format';
+import { UiOption, UiSeg } from '../../shared/ui';
 import { ENVS, Env, TENANTS, TENANT_LABEL, Tenant } from './data/api';
 import { DataStore } from './data/model';
 import { SelectionService } from './data/selection';
@@ -22,7 +23,7 @@ import { SwimlanesView } from './views/swimlanes';
  */
 @Component({
   selector: 'app-ac2-page',
-  imports: [HeaderSlot, KpisView, HeatmapView, CalendarView, SwimlanesView, CoverageView, HistogramView, SankeyView, PersonDrawer],
+  imports: [HeaderSlot, UiSeg, KpisView, HeatmapView, CalendarView, SwimlanesView, CoverageView, HistogramView, SankeyView, PersonDrawer],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   templateUrl: './ac2-page.html',
@@ -31,9 +32,8 @@ import { SwimlanesView } from './views/swimlanes';
 export class Ac2Page {
   protected readonly store = inject(DataStore);
   protected readonly sel = inject(SelectionService);
-  protected readonly tenants = TENANTS;
-  protected readonly envs = ENVS;
-  protected readonly tenantLabel = (t: Tenant) => TENANT_LABEL[t];
+  protected readonly tenantOptions: UiOption<Tenant>[] = TENANTS.map((t) => ({ value: t, label: TENANT_LABEL[t] }));
+  protected readonly envOptions: UiOption<Env>[] = ENVS.map((e) => ({ value: e, label: e }));
 
   protected readonly asOf = computed(() => localStamp(this.store.asOf.rows()[0]?.datenstand_local));
   protected readonly focusName = computed(() => {

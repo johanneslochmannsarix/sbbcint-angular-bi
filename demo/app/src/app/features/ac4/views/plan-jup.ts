@@ -6,6 +6,7 @@ import { ThemeService } from '../../../core/theme';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiSelect, UiSelectOption } from '../../../shared/ui';
 import { HATCH, HATCH_DARK, ac4Colors } from '../data/palette';
 import { Ac4Store, monthLabel } from '../data/store';
 import { JupRow } from '../data/types';
@@ -24,15 +25,13 @@ const IDX = (ms: number) => (new Date(ms).getDay() + 6) % 7;
  */
 @Component({
   selector: 'ac4-plan-jup',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSelect],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Folgt die Disposition der Jahresplanung?" [q]="[store.kalender, store.jup]">
       <div card-tools class="ac4-tools">
         <label class="ac4-field">JUP-Version
-          <select class="select" [value]="version() ?? ''" (change)="store.jupVersion.set($any($event.target).value || null)">
-            @for (v of versions(); track v.name) { <option [value]="v.name">{{ v.name }} ({{ v.touren }} Touren)</option> }
-          </select>
+          <ui-select [options]="versionOptions()" [value]="version() ?? ''" (valueChange)="store.jupVersion.set($event || null)" />
         </label>
       </div>
       <p class="ac4-answer">{{ answer() }}</p>
@@ -53,6 +52,7 @@ export class PlanJupView {
     for (const r of this.store.jup.rows()) if (r.jup_version) m.set(r.jup_version, (m.get(r.jup_version) ?? 0) + (r.touren ?? 0));
     return [...m].sort((a, b) => b[1] - a[1]).map(([name, touren]) => ({ name, touren }));
   });
+  protected readonly versionOptions = computed<UiSelectOption[]>(() => this.versions().map((v) => ({ value: v.name, label: `${v.name} (${v.touren} Touren)` })));
   protected readonly version = computed(() => {
     const pick = this.store.jupVersion();
     const vs = this.versions();

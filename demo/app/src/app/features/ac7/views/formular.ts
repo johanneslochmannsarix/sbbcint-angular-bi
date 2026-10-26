@@ -3,6 +3,7 @@ import { BLANK, dateOnly, num } from '../../../core/format';
 import { Ac7Store } from '../data/store';
 import { ListeRow } from '../data/types';
 import { STATUS_GLYPH } from '../data/palette';
+import { UiButton } from '../../../shared/ui';
 
 /**
  * View 8 - «Formular»: the filtered list laid out like the BA form «Liste der Leiharbeitskräfte» (06/2024) and like the
@@ -13,6 +14,7 @@ import { STATUS_GLYPH } from '../data/palette';
  */
 @Component({
   selector: 'ac7-formular',
+  imports: [UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   styleUrl: './formular.css',
@@ -20,7 +22,7 @@ import { STATUS_GLYPH } from '../data/palette';
   template: `
     <div class="ac7-form-tools">
       <p class="muted">So druckt der Browser die gefilterte Liste (Querformat A4). Der Bericht AUE-Verleihliste bleibt das Dokument.</p>
-      <button type="button" class="btn btn-primary" (click)="print()">Drucken oder als PDF sichern</button>
+      <ui-button kind="primary" (click)="print()">Drucken oder als PDF sichern</ui-button>
     </div>
     <article class="ac7-sheet" aria-label="Liste der Leiharbeitskräfte">
       <header class="ac7-sheet-head">

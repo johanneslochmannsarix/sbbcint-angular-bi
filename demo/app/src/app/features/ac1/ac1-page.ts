@@ -3,6 +3,7 @@ import { ENVS, Env } from '../../core/api';
 import { dateLong, localStamp, monthLong } from '../../core/format';
 import { HeaderSlot } from '../../core/header-slot';
 import { QualLink } from '../../shared/qual-link';
+import { UiOption, UiSelect, UiSelectOption, UiSeg } from '../../shared/ui';
 import { StoryService } from '../../story/story';
 import { AUDIENCES, AUDIENCE_LABEL, Audience } from './data/model';
 import { Ac1Store, label } from './data/store';
@@ -18,31 +19,18 @@ import { MonthCalendarView } from './views/month-calendar';
  */
 @Component({
   selector: 'app-ac1-page',
-  imports: [HeaderSlot, QualLink, MonthCalendarView, DayGanttView, DayMapView, CohortWeekView],
+  imports: [HeaderSlot, QualLink, UiSeg, UiSelect, MonthCalendarView, DayGanttView, DayMapView, CohortWeekView],
   providers: [Ac1Store],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-template appHeader>
       <div class="slot-row">
         <span class="slot-title">Plantafel RT&amp;S</span>
-        <div class="seg" role="group" aria-label="Umgebung">
-          @for (e of envs; track e) {
-            <button type="button" [attr.aria-pressed]="store.env() === e" (click)="setEnv(e)">{{ e }}</button>
-          }
-        </div>
-        <div class="seg" role="group" aria-label="Ansehen als">
-          @for (a of audiences; track a) {
-            <button type="button" [attr.aria-pressed]="store.audience() === a" (click)="store.setAudience(a)">{{ audienceLabel[a] }}</button>
-          }
-        </div>
+        <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="setEnv($event)" />
+        <ui-seg ariaLabel="Ansehen als" [options]="audienceOptions" [value]="store.audience()" (valueChange)="store.setAudience($event)" />
         <label class="as-person">
           <span class="field-label">ansehen als</span>
-          <select class="select" (change)="store.person.set($any($event.target).value)" aria-label="Person">
-            @for (p of store.audienceList(); track p.person.key) {
-              <!-- [selected] per option: the select's own [value] binds before a new audience's options exist -->
-              <option [value]="p.person.key" [selected]="p.person.key === store.person()">{{ text(p.person) }}{{ p.tourDays ? '' : ' (ohne Plan)' }}</option>
-            }
-          </select>
+          <ui-select ariaLabel="Person" [options]="personOptions()" [value]="store.person() ?? ''" (valueChange)="store.person.set($event)" />
         </label>
         <div class="asof" title="Datenstand des Modells (agg_pipeline_datenstand)">
           <span class="asof-label">Datenstand</span>
@@ -87,13 +75,17 @@ import { MonthCalendarView } from './views/month-calendar';
 })
 export class Ac1Page {
   protected readonly store = inject(Ac1Store);
-  protected readonly envs = ENVS;
-  protected readonly audiences = AUDIENCES;
+  protected readonly envOptions: UiOption<Env>[] = ENVS.map((e) => ({ value: e, label: e }));
+  protected readonly audienceOptions: UiOption<Audience>[] = AUDIENCES.map((a) => ({ value: a, label: AUDIENCE_LABEL[a] }));
   protected readonly audienceLabel = AUDIENCE_LABEL;
   protected readonly text = label;
 
   protected readonly asOf = computed(() => localStamp(this.store.asOf.rows()[0]?.datenstand_local ?? null));
   protected readonly monthText = computed(() => monthLong(this.store.month()));
+  /** [selected] per option (in ui-select): the select's own [value] binds before a new audience's options exist */
+  protected readonly personOptions = computed<UiSelectOption[]>(() =>
+    this.store.audienceList().map((p) => ({ value: p.person.key, label: label(p.person) + (p.tourDays ? '' : ' (ohne Plan)') })),
+  );
 
   constructor() {
     // shared story mode (D2): the story reads and sets this page's state while the page is shown

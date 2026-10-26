@@ -83,5 +83,55 @@ export const TOKENS: Record<Mode, ChartTokens> = {
   },
 };
 
+/**
+ * The SBB style variant (core/style.ts): status hues = the first three SBB slots of core/tokens.ts SBB_TOKENS,
+ * validated all-pairs with validate_palette.js --pairs all on 2026-10-24: light vs #ffffff worst CVD dE 12.7,
+ * normal-vision 23.9; dark vs #212121 worst CVD dE 8.8, normal-vision 24.0. Neutrals from the SBB grey scale.
+ */
+export const SBB_TOKENS: Record<Mode, ChartTokens> = {
+  light: {
+    surface: '#ffffff',
+    ink: '#000000',
+    ink2: '#444444',
+    muted: '#767676',
+    grid: '#e5e5e5',
+    axis: '#bdbdbd',
+    tooltipBg: '#ffffff',
+    tooltipBorder: '#d2d2d2',
+    status: {
+      VALID_GT_90: '#0079c7',
+      VALID_LT_90: '#da720a',
+      NOT_YET_VALID: '#0a6728',
+      EXPIRED: '#444444',
+      DATES_MISSING: '#ececec',
+      MISSING_NEVER: '#f6f6f6',
+    },
+    ring: '#767676',
+    seq: ['#d1e8fe', '#a1d0fc', '#62b4fe', '#3295e5', '#0676c1', '#015893', '#023f6c'],
+    noName: '#b7b7b7',
+  },
+  dark: {
+    surface: '#212121',
+    ink: '#ffffff',
+    ink2: '#dcdcdc',
+    muted: '#a8a8a8',
+    grid: '#333333',
+    axis: '#5a5a5a',
+    tooltipBg: '#2a2a2a',
+    tooltipBorder: '#444444',
+    status: {
+      VALID_GT_90: '#1682d0',
+      VALID_LT_90: '#af5b08',
+      NOT_YET_VALID: '#2baa4e',
+      EXPIRED: '#dcdcdc',
+      DATES_MISSING: '#2c2c2c',
+      MISSING_NEVER: '#272727',
+    },
+    ring: '#a8a8a8',
+    seq: ['#003053', '#024574', '#065b96', '#0676c1', '#3295e5', '#62b4fe', '#a7d3fd'],
+    noName: '#686868',
+  },
+};
+
 export const FONT_UI = '"Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif';
 export const FONT_NUM = 'Bahnschrift, "DIN Alternate", "Segoe UI", system-ui, sans-serif';

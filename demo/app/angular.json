@@ -47,7 +47,12 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              {
+                "input": "src/styles-sbb.css",
+                "bundleName": "sbb",
+                "inject": false
+              }
             ]
           },
           "configurations": {

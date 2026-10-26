@@ -12,7 +12,7 @@
     <div class="linked-left">
       <app-card heading="Delivered size per batch" [sub]="scopeText() + '. Drag across the bars to set the Pareto range.'" [q]="batchSize" class="brush-card">
         @if (range()) {
-          <button card-tools type="button" class="btn" (click)="clearBrush()">Clear range</button>
+          <ui-button card-tools (click)="clearBrush()">Clear range</ui-button>
         }
         <div echarts class="chart h-320" [options]="batchOptions()!" [theme]="theme.echartsTheme()"
           (chartInit)="onChartInit($event)" (chartBrushEnd)="onBrushEnd($any($event))"></div>
@@ -20,7 +20,7 @@
 
       <app-card heading="Batches" [sub]="batchTable.rows().length + ' batches, largest first' + (range() ? '. Rows in the brushed range are marked.' : '')" [q]="batchTable">
         <div class="table-wrap table-tall">
-          <table class="tbl">
+          <table class="tbl" uiTable>
             <thead>
               <tr><th>Batch</th><th>Fidelity</th><th class="r">Files</th><th class="r">Size GiB</th><th class="r">Growth</th></tr>
             </thead>
@@ -66,14 +66,14 @@
 
       <app-card heading="Silver time per run by key" [sub]="pSilver.rows().length > topN && !showAllSilver() ? 'Slowest ' + topN + ' of ' + pSilver.rows().length : pSilver.rows().length + ' keys'" [q]="pSilver">
         @if (pSilver.rows().length > topN) {
-          <button card-tools type="button" class="btn btn-ghost" (click)="showAllSilver.set(!showAllSilver())">{{ showAllSilver() ? 'Show top ' + topN : 'Show all ' + pSilver.rows().length }}</button>
+          <ui-button card-tools kind="ghost" (click)="showAllSilver.set(!showAllSilver())">{{ showAllSilver() ? 'Show top ' + topN : 'Show all ' + pSilver.rows().length }}</ui-button>
         }
         <div echarts class="chart" [style.height.px]="silverHeight()" [options]="silverOptions()!" [theme]="theme.echartsTheme()"></div>
       </app-card>
 
       <app-card heading="Gold time per run by key" [sub]="pGold.rows().length > topN && !showAllGold() ? 'Slowest ' + topN + ' of ' + pGold.rows().length : pGold.rows().length + ' keys'" [q]="pGold">
         @if (pGold.rows().length > topN) {
-          <button card-tools type="button" class="btn btn-ghost" (click)="showAllGold.set(!showAllGold())">{{ showAllGold() ? 'Show top ' + topN : 'Show all ' + pGold.rows().length }}</button>
+          <ui-button card-tools kind="ghost" (click)="showAllGold.set(!showAllGold())">{{ showAllGold() ? 'Show top ' + topN : 'Show all ' + pGold.rows().length }}</ui-button>
         }
         <div echarts class="chart" [style.height.px]="goldHeight()" [options]="goldOptions()!" [theme]="theme.echartsTheme()"></div>
       </app-card>

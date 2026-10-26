@@ -7,6 +7,7 @@ import { ThemeService } from '../../../core/theme';
 import { ChartCard } from '../../../shared/chart-card';
 import { ChartResize } from '../../../shared/chart-resize';
 import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
+import { UiOption, UiSeg } from '../../../shared/ui';
 import { ac13Colors } from '../data/palette';
 import { Ac13Store, AzMeasure } from '../data/store';
 import { PunktRow } from '../data/types';
@@ -37,16 +38,13 @@ function jitter(key: string): number {
  */
 @Component({
   selector: 'ac13-az',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wie lang sind die Touren je Standort, und wie viele erreichen 12 h oder 14 h?" [q]="[store.box, store.punkte]"
               emptyNote="Für diese Auswahl gibt es keine Tour im Monat.">
       <div card-tools class="ac13-tools">
-        <div class="seg seg-sm" role="group" aria-label="Messgrösse">
-          <button type="button" [attr.aria-pressed]="store.azMeasure() === 'arbeitszeit'" (click)="store.azMeasure.set('arbeitszeit')">Arbeitszeit v1</button>
-          <button type="button" [attr.aria-pressed]="store.azMeasure() === 'angerechnet'" (click)="store.azMeasure.set('angerechnet')">angerechnete Zeit</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Messgrösse" [options]="measureOptions" [value]="store.azMeasure()" (valueChange)="store.azMeasure.set($event)" />
       </div>
       <p class="ac13-answer">{{ answer() }}</p>
       <div echarts class="chart" [style.height.px]="height()" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="click($any($event))"
@@ -57,6 +55,10 @@ function jitter(key: string): number {
 })
 export class AzView {
   protected readonly store = inject(Ac13Store);
+  protected readonly measureOptions: UiOption<AzMeasure>[] = [
+    { value: 'arbeitszeit', label: 'Arbeitszeit v1' },
+    { value: 'angerechnet', label: 'angerechnete Zeit' },
+  ];
   protected readonly theme = inject(ThemeService);
 
   private readonly m = computed<AzMeasure>(() => this.store.azMeasure());
@@ -129,7 +131,7 @@ export class AzView {
     const { names, pts, boxes } = this.layout();
     if (!names.length) return null;
     const t = this.theme.tokens();
-    const c = ac13Colors(this.theme.mode());
+    const c = ac13Colors(this.theme.tokens());
     const m = this.m();
     const color = m === 'arbeitszeit' ? c.az : c.anger;
     const selTour = this.store.tour();

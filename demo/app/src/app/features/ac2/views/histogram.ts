@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { UiButton, UiSeg } from '../../../shared/ui';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import type { EChartsCoreOption } from 'echarts/core';
 import { DataStore, Person, label } from '../data/model';
@@ -18,20 +19,18 @@ const LIST_CAP = 200;
  */
 @Component({
   selector: 'app-histogram',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Fehlende Qualifikationen je Person" [sub]="sub()" [q]="store.modelQueries" [forceEmpty]="!!store.model() && sel.people().length === 0">
-      <div card-tools class="seg seg-sm" role="group" aria-label="Was als Lücke zählt">
-        <button type="button" [attr.aria-pressed]="!withExpired()" (click)="withExpired.set(false)">Nur «Fehlt»</button>
-        <button type="button" [attr.aria-pressed]="withExpired()" (click)="withExpired.set(true)">«Fehlt» + abgelaufen</button>
-      </div>
+      <ui-seg card-tools size="sm" ariaLabel="Was als Lücke zählt" [value]="withExpired()" (valueChange)="withExpired.set($event)"
+        [options]="[{ value: false, label: 'Nur «Fehlt»' }, { value: true, label: '«Fehlt» + abgelaufen' }]" />
       <div echarts class="chart h-300" [options]="options()!" [theme]="theme.echartsTheme()" (chartClick)="pick($any($event))"></div>
       @if (bin() != null) {
         <section class="bin" aria-live="polite">
           <header class="bin-head">
             <h3>{{ num(binPeople().length) }} Personen mit {{ bin() }} {{ withExpired() ? 'Lücken (inkl. abgelaufen)' : 'fehlenden Qualifikationen' }}</h3>
-            <button type="button" class="btn btn-ghost" (click)="bin.set(null)">Schliessen</button>
+            <ui-button kind="ghost" (click)="bin.set(null)">Schliessen</ui-button>
           </header>
           @if (binPeople().length > cap) { <p class="muted">Die ersten {{ cap }} von {{ num(binPeople().length) }}.</p> }
           <ul class="plist">

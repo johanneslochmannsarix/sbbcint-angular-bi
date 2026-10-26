@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, ViewEncapsulation, computed, inject } from '@angular/core';
-import { ENVS } from '../../core/api';
+import { ENVS, Env } from '../../core/api';
 import { HeaderSlot } from '../../core/header-slot';
 import { BLANK, localStamp } from '../../core/format';
-import { Ac7Store, FilterKey } from './data/store';
+import { UiButton, UiOption, UiSeg, UiSelect, UiSelectOption } from '../../shared/ui';
+import { Ac7Store, FilterKey, View } from './data/store';
 import { OFFEN } from './data/types';
 import { ArbeitszeitView } from './views/arbeitszeit';
 import { FlowView } from './views/flow';
@@ -21,7 +22,7 @@ import { WhereView } from './views/where';
  */
 @Component({
   selector: 'app-ac7-page',
-  imports: [HeaderSlot, KpiBand, TimelineView, FlowView, StintsView, WhereView, ArbeitszeitView, PersonDrawer, FormularView],
+  imports: [HeaderSlot, UiSeg, UiSelect, UiButton, KpiBand, TimelineView, FlowView, StintsView, WhereView, ArbeitszeitView, PersonDrawer, FormularView],
   providers: [Ac7Store],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -31,15 +32,8 @@ import { WhereView } from './views/where';
     <ng-template appHeader>
       <div class="slot-row">
         <span class="slot-title ac7-title">Verleihliste RT&amp;S</span>
-        <div class="seg" role="group" aria-label="Umgebung">
-          @for (e of envs; track e) {
-            <button type="button" [attr.aria-pressed]="store.env() === e" (click)="store.setEnv(e)">{{ e }}</button>
-          }
-        </div>
-        <div class="seg seg-sm" role="group" aria-label="Ansicht">
-          <button type="button" [attr.aria-pressed]="store.view() === 'analyse'" (click)="store.setView('analyse')">Analyse</button>
-          <button type="button" [attr.aria-pressed]="store.view() === 'formular'" (click)="store.setView('formular')">Formular</button>
-        </div>
+        <ui-seg ariaLabel="Umgebung" [options]="envOptions" [value]="store.env()" (valueChange)="store.setEnv($event)" />
+        <ui-seg size="sm" ariaLabel="Ansicht" [options]="viewOptions" [value]="store.view()" (valueChange)="store.setView($event)" />
         <div class="asof" title="sm_au_verleihliste hat keinen eigenen Stand; der Gold-Lauf, der die Liste schreibt, aktualisiert auch das RT&amp;S-Importmodell, dessen Datenstand hier steht">
           <span class="asof-label">Stand</span>
           <span class="asof-value">{{ asOf() }}</span>
@@ -49,7 +43,7 @@ import { WhereView } from './views/where';
 
     <ng-template appHeader="sub">
       <div class="sel-bar ac7-bar" role="navigation" aria-label="Auswahl">
-        <button type="button" class="btn btn-ghost" (click)="store.back()" [disabled]="!store.filtered()" aria-label="Einen Schritt zurück">‹ Zurück</button>
+        <ui-button kind="ghost" (click)="store.back()" [disabled]="!store.filtered()" label="Einen Schritt zurück">‹ Zurück</ui-button>
         <ol class="ac7-crumbs">
           <li>@if (store.filtered()) { <button type="button" class="linkish" (click)="store.resetAll()">Ganze Liste</button> } @else { <span aria-current="location">Ganze Liste</span> }</li>
           @for (c of store.crumbs(); track c.key; let last = $last) {
@@ -61,22 +55,13 @@ import { WhereView } from './views/where';
           }
         </ol>
         <label class="ac7-pick">Tätigkeit
-          <select class="select" (change)="store.setTaet($any($event.target).value || null)">
-            <option value="" [selected]="store.taet() == null">alle</option>
-            @for (t of store.taetigkeiten.rows(); track t.rang) { <option [value]="t.taetigkeit" [selected]="t.rang === store.taet()">{{ t.taetigkeit }}</option> }
-          </select>
+          <ui-select [options]="taetOptions()" [value]="taetValue()" (valueChange)="store.setTaet($event || null)" />
         </label>
         <label class="ac7-pick">Ort
-          <select class="select" (change)="pickOrt($any($event.target).value)">
-            <option value="" [selected]="store.ort() == null">alle</option>
-            @for (o of orte(); track o.rang) { <option [value]="o.ort" [selected]="o.rang === store.ort()">{{ o.ort }}</option> }
-          </select>
+          <ui-select [options]="ortOptions()" [value]="ortValue()" (valueChange)="pickOrt($event)" />
         </label>
         <label class="ac7-pick">Auftrag
-          <select class="select" (change)="pickAuftrag($any($event.target).value)">
-            <option value="" [selected]="store.auftrag() == null">alle</option>
-            @for (a of auftraege(); track a.auftrag_token) { <option [value]="a.auftrag" [selected]="a.auftrag_token === store.auftrag()">{{ a.auftrag }} ({{ a.geschaeftsart }})</option> }
-          </select>
+          <ui-select [options]="auftragOptions()" [value]="auftragValue()" (valueChange)="pickAuftrag($event)" />
         </label>
       </div>
     </ng-template>
@@ -140,6 +125,19 @@ export class Ac7Page {
   });
   protected readonly orte = computed(() => this.store.orte.rows().slice().sort((a, b) => a.ort.localeCompare(b.ort, 'de')));
   protected readonly auftraege = computed(() => this.store.auftraege.rows().slice().sort((a, b) => a.auftrag.localeCompare(b.auftrag, 'de')));
+  protected readonly envOptions: UiOption<Env>[] = this.envs.map((e) => ({ value: e, label: e }));
+  protected readonly viewOptions: UiOption<View>[] = [
+    { value: 'analyse', label: 'Analyse' },
+    { value: 'formular', label: 'Formular' },
+  ];
+  protected readonly taetOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' },
+    ...this.store.taetigkeiten.rows().map((t) => ({ value: t.taetigkeit, label: t.taetigkeit }))]);
+  protected readonly taetValue = computed(() => this.store.taetigkeiten.rows().find((t) => t.rang === this.store.taet())?.taetigkeit ?? '');
+  protected readonly ortOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' }, ...this.orte().map((o) => ({ value: o.ort, label: o.ort }))]);
+  protected readonly ortValue = computed(() => this.orte().find((o) => o.rang === this.store.ort())?.ort ?? '');
+  protected readonly auftragOptions = computed<UiSelectOption[]>(() => [{ value: '', label: 'alle' },
+    ...this.auftraege().map((a) => ({ value: a.auftrag, label: `${a.auftrag} (${a.geschaeftsart ?? ''})` }))]);
+  protected readonly auftragValue = computed(() => this.auftraege().find((a) => a.auftrag_token === this.store.auftrag())?.auftrag ?? '');
 
   protected pickOrt(v: string): void {
     if (!v) this.store.clear('ort' as FilterKey);

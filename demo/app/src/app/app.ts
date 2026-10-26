@@ -5,18 +5,23 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { EMPTY, catchError, debounceTime, startWith, switchMap } from 'rxjs';
 import { ApiService, Health } from './core/api';
 import { HeaderSlotService } from './core/header-slot';
+import { StyleService } from './core/style';
 import { ThemeService } from './core/theme';
+import { SbbHeader } from './app.sbb-header';
+import { SHOWCASES } from './app.showcases';
 import { StoryPanel } from './story/story-panel';
 
-/** The shell: brand, showcase tabs, the active feature's header slot, masking state, theme, call counters. */
+/** The shell: brand, showcase tabs, the active feature's header slot, masking state, style + theme, call counters. */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgTemplateOutlet, StoryPanel],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgTemplateOutlet, StoryPanel, SbbHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
 })
 export class App {
   protected readonly theme = inject(ThemeService);
+  protected readonly style = inject(StyleService);
+  protected readonly showcases = SHOWCASES;
   protected readonly api = inject(ApiService);
   protected readonly slot = inject(HeaderSlotService);
   protected readonly health = signal<Health | null>(null);

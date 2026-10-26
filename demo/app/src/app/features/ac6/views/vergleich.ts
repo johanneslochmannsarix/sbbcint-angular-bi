@@ -11,6 +11,7 @@ import { ariaDecal, ttHead, ttRow } from '../../../shared/chart-opts';
 import { ac6Colors } from '../data/palette';
 import { Ac6Store, S1_NAME, S1_PERIOD } from '../data/store';
 import { DAY_LONG } from '../data/week';
+import { UiButton } from '../../../shared/ui';
 
 const signedPct = (v: number | null) => (v == null || !Number.isFinite(v) ? '–' : `${v > 0 ? '+' : v < 0 ? '−' : '±'}${num(Math.abs(v) * 100, 0)} %`);
 
@@ -26,7 +27,7 @@ const signedPct = (v: number | null) => (v == null || !Number.isFinite(v) ? '–
   selector: 'ac6-vergleich',
   styleUrl: './vergleich.css',
   encapsulation: ViewEncapsulation.None,
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, ChartGroup],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, ChartGroup, UiButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (store.isS1()) {
@@ -58,7 +59,7 @@ const signedPct = (v: number | null) => (v == null || !Number.isFinite(v) ? '–
       <section class="card ac6-off">
         <h2 class="ac6-h2">Hält die Disposition, was die Musterwoche plant?</h2>
         <p>Diesen Vergleich gibt es nur für «{{ s1 }}»: nur diese Version hat einen geklärten Zeitraum ({{ period }}). Für «{{ store.versionName() }}» liefert die Quelle keine Gültigkeit (SAX-40), also kein Zeitfenster der Disposition.</p>
-        <button type="button" class="btn" (click)="store.pickVersion(null)">«{{ s1 }}» zeigen</button>
+        <ui-button (click)="store.pickVersion(null)">«{{ s1 }}» zeigen</ui-button>
       </section>
     }
   `,

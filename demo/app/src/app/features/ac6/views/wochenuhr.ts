@@ -11,6 +11,7 @@ import { MergeOptions } from '../../../shared/merge-options';
 import { ac6Colors } from '../data/palette';
 import { Ac6Store } from '../data/store';
 import { DAY_SHORT, hourLabel } from '../data/week';
+import { UiOption, UiSeg } from '../../../shared/ui';
 
 type Shape = 'uhr' | 'band';
 type Measure = 'stunden' | 'touren';
@@ -30,19 +31,13 @@ const ARTS = [
  */
 @Component({
   selector: 'ac6-wochenuhr',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, MergeOptions, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card heading="Wie sieht eine normale Woche dieser Planung aus?" [q]="store.woche" emptyNote="Unter diesem Filter plant die Version keine Elemente.">
       <div card-tools class="ac6-tools">
-        <div class="seg seg-sm" role="group" aria-label="Messgrösse">
-          <button type="button" [attr.aria-pressed]="measure() === 'stunden'" (click)="measure.set('stunden')">Stunden</button>
-          <button type="button" [attr.aria-pressed]="measure() === 'touren'" (click)="measure.set('touren')">Touren im Einsatz</button>
-        </div>
-        <div class="seg seg-sm" role="group" aria-label="Darstellung">
-          <button type="button" [attr.aria-pressed]="shape() === 'uhr'" (click)="shape.set('uhr')">Wochenuhr</button>
-          <button type="button" [attr.aria-pressed]="shape() === 'band'" (click)="shape.set('band')">Band</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Messgrösse" [options]="measureOptions" [value]="measure()" (valueChange)="measure.set($event)" />
+        <ui-seg size="sm" ariaLabel="Darstellung" [options]="shapeOptions" [value]="shape()" (valueChange)="shape.set($event)" />
       </div>
       <p class="ac6-answer">{{ answer() }}</p>
       <div echarts class="chart ac6-uhr" [style.height.px]="450" [options]="blank" [mergeOptions]="options()"
@@ -62,6 +57,14 @@ export class WochenuhrView {
   protected readonly theme = inject(ThemeService);
   protected readonly shape = signal<Shape>('uhr');
   protected readonly measure = signal<Measure>('stunden');
+  protected readonly measureOptions: UiOption<Measure>[] = [
+    { value: 'stunden', label: 'Stunden' },
+    { value: 'touren', label: 'Touren im Einsatz' },
+  ];
+  protected readonly shapeOptions: UiOption<Shape>[] = [
+    { value: 'uhr', label: 'Wochenuhr' },
+    { value: 'band', label: 'Band' },
+  ];
   protected readonly blank: EChartsCoreOption = {};
 
   private readonly grid = computed(() => {

@@ -9,6 +9,7 @@ import { ariaDecal, esc, ttHead, ttRow } from '../../../shared/chart-opts';
 import { Ac10Store } from '../data/store';
 import { ac10Colors, hatchCss, hatchFill, kategorieRank, kategorieStyle, landHue } from '../data/palette';
 import { PositionRow } from '../data/types';
+import { UiButton, UiSeg, UiTable } from '../../../shared/ui';
 
 const LANE_H = 15;
 const MAX_VISIBLE_LANES = 56;
@@ -62,15 +63,13 @@ function pack(rows: PositionRow[], groupOf: (r: PositionRow) => string, order: (
  */
 @Component({
   selector: 'ac10-tagesdrill',
-  imports: [NgxEchartsDirective, ChartResize, ChartCard],
+  imports: [NgxEchartsDirective, ChartResize, ChartCard, UiSeg, UiButton, UiTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [heading]="heading()" [sub]="sub()" [q]="[store.tagSchichten, store.tagElemente]">
       <div card-tools class="ac10-tools">
-        <div class="seg seg-sm" role="group" aria-label="Tag wechseln">
-          <button type="button" (click)="shift(-1)" aria-label="Vorheriger Tag">‹</button>
-          <button type="button" (click)="shift(1)" aria-label="Nächster Tag">›</button>
-        </div>
+        <ui-seg size="sm" ariaLabel="Tag wechseln" [actions]="true" (valueChange)="shift($event)"
+          [options]="[{ value: -1, label: '‹', ariaLabel: 'Vorheriger Tag' }, { value: 1, label: '›', ariaLabel: 'Nächster Tag' }]" />
         @if (!store.depot()) {
           <label class="ac10-check"><input type="checkbox" [checked]="showFilled()" (change)="showFilled.set(!showFilled())" /> auch besetzte</label>
         }
@@ -91,7 +90,7 @@ function pack(rows: PositionRow[], groupOf: (r: PositionRow) => string, order: (
       <details class="ac10-list" [open]="listOpen()" (toggle)="listOpen.set($any($event.target).open)">
         <summary>Detailliste: {{ num(listRows().length) }} Positionen{{ listRows().length > TABLE_MAX ? ', die ersten ' + TABLE_MAX + ' gezeigt' : '' }}</summary>
         <div class="table-wrap ac10-table">
-          <table class="tbl tbl-click">
+          <table class="tbl tbl-click" uiTable>
             <thead><tr>
               <th>Start (Plan)</th><th>Ende (Plan)</th><th>Status</th><th>Mandant</th><th>Depot</th><th>Haupt-Personaltyp</th><th>Personaltyp / Kategorie</th>
               <th>Bezeichnung</th><th>Von</th><th>Nach</th><th class="r">Elemente</th><th>ID</th>
@@ -120,7 +119,7 @@ function pack(rows: PositionRow[], groupOf: (r: PositionRow) => string, order: (
             <p class="ac10-kicker">{{ p.position_typ }} · S-{{ p.position_sk.slice(0, 8) }}</p>
             <h2>{{ p.position_name ?? 'ohne Bezeichnung' }}</h2>
           </div>
-          <button type="button" class="btn btn-ghost" (click)="store.pickPosition(null)" aria-label="Schliessen">×</button>
+          <ui-button kind="ghost" (click)="store.pickPosition(null)" label="Schliessen">×</ui-button>
         </header>
         <div class="drawer-body drawer-pad">
           <dl class="ac10-dl">

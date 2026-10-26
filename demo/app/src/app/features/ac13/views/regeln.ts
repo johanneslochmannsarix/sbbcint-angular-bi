@@ -63,7 +63,7 @@ export class RegelnView {
     const { months, rows, panels } = this.layout();
     if (!months.length) return null;
     const t = this.theme.tokens();
-    const c = ac13Colors(this.theme.mode());
+    const c = ac13Colors(this.theme.tokens());
     const sel = this.store.month();
     const cols = 3;
     const w = 100 / cols;

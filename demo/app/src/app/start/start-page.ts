@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ENVS, Env } from '../core/api';
 import { BLANK, dateTimeLU, localMs, localStamp, utcMs } from '../core/format';
 import { createQuery } from '../core/query';
+import { UiButton, UiOption, UiSeg } from '../shared/ui';
 import { StoryService } from '../story/story';
 
 interface AsOf { datenstand_local: string | null }
@@ -16,7 +17,7 @@ interface Collected { last_collected: string | null; collector_errors: number | 
  */
 @Component({
   selector: 'app-start-page',
-  imports: [RouterLink],
+  imports: [RouterLink, UiButton, UiSeg],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="page start">
@@ -27,12 +28,8 @@ interface Collected { last_collected: string | null; collector_errors: number | 
             P-xxxxxx, gleich in allen Showcases dieses Backends; Klarnamen nur, wenn das Backend mit <code>run.ps1 -Real</code> läuft.</p>
         </div>
         <div class="start-story">
-          <div class="seg" role="group" aria-label="Umgebung für Datenstand und Story">
-            @for (e of envs; track e) {
-              <button type="button" [attr.aria-pressed]="env() === e" (click)="env.set(e)">{{ e }}</button>
-            }
-          </div>
-          <button type="button" class="btn btn-primary" (click)="story.start(env())">Story starten ({{ story.steps.length }} Schritte)</button>
+          <ui-seg ariaLabel="Umgebung für Datenstand und Story" [options]="envOptions" [value]="env()" (valueChange)="env.set($event)" />
+          <ui-button kind="primary" (click)="story.start(env())">Story starten ({{ story.steps.length }} Schritte)</ui-button>
         </div>
       </section>
 
@@ -162,7 +159,7 @@ interface Collected { last_collected: string | null; collector_errors: number | 
 })
 export class StartPage {
   protected readonly story = inject(StoryService);
-  protected readonly envs = ENVS;
+  protected readonly envOptions: UiOption<Env>[] = ENVS.map((e) => ({ value: e, label: e }));
   protected readonly env = signal<Env>('PROD');
 
   private readonly ac1Q = createQuery<AsOf>(() => ({ showcase: 'ac1', name: 'data_as_of', params: { env: this.env() } }));

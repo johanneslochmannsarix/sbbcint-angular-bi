@@ -68,7 +68,7 @@
         [forceEmpty]="!!spark.result() && sparkRows().length === 0"
         emptyNote="No Spark stages recorded for this activity in fact_spark_stage.">
         @if (selectedActivity()) {
-          <button card-tools type="button" class="btn btn-ghost" (click)="selectedActivity.set(null)">Close</button>
+          <ui-button card-tools kind="ghost" (click)="selectedActivity.set(null)">Close</ui-button>
         }
         <div echarts class="chart" [style.height.px]="sparkHeight()" [options]="sparkOptions()!" [theme]="theme.echartsTheme()" (chartClick)="onSparkClick($any($event))"></div>
         <p class="chart-note">Click a bar, the timeline below or a table row for the stage detail and its history across runs.</p>
@@ -83,7 +83,7 @@
         }
         @if (sparkRows().length) {
           <div class="table-wrap">
-            <table class="tbl">
+            <table class="tbl" uiTable>
               <thead>
                 <tr><th>Spark stage</th><th>Status</th><th class="r">Stages</th><th class="r">Run min</th><th class="r">Input GiB</th><th class="r">Input rows</th><th class="r">Output rows</th><th class="r">Shuffle GiB</th><th class="r">Spill GiB</th><th class="r">Peak exec MiB</th></tr>
               </thead>
@@ -105,7 +105,7 @@
 
       @if (selectedStage()) {
         <app-card heading="Stage detail" [sub]="stage()?.name ?? ''" [q]="[sparkDetail, sparkHistory]">
-          <button card-tools type="button" class="btn btn-ghost" (click)="selectedStage.set(null)">Close</button>
+          <ui-button card-tools kind="ghost" (click)="selectedStage.set(null)">Close</ui-button>
           @if (stage(); as s) {
             <p class="stage-name">{{ s.name }} <span class="tag">{{ s.status }}</span></p>
             <div class="tile-row tile-row-sm">
@@ -131,7 +131,7 @@
             }
 
             <div class="table-wrap">
-              <table class="tbl">
+              <table class="tbl" uiTable>
                 <thead><tr><th></th><th class="r">GiB</th><th class="r">Rows</th></tr></thead>
                 <tbody>
                   <tr><td>Input</td><td class="r">{{ fmt.num(s.input_gib, 3) }}</td><td class="r">{{ fmt.num(s.input_rows, 0) }}</td></tr>
@@ -175,7 +175,7 @@
 
   <app-card heading="Stage runs per day" [sub]="stageTable.rows().length + ' rows, slowest p90 first'" [q]="stageTable">
     <div class="table-wrap table-tall">
-      <table class="tbl">
+      <table class="tbl" uiTable>
         <thead>
           <tr><th>Start date</th><th>Tenant / env</th><th>Stage</th><th class="r">Runs</th><th class="r">Median min</th><th class="r">p90 min</th><th class="r">Queued min</th><th class="r">Retries</th></tr>
         </thead>

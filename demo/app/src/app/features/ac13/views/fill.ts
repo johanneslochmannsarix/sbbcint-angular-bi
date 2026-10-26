@@ -45,7 +45,7 @@ export class FillView {
     const rows = this.store.monate.rows().filter((r) => r.touren > 0);
     if (!rows.length) return null;
     const t = this.theme.tokens();
-    const c = ac13Colors(this.theme.mode());
+    const c = ac13Colors(this.theme.tokens());
     const sel = this.store.month();
     const share = rows.map((r) => (r.touren ? r.angerechnet_touren / r.touren : 0));
     return {
